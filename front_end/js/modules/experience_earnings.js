@@ -1,4 +1,4 @@
-import { earningsData } from "../api/legacyData.js";
+const earningsData = (() => { try { return JSON.parse(localStorage.getItem("experienceEarnings") || "[]"); } catch { return []; } })();
 import {
     formatCurrency,
     readStorage,

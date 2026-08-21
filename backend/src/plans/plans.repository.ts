@@ -12,6 +12,7 @@ export class PlansRepository {
       description: 'Relax in the serene backwaters of Alleppey with houseboat stays.',
       originCity: 'Bangalore',
       destination: 'Alleppey',
+      status: 'available',
       durationNights: 5,
       pricePerPerson: 22000,
       hotelStars: 4,
@@ -40,6 +41,7 @@ export class PlansRepository {
       durationNights: 7,
       pricePerPerson: 35000,
       hotelStars: 5,
+      status: 'available',
       includesFlight: false,
       image: '',
       tags: ['Heritage', 'Culture', 'Rajasthan'],
@@ -64,6 +66,7 @@ export class PlansRepository {
       id,
       title: data.title!,
       description: data.description!,
+      status: data.status ?? 'available',
       originCity: data.originCity!,
       destination: data.destination!,
       durationNights: data.durationNights!,
@@ -90,7 +93,7 @@ export class PlansRepository {
     from?: string;
     to?: string;
     destination?: string;
-  }): { items: Plan[]; total: number; page: number; limit: number } {
+  }): { data: Plan[]; total: number; page: number; limit: number } {
     const page = options?.page ?? 1;
     const limit = options?.limit ?? 50;
     let filtered = [...this.plans];
@@ -123,8 +126,8 @@ export class PlansRepository {
     );
 
     const total = filtered.length;
-    const items = filtered.slice((page - 1) * limit, page * limit);
-    return { items, total, page, limit };
+    const data = filtered.slice((page - 1) * limit, page * limit);
+    return { data, total, page, limit };
   }
 
   findById(id: string): Plan | undefined {

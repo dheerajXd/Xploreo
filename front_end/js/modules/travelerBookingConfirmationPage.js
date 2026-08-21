@@ -5,16 +5,18 @@ import {
     getTravelerBookingConfirmation,
     getTravelerBookingDraft
 } from "../traveler/dashboard.js";
-import { travelerData } from "../api/legacyData.js";
+import { apiGetAndSync } from "../utils/api.js";
 
-function buildPlanConfirmationFromId(planId) {
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
+
+async function buildPlanConfirmationFromId(planId) {
     try {
         // Try to find in travelerData.itineraries
         const basePlan = (travelerData.itineraries || []).find(p => p.id === planId || String(p.bookingId) === planId);
 
-        // Also check tours localStorage for a confirmed record
-        const allTours = JSON.parse(localStorage.getItem("tours") || "[]");
-        const tourRecord = allTours.find(t => String(t.planId) === planId || String(t.bookingId) === planId || String(t.id) === planId);
+        // Fetch trips from backend (also syncs cache)
+        const allTours = await apiGetAndSync("/trips", "tours", []);
+        const tourRecord = (Array.isArray(allTours) ? allTours : []).find(t => String(t.planId) === planId || String(t.bookingId) === planId || String(t.id) === planId);
 
         const plan = basePlan || tourRecord;
         if (!plan) return null;

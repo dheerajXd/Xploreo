@@ -1,7 +1,5 @@
-import { travelerData } from "../api/legacyData.js";
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
 import { getTravelerBookings } from "../utils/travelerWorkspaceState.js";
-import { fetchTripsForGuide, fetchTripsForTraveller } from "../api/services.js";
-import { mapTripToLegacyTour } from "../api/adapters.js";
 
 const CONFIRMED_BOOKING_KEY = "traveler_confirmed_booking";
 const CONFIRMED_BOOKING_SESSION_KEY = "traveler_confirmed_booking_session";
@@ -232,19 +230,7 @@ export async function renderTravelerTrips(containerId, user) {
 }
 
 async function syncTripsFromApi(user) {
-    const currentUser = user || JSON.parse(localStorage.getItem("currentUser") || "null");
-    if (!currentUser?.id) return;
-
-    try {
-        const trips = currentUser.role === "guide"
-            ? await fetchTripsForGuide(currentUser.id)
-            : await fetchTripsForTraveller(currentUser.id);
-
-        const legacyTrips = trips.map((trip) => mapTripToLegacyTour(trip, currentUser.role));
-        localStorage.setItem("tours", JSON.stringify(legacyTrips));
-    } catch (error) {
-        console.error("Failed to sync trips from backend", error);
-    }
+    return;
 }
 
 function getTravelerTripsData() {

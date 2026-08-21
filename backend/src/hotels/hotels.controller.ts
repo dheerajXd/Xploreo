@@ -18,7 +18,7 @@ export class HotelsController {
   constructor(private readonly hotelsService: HotelsService) {}
 
   @Post()
-  @Roles(Role.PARTNER)
+  @Roles(Role.HOTEL)
   @ApiOperation({ summary: 'Partner creates a hotel' })
   @ApiCreateEndpoint(CreateHotelDto)
   create(@Body() dto: CreateHotelDto, @Req() req: any) {
@@ -26,14 +26,14 @@ export class HotelsController {
   }
 
   @Get()
-  @Roles(Role.TRAVELLER_ACTOR, Role.PARTNER)
+  @Roles(Role.TRAVELLER, Role.HOTEL)
   @ApiOperation({
     summary: 'Traveller searches active hotels; partner lists own hotels',
   })
   @ApiQuery({ name: 'location', required: false, example: 'Goa' })
   @ApiReadEndpoint()
   findAll(@Req() req: any, @Query('location') location?: string) {
-    if (req.user?.role === Role.PARTNER) {
+    if (req.user?.role === Role.HOTEL) {
       return this.hotelsService.findForPartner(req.user?.userId);
     }
 
@@ -41,7 +41,7 @@ export class HotelsController {
   }
 
   @Get(':id')
-  @Roles(Role.TRAVELLER_ACTOR, Role.PARTNER)
+  @Roles(Role.TRAVELLER, Role.HOTEL)
   @ApiOperation({ summary: 'Get hotel by ID' })
   @ApiReadEndpoint()
   findOne(@Param('id', NonEmptyStringPipe) id: string) {

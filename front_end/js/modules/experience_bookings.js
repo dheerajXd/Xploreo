@@ -1,4 +1,4 @@
-import { bookingsData } from "../api/legacyData.js";
+const bookingsData = (() => { try { return JSON.parse(localStorage.getItem("experienceBookings") || "[]"); } catch { return []; } })();
 import {
     closeModal,
     getBookingStatusMeta,

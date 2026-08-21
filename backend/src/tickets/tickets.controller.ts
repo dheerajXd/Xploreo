@@ -20,7 +20,7 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post()
-  @Roles(Role.TRAVELLER_ACTOR, Role.TRAVELLER)
+  @Roles( Role.TRAVELLER)
   @ApiOperation({ summary: 'Traveller creates a support ticket' })
   @ApiCreateEndpoint(CreateTicketDto)
   create(@Body() dto: CreateTicketDto, @Req() req: any) {
@@ -28,7 +28,7 @@ export class TicketsController {
   }
 
   @Get()
-  @Roles(Role.TECH_ADMIN, Role.TECHADMIN)
+  @Roles(Role.TECHADMIN)
   @ApiOperation({ summary: 'Technical admin views all support tickets' })
   @ApiReadEndpoint()
   findAll() {
@@ -36,7 +36,7 @@ export class TicketsController {
   }
 
   @Patch(':id')
-  @Roles(Role.TECH_ADMIN, Role.TECHADMIN)
+  @Roles(Role.TECHADMIN)
   @ApiOperation({ summary: 'Technical admin resolves a support ticket' })
   @ApiUpdateEndpoint(ResolveTicketDto)
   resolve(

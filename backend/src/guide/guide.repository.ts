@@ -5,12 +5,12 @@ import { Guide } from './entities/guide.entity';
 export class GuideRepository {
   private guides: Guide[] = [
     {
-      userId: '10001',
+      userId: 'G001',
       fname: 'Sreekar',
-      lname: 'K',
+      lname: '',
       email: 'sreekar@gmail.com',
       phone: 9876543210,
-      location: 'loc-mumbai-1',
+      location: 'Mumbai',
       prof_title: 'Senior Trek Guide',
       years_exp: 7,
       bio: 'Expert mountain guide with 7+ years experience in Western Ghats',

@@ -1,4 +1,8 @@
-import { userStatusStyles } from '../api/legacyData.js';
+const userStatusStyles = {
+    Active: { color: "#1e8e3e", bg: "#e6f4ea" },
+    Pending: { color: "#d97706", bg: "#fef3c7" },
+    Inactive: { color: "#e53e3e", bg: "#fff5f5" }
+};
 
 export function getUserTableShellHTML() {
     return `

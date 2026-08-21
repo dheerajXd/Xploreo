@@ -1,4 +1,5 @@
-import { travelerData } from "../api/legacyData.js";
+import { apiFetch } from "../utils/api.js";
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
 
 const SELECTED_PLAN_KEY = "traveler_selected_plan";
 const SELECTED_FLIGHT_KEY = "traveler_selected_flight";
@@ -416,6 +417,10 @@ function bindEvents(container, state) {
                 plan_iternary: plan.tags || []
             };
 
+            // POST trip to backend
+            apiFetch("/trips", { method: "POST", body: tripRecord }).catch(() => {});
+
+            // Update local cache
             const allTours = JSON.parse(localStorage.getItem("tours") || "[]");
             if (!allTours.find(t => String(t.id) === bookingId || String(t.bookingId) === bookingId)) {
                 allTours.push(tripRecord);

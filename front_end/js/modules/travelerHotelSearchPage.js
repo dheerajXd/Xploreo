@@ -1,6 +1,5 @@
-import { mapHotelToSearchCard } from "../api/adapters.js";
-import { fetchHotels } from "../api/services.js";
 import { getTodayDateString } from "../utils/locationAutocomplete.js";
+import { apiGetAndSync } from "../utils/api.js";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=900";
 const CITY_IMAGE = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=900";
@@ -34,10 +33,12 @@ export async function renderTravelerHotelSearchPage(containerId) {
 }
 
 async function loadHotels(query = "") {
-    return (await fetchHotels(query ? { location: query } : {}).catch((error) => {
-        console.error("Failed to load hotels:", error);
+    try {
+        const raw = await apiGetAndSync("/hotels", "hotels", []);
+        return (Array.isArray(raw) ? raw : []).map((h) => ({ title: h.name || h.title, price: h.pricePerNight || h.price || 100, stars: h.stars || 4, ...h }));
+    } catch {
         return [];
-    })).map(mapHotelToSearchCard);
+    }
 }
 
 function render(container, hotels, state) {
@@ -245,8 +246,8 @@ function renderEmptyState(state) {
     const city = state.query ? ` in ${escapeHtml(state.query)}` : "";
     return `
         <div class="traveler-hotel-empty">
-            <h2>No backend hotels found${city}</h2>
-            <p>Ask the hotel service partner to add an active hotel for this city, then search again. Partner-created hotels appear here from <code>GET /api/hotels</code>.</p>
+            <h2>No hotels found${city}</h2>
+            <p>Add an active hotel for this city or try searching another location.</p>
         </div>
     `;
 }

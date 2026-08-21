@@ -1,9 +1,6 @@
-import { fetchPartnerHotels } from "../api/services.js?v=hotel-workflow-2";
-import {
-  getApiBaseUrl,
-  getApiSession,
-} from "../api/session.js?v=hotel-workflow-2";
-
+/* ================================================================
+   hotel-services-page.js — 100% Client-side (localStorage)
+================================================================ */
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=900";
 
@@ -12,13 +9,24 @@ export async function renderServicesPage(containerId = "main") {
     document.getElementById(containerId) || document.getElementById("main");
   if (!root) return;
 
-  root.innerHTML = renderShell("Loading hotel services...");
-  const hotels = await fetchPartnerHotels().catch((error) => {
-    console.error("Failed to load partner hotels:", error);
-    return [];
-  });
-
+  const hotels = fetchPartnerHotels();
   render(root, hotels);
+}
+
+function fetchPartnerHotels() {
+  try {
+    return JSON.parse(localStorage.getItem("hotels") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function createPartnerHotel(payload) {
+  const hotels = fetchPartnerHotels();
+  const newHotel = { id: Date.now(), status: "active", ...payload };
+  hotels.push(newHotel);
+  localStorage.setItem("hotels", JSON.stringify(hotels));
+  return newHotel;
 }
 
 function render(root, hotels) {
@@ -26,7 +34,7 @@ function render(root, hotels) {
     <div class="hotel-page-header hotel-flex-header">
       <div>
         <h1>Services</h1>
-        <p>Manage your hotel offerings from the backend catalogue</p>
+        <p>Manage your hotel offerings</p>
       </div>
       <button class="btn-blue" id="open-service-modal" type="button">+ Add Hotel</button>
     </div>
@@ -49,18 +57,6 @@ function render(root, hotels) {
   `;
 
   bindEvents(root);
-}
-
-function renderShell(message) {
-  return `
-    <div class="hotel-page-header hotel-flex-header">
-      <div>
-        <h1>Services</h1>
-        <p>Manage your hotel offerings</p>
-      </div>
-    </div>
-    <div class="hotel-content-card">${escapeHtml(message)}</div>
-  `;
 }
 
 function renderHotelCard(hotel) {
@@ -142,7 +138,7 @@ function bindEvents(root) {
 
   root
     .querySelector("#hotel-service-form")
-    ?.addEventListener("submit", async (event) => {
+    ?.addEventListener("submit", (event) => {
       event.preventDefault();
       const error = root.querySelector("#hotel-form-error");
       if (error) error.textContent = "";
@@ -155,44 +151,14 @@ function bindEvents(root) {
       }
 
       try {
-        await createPartnerHotel(payload);
-        const hotels = await fetchPartnerHotels();
+        createPartnerHotel(payload);
+        const hotels = fetchPartnerHotels();
         render(root, hotels);
       } catch (err) {
         console.error("Create hotel failed:", err);
         if (error) error.textContent = err.message || "Unable to save hotel.";
       }
     });
-}
-
-async function createPartnerHotel(payload) {
-  const session = getApiSession();
-  const userId =
-    session?.headers?.["x-user-id"] ||
-    session?.user?.userId ||
-    session?.user?.id;
-  const role =
-    session?.user?.role === "PARTNER" || session?.user?.role === "hotel"
-      ? "PARTNER"
-      : session?.headers?.["x-user-role"];
-
-  const response = await fetch(`${getApiBaseUrl()}/hotels`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-user-id": userId || "",
-      "x-user-role": role || "PARTNER",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = body?.message || body?.error || "Unable to save hotel.";
-    throw new Error(Array.isArray(message) ? message.join(", ") : message);
-  }
-
-  return Object.prototype.hasOwnProperty.call(body, "data") ? body.data : body;
 }
 
 function readHotelPayload() {

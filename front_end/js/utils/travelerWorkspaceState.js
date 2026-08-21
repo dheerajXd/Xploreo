@@ -1,4 +1,6 @@
-import { users, travelerWorkspaceSeed } from "../api/legacyData.js";
+import { apiGetAndSync, apiFetch } from "./api.js";
+
+const travelerWorkspaceSeed = (() => { try { return JSON.parse(localStorage.getItem("travelerWorkspaceSeed") || "{}"); } catch { return {}; } })();
 
 const STORAGE_KEYS = {
     plans: "traveler_workspace_plans",
@@ -10,44 +12,14 @@ const STORAGE_KEYS = {
 };
 
 function clone(value) {
+    if (value === undefined || value === null) {
+        return value;
+    }
     return JSON.parse(JSON.stringify(value));
 }
 
 function getTravelerProfilePreset(user) {
-    const presets = {
-        "20002": {
-            fullName: "Meera Iyer",
-            email: "meera@xploreo.com",
-            phone: "+91 88776 65544",
-            location: "Chennai, Tamil Nadu",
-            language: "English (US)",
-            gender: "Female",
-            dob: "2002-04-12",
-            bio: "Curious traveller and culture-first planner who loves coastal getaways, heritage neighborhoods, boutique stays, and thoughtfully paced itineraries.",
-            reputation: "Explorer Status",
-            level: 5,
-            totalTrips: 11,
-            countries: 9,
-            preferences: {
-                transport: "Premium Economy / Trains",
-                stay: "Boutique Hotels / Heritage Stays",
-                budget: "Premium (Rs30k - Rs80k / day)",
-                activityStyle: "Culture / Food / Nature"
-            },
-            interestPreferences: ["Culture", "Food"],
-            hobbies: ["Photography", "Food trails", "Wellness retreats", "Temple visits", "Beach escapes", "Art museums"],
-            security: {
-                twoFactorAuth: true,
-                emailNotifications: true,
-                publicProfile: false
-            }
-        }
-    };
-
-    if (user?.id && presets[user.id]) {
-        return clone(presets[user.id]);
-    }
-
+    
     const fallback = clone(travelerWorkspaceSeed.profile);
 
     if (!user) {
@@ -64,11 +36,13 @@ function getTravelerProfilePreset(user) {
     return fallback;
 }
 
-export function ensureTravelerSession() {
+export async function ensureTravelerSession() {
     let currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!currentUser || !currentUser.role) {
-        currentUser = users.find((user) => user.role === "traveller") || {
+        // Try to get from API, fall back to localStorage users
+        const users = await apiGetAndSync("/auth/users", "users", []);
+        currentUser = (Array.isArray(users) ? users : []).find((user) => user.role === "traveller") || {
             id: "traveller-fallback",
             name: "Alex Rivera",
             email: "alex@gmail.com",
@@ -89,8 +63,8 @@ export function isTravellerRole(user) {
     return user && user.role === "traveller";
 }
 
-export function seedTravelerWorkspace() {
-    const currentUser = ensureTravelerSession();
+export async function seedTravelerWorkspace() {
+    const currentUser = await ensureTravelerSession();
 
     if (!localStorage.getItem(STORAGE_KEYS.plans)) {
         localStorage.setItem(STORAGE_KEYS.plans, JSON.stringify(clone(travelerWorkspaceSeed.plans)));
@@ -117,8 +91,8 @@ export function saveTravelerPlans(plans) {
     localStorage.setItem(STORAGE_KEYS.plans, JSON.stringify(plans));
 }
 
-export function getTravelerBookings() {
-    const allTours = JSON.parse(localStorage.getItem("tours") || "[]");
+export async function getTravelerBookings() {
+    const allTours = await apiGetAndSync("/trips", "tours", []);
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     
     if (!currentUser) return [];

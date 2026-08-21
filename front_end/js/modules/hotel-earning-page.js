@@ -21,7 +21,7 @@ function renderEarningStats(containerId) {
         {
             label: "Total Revenue",
             value: "$48,250",
-            icon: "../components/ui/montlyearning.svg",
+            icon: "../../components/ui/montlyearning.svg",
             color: "blue",
             subtext: "+12.5%",
             subClass: "positive"
@@ -29,7 +29,7 @@ function renderEarningStats(containerId) {
         {
             label: "Earnings This Month",
             value: "$14,800",
-            icon: "../components/ui/upcomingtours.svg",
+            icon: "../../components/ui/upcomingtours.svg",
             color: "dark-green",
             subtext: "+8.2%",
             subClass: "positive"
@@ -37,7 +37,7 @@ function renderEarningStats(containerId) {
         {
             label: "Refunded Payments",
             value: "$1,240",
-            icon: "../components/ui/recentreview.svg",
+            icon: "../../components/ui/recentreview.svg",
             color: "violet",
             subtext: "-2.1%",
             subClass: "negative"
@@ -45,7 +45,7 @@ function renderEarningStats(containerId) {
         {
             label: "Avg Booking Value",
             value: "$185",
-            icon: "../components/ui/avgrating.svg",
+            icon: "../../components/ui/avgrating.svg",
             color: "orange",
             subtext: "+5.4%",
             subClass: "positive"

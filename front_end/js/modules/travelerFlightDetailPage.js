@@ -4,7 +4,7 @@ const SEARCH_STORAGE_KEY = "traveler_dashboard_search_state";
 const CONFIRMED_BOOKING_KEY = "traveler_confirmed_booking";
 const CONFIRMED_BOOKING_SESSION_KEY = "traveler_confirmed_booking_session";
 const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&q=80&w=1600";
-import { travelerData } from "../api/legacyData.js";
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
 
 export function renderTravelerFlightDetailPage(containerId) {
     const container = document.getElementById(containerId);

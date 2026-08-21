@@ -1,5 +1,3 @@
-import { createTicket } from "../api/services.js";
-
 const CATEGORY_OPTIONS = [
   "Booking",
   "Payment",
@@ -9,6 +7,18 @@ const CATEGORY_OPTIONS = [
   "General",
 ];
 const PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH"];
+
+function saveTicket(payload) {
+  try {
+    const list = JSON.parse(localStorage.getItem("tickets") || "[]");
+    const newTicket = { id: "TICK-" + Date.now(), status: "OPEN", createdAt: new Date().toISOString(), ...payload };
+    list.push(newTicket);
+    localStorage.setItem("tickets", JSON.stringify(list));
+    return newTicket;
+  } catch {
+    return { id: "TICK-" + Date.now(), status: "OPEN", createdAt: new Date().toISOString(), ...payload };
+  }
+}
 
 export async function renderTravelerSupportPage(containerId, user) {
   const container = document.getElementById(containerId);
@@ -44,7 +54,7 @@ export async function renderTravelerSupportPage(containerId, user) {
 
     try {
       if (submit) submit.disabled = true;
-      const ticket = await createTicket(payload);
+      const ticket = saveTicket(payload);
       form.reset();
       setFormMessage(
         message,

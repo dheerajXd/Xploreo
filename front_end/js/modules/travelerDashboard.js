@@ -1,4 +1,4 @@
-import { travelerData } from "../api/legacyData.js";
+import { apiGetAndSync } from "../utils/api.js";
 import { attachLocationAutocomplete, getTodayDateString, extractUniqueLocations, extractFlightOrigins, extractFlightDestinations } from "../utils/locationAutocomplete.js";
 
 // Heart SVG helper
@@ -25,7 +25,7 @@ const searchState = {
     summary: "",
     values: {
         flights: {
-            from: "New York (JFK)",
+            from: "Enter city or airport",
             to: "",
             departure: "",
             returnDate: "",
@@ -64,9 +64,32 @@ function buildFallbackImg(primaryImage, fallbackImage, altText, extraAttributes 
     return `<img src="${primaryImage}" alt="${altText}" onerror="this.onerror=null;this.src='${fallbackImage}';" ${extraAttributes}>`;
 }
 
-export function renderTravelerDashboard(containerId, user) {
+export async function renderTravelerDashboard(containerId, user) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // Fetch traveler-specific data from backend; fall back to localStorage
+    const [plans, wishlist] = await Promise.all([
+        apiGetAndSync("/plans",             "ntaPlans",        []),
+        apiGetAndSync("/traveler/wishlist", "traveler_wishlist", [])
+    ]);
+    // Keep travelerData reading from localStorage (profile preset system unchanged)
+    console.log(plans);
+    const planList = Array.isArray(plans) ? plans : [plans];
+    const avilplans = planList.filter(p => p.status === "available");
+
+    const recommendedplans = avilplans.map(plan => {
+        let score = 0;
+        if(plans.hotelStar >=4 ){
+            score+=2;
+        }
+        if(plans.durationNight <= 7){
+            score+=1;
+        }
+        return {...plan,score};
+    }).sort((a,b)=>b.score-a.score).slice(0,6);
+
+    
 
     const dashboardHTML = `
         <!-- HERO SECTION -->
@@ -276,7 +299,7 @@ export function renderTravelerDashboard(containerId, user) {
                     </div>
                 </div>
                 <div class="cards-grid destinations-grid">
-                    ${travelerData.destinations.map(dest => `
+                    ${travelerData.destination.forEach(dest => `
                         <div class="destination-card" style="${buildBackgroundImageStyle(dest.image, DESTINATION_IMAGE_FALLBACK)}">
                             <div class="card-gradient"></div>
                             <button class="heart-btn">${heartIconSvg}</button>

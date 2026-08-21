@@ -1,4 +1,6 @@
-import { bookingsData, experiences as experienceCatalog, profileData as experienceProfile } from "../api/legacyData.js";
+const bookingsData = (() => { try { return JSON.parse(localStorage.getItem("experienceBookings") || "[]"); } catch { return []; } })();
+const experienceCatalog = (() => { try { return JSON.parse(localStorage.getItem("experiences") || "[]"); } catch { return []; } })();
+const experienceProfile = (() => { try { return JSON.parse(localStorage.getItem("experienceProfile") || "{}"); } catch { return {}; } })();
 import { validateEmail, validatePhone } from "../utils/validation.js";
 import {
     clearFieldErrors,

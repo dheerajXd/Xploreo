@@ -1,4 +1,4 @@
-import { travelerData } from "../api/legacyData.js";
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
 
 const SEARCH_STORAGE_KEY = "traveler_dashboard_search_state";
 const HOTEL_BOOKING_PAGE = "./traveller_hotel-booking.html";

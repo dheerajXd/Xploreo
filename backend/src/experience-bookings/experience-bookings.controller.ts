@@ -19,7 +19,7 @@ export class ExperienceBookingsController {
   ) {}
 
   @Post()
-  @Roles(Role.TRAVELLER_ACTOR)
+  @Roles(Role.TRAVELLER)
   @ApiOperation({ summary: 'Traveller books an experience' })
   @ApiCreateEndpoint(CreateExperienceBookingDto)
   create(@Body() dto: CreateExperienceBookingDto, @Req() req: any) {
@@ -27,14 +27,14 @@ export class ExperienceBookingsController {
   }
 
   @Get()
-  @Roles(Role.TRAVELLER_ACTOR, Role.ADMIN, Role.EXPERIENCE_PARTNER)
+  @Roles(Role.TRAVELLER, Role.SUPERADMIN, Role.EXPERIENCE)
   @ApiOperation({ summary: 'View experience bookings' })
   @ApiReadEndpoint()
   findAll(@Req() req: any) {
-    if (req.user?.role === Role.TRAVELLER_ACTOR) {
+    if (req.user?.role === Role.TRAVELLER) {
       return this.experienceBookingsService.findForTraveller(req.user?.userId);
     }
-    if (req.user?.role === Role.EXPERIENCE_PARTNER) {
+    if (req.user?.role === Role.EXPERIENCE) {
       return this.experienceBookingsService.findForPartner(req.user?.userId);
     }
 

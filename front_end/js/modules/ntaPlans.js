@@ -1,27 +1,38 @@
-// Non-Technical Admin - Manage Travel Packages (Full CRUD)
-import { nontechAdminData } from "../api/legacyData.js";
+// Non-Technical Admin - Manage Travel Packages (Full CRUD with API)
+import { apiGetAndSync, apiFetch } from "../utils/api.js";
 
-let currentEditId = null;
+const N = (v) => (v == null || isNaN(Number(v))) ? -1 : Number(v);
+const S = (v) => (v == null || v === "") ? "#" : String(v);
+
+let currentEditId  = null;
 let currentDeleteId = null;
-let featuresList = [];
+let featuresList   = [];
+let _plans         = [];  // in-memory cache, kept in sync after every API call
 
-export function initNtaPlans() {
+// ────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────
+export async function initNtaPlans() {
     console.log("Initializing Non-Technical Admin Travel Packages Page...");
-
-    // Initialize data
-    if (!localStorage.getItem("ntaPlans")) {
-        localStorage.setItem("ntaPlans", JSON.stringify(nontechAdminData.plans));
-    }
-    if (!localStorage.getItem("ntaActivity")) {
-        localStorage.setItem("ntaActivity", JSON.stringify(nontechAdminData.recentActivity));
-    }
-
     renderHeader();
     renderToolbar();
-    renderPlansTable();
     setupEventListeners();
+    await loadAndRender();   // fetch from backend
 }
 
+async function loadAndRender(filteredPlans) {
+    if (filteredPlans) {
+        renderPlansTable(filteredPlans);
+        return;
+    }
+    _plans = await apiGetAndSync("/plans", "ntaPlans", []);
+    if (!Array.isArray(_plans)) _plans = [];
+    renderPlansTable(_plans);
+}
+
+// ────────────────────────────────────────────────────
+// HEADER & TOOLBAR
+// ────────────────────────────────────────────────────
 function renderHeader() {
     const header = document.getElementById("nta-plans-header");
     if (header) {
@@ -56,13 +67,14 @@ function renderToolbar() {
     }
 }
 
-function renderPlansTable(filteredPlans) {
+// ────────────────────────────────────────────────────
+// TABLE RENDER
+// ────────────────────────────────────────────────────
+function renderPlansTable(plans) {
     const container = document.getElementById("nta-plans-container");
     if (!container) return;
 
-    const plans = filteredPlans || JSON.parse(localStorage.getItem("ntaPlans")) || [];
-
-    if (plans.length === 0) {
+    if (!Array.isArray(plans) || plans.length === 0) {
         container.innerHTML = `
             <div class="nta-empty-state">
                 <div class="empty-icon">📦</div>
@@ -84,58 +96,63 @@ function renderPlansTable(filteredPlans) {
                 </tr>
             </thead>
             <tbody>
-                ${plans.map(plan => `
-                    <tr>
-                        <td data-label="Package Name">
-                            <div>
-                                <div class="nta-plan-name">${plan.name}</div>
-                                <div class="nta-plan-desc">${plan.description}</div>
-                            </div>
-                        </td>
-                        <td data-label="Price">
-                            <span class="nta-plan-price">₹${plan.price.toLocaleString()}</span>
-                        </td>
-                        <td data-label="Duration">
-                            <span class="nta-plan-duration">${plan.duration}</span>
-                        </td>
-                        <td data-label="Availability">
-                            <span class="nta-status-pill ${plan.status}">${plan.status === 'available' ? 'Available' : 'Unavailable'}</span>
-                        </td>
-                        <td data-label="Actions">
-                            <div class="nta-action-group">
-                                <button class="nta-action-btn edit" onclick="window.ntaEditPlan('${plan.id}')">✏️ Edit</button>
-                                <button class="nta-action-btn delete" onclick="window.ntaDeletePlan('${plan.id}')">🗑️ Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('')}
+                ${plans.map(plan => {
+                    const price    = N(plan.price);
+                    const name     = S(plan.name);
+                    const desc     = S(plan.description);
+                    const duration = S(plan.duration);
+                    const status   = S(plan.status);
+                    return `
+                        <tr>
+                            <td data-label="Package Name">
+                                <div>
+                                    <div class="nta-plan-name">${name}</div>
+                                    <div class="nta-plan-desc">${desc}</div>
+                                </div>
+                            </td>
+                            <td data-label="Price">
+                                <span class="nta-plan-price">${price === -1 ? "-1" : "₹" + price.toLocaleString()}</span>
+                            </td>
+                            <td data-label="Duration">
+                                <span class="nta-plan-duration">${duration}</span>
+                            </td>
+                            <td data-label="Availability">
+                                <span class="nta-status-pill ${status}">
+                                    ${status === "available" ? "Available" : status === "#" ? "#" : "Unavailable"}
+                                </span>
+                            </td>
+                            <td data-label="Actions">
+                                <div class="nta-action-group">
+                                    <button class="nta-action-btn edit" onclick="window.ntaEditPlan('${plan.id}')">✏️ Edit</button>
+                                    <button class="nta-action-btn delete" onclick="window.ntaDeletePlan('${plan.id}')">🗑️ Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("")}
             </tbody>
         </table>
     `;
 }
 
+// ────────────────────────────────────────────────────
+// CREATE / EDIT MODAL
+// ────────────────────────────────────────────────────
 function openCreateModal() {
     currentEditId = null;
-    featuresList = [];
+    featuresList  = [];
     renderPlanModal("Create New Package", {
-        name: "",
-        description: "",
-        price: "",
-        duration: "",
-        destination: "",
-        category: "",
-        features: [],
-        status: "available"
+        name: "", description: "", price: "",
+        duration: "", destination: "", category: "",
+        features: [], status: "available"
     });
 }
 
 function openEditModal(planId) {
-    const plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-    const plan = plans.find(p => p.id === planId);
+    const plan = _plans.find(p => String(p.id) === String(planId));
     if (!plan) return;
-
     currentEditId = planId;
-    featuresList = [...(plan.features || [])];
+    featuresList  = [...(plan.features || [])];
     renderPlanModal("Edit Package", plan);
 }
 
@@ -144,7 +161,6 @@ function renderPlanModal(title, plan) {
     if (!modal) return;
 
     featuresList = plan.features || [];
-
     const categories = ["Adventure", "Family", "International", "Weekend Getaway", "Luxury", "Honeymoon", "Pilgrimage"];
 
     modal.innerHTML = `
@@ -156,32 +172,27 @@ function renderPlanModal(title, plan) {
 
             <div class="nta-form-group">
                 <label for="plan-name">Package Name</label>
-                <input type="text" id="plan-name" placeholder="e.g., Himalayan Trek Adventure" value="${plan.name || ''}">
+                <input type="text" id="plan-name" placeholder="e.g., Himalayan Trek Adventure" value="${plan.name || ""}">
                 <div class="nta-form-hint">Give your travel package a catchy, descriptive name.</div>
             </div>
 
             <div class="nta-form-group">
                 <label for="plan-desc">Description</label>
-                <textarea id="plan-desc" placeholder="Briefly describe the travel experience, destinations, and highlights...">${plan.description || ''}</textarea>
+                <textarea id="plan-desc" placeholder="Briefly describe the travel experience...">${plan.description || ""}</textarea>
             </div>
 
             <div class="nta-form-row">
                 <div class="nta-form-group">
                     <label for="plan-price">Price (₹)</label>
-                    <input type="number" id="plan-price" placeholder="e.g., 18999" value="${plan.price || ''}">
+                    <input type="number" id="plan-price" placeholder="e.g., 18999" value="${plan.price || ""}">
                 </div>
                 <div class="nta-form-group">
                     <label for="plan-duration">Duration</label>
                     <select id="plan-duration">
-                        <option value="" disabled ${!plan.duration ? 'selected' : ''}>Select duration</option>
-                        <option value="2 Days / 1 Night" ${plan.duration === '2 Days / 1 Night' ? 'selected' : ''}>2 Days / 1 Night</option>
-                        <option value="3 Days / 2 Nights" ${plan.duration === '3 Days / 2 Nights' ? 'selected' : ''}>3 Days / 2 Nights</option>
-                        <option value="4 Days / 3 Nights" ${plan.duration === '4 Days / 3 Nights' ? 'selected' : ''}>4 Days / 3 Nights</option>
-                        <option value="5 Days / 4 Nights" ${plan.duration === '5 Days / 4 Nights' ? 'selected' : ''}>5 Days / 4 Nights</option>
-                        <option value="7 Days / 6 Nights" ${plan.duration === '7 Days / 6 Nights' ? 'selected' : ''}>7 Days / 6 Nights</option>
-                        <option value="10 Days / 9 Nights" ${plan.duration === '10 Days / 9 Nights' ? 'selected' : ''}>10 Days / 9 Nights</option>
-                        <option value="12 Days / 11 Nights" ${plan.duration === '12 Days / 11 Nights' ? 'selected' : ''}>12 Days / 11 Nights</option>
-                        <option value="15 Days / 14 Nights" ${plan.duration === '15 Days / 14 Nights' ? 'selected' : ''}>15 Days / 14 Nights</option>
+                        <option value="" disabled ${!plan.duration ? "selected" : ""}>Select duration</option>
+                        ${["2 Days / 1 Night","3 Days / 2 Nights","4 Days / 3 Nights","5 Days / 4 Nights","7 Days / 6 Nights","10 Days / 9 Nights","12 Days / 11 Nights","15 Days / 14 Nights"].map(d => `
+                            <option value="${d}" ${plan.duration === d ? "selected" : ""}>${d}</option>
+                        `).join("")}
                     </select>
                 </div>
             </div>
@@ -189,16 +200,16 @@ function renderPlanModal(title, plan) {
             <div class="nta-form-row">
                 <div class="nta-form-group">
                     <label for="plan-destination">Destination</label>
-                    <input type="text" id="plan-destination" placeholder="e.g., Manali, Himachal Pradesh" value="${plan.destination || ''}">
+                    <input type="text" id="plan-destination" placeholder="e.g., Manali, Himachal Pradesh" value="${plan.destination || ""}">
                     <div class="nta-form-hint">Enter the main destination or cities covered.</div>
                 </div>
                 <div class="nta-form-group">
                     <label for="plan-category">Category</label>
                     <select id="plan-category">
-                        <option value="" disabled ${!plan.category ? 'selected' : ''}>Select category</option>
+                        <option value="" disabled ${!plan.category ? "selected" : ""}>Select category</option>
                         ${categories.map(cat => `
-                            <option value="${cat}" ${plan.category === cat ? 'selected' : ''}>${cat}</option>
-                        `).join('')}
+                            <option value="${cat}" ${plan.category === cat ? "selected" : ""}>${cat}</option>
+                        `).join("")}
                     </select>
                 </div>
             </div>
@@ -211,7 +222,7 @@ function renderPlanModal(title, plan) {
                             ${f}
                             <span class="remove-feature" onclick="window.ntaRemoveFeature(${i})">&times;</span>
                         </span>
-                    `).join('')}
+                    `).join("")}
                 </div>
                 <div class="nta-feature-input-row">
                     <input type="text" id="feature-input" placeholder="Type a feature and click Add">
@@ -224,17 +235,17 @@ function renderPlanModal(title, plan) {
                 <label>Availability</label>
                 <div class="nta-toggle-wrap">
                     <label class="nta-toggle">
-                        <input type="checkbox" id="plan-status" ${plan.status === 'available' ? 'checked' : ''}>
+                        <input type="checkbox" id="plan-status" ${plan.status === "available" ? "checked" : ""}>
                         <span class="nta-toggle-slider"></span>
                     </label>
-                    <span class="nta-toggle-label" id="toggle-label">${plan.status === 'available' ? 'Available' : 'Unavailable'}</span>
+                    <span class="nta-toggle-label" id="toggle-label">${plan.status === "available" ? "Available" : "Unavailable"}</span>
                 </div>
             </div>
 
             <div class="nta-modal-actions">
                 <button class="nta-btn-cancel" onclick="window.ntaCloseModal()">Cancel</button>
                 <button class="nta-btn-save" onclick="window.ntaSavePlan()">
-                    ${currentEditId ? 'Save Changes' : 'Create Package'}
+                    ${currentEditId ? "Save Changes" : "Create Package"}
                 </button>
             </div>
         </div>
@@ -242,7 +253,6 @@ function renderPlanModal(title, plan) {
 
     modal.classList.add("active");
 
-    // Toggle label listener
     const toggleInput = document.getElementById("plan-status");
     const toggleLabel = document.getElementById("toggle-label");
     if (toggleInput && toggleLabel) {
@@ -251,21 +261,19 @@ function renderPlanModal(title, plan) {
         });
     }
 
-    // Enter key for features
     const featureInput = document.getElementById("feature-input");
     if (featureInput) {
         featureInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                window.ntaAddFeature();
-            }
+            if (e.key === "Enter") { e.preventDefault(); window.ntaAddFeature(); }
         });
     }
 }
 
+// ────────────────────────────────────────────────────
+// DELETE MODAL
+// ────────────────────────────────────────────────────
 function openDeleteModal(planId) {
-    const plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-    const plan = plans.find(p => p.id === planId);
+    const plan = _plans.find(p => String(p.id) === String(planId));
     if (!plan) return;
 
     currentDeleteId = planId;
@@ -278,8 +286,8 @@ function openDeleteModal(planId) {
             <div class="nta-delete-icon">⚠️</div>
             <h2>Remove this package?</h2>
             <p>
-                You're about to delete <strong>"${plan.name}"</strong>. 
-                This action cannot be undone. Any upcoming bookings for this package will need to be handled separately.
+                You're about to delete <strong>"${S(plan.name)}"</strong>.
+                This action cannot be undone.
             </p>
             <div class="nta-delete-actions">
                 <button class="nta-btn-cancel" onclick="window.ntaCloseDeleteModal()">Keep Package</button>
@@ -291,116 +299,89 @@ function openDeleteModal(planId) {
     modal.classList.add("active");
 }
 
-function savePlan() {
-    const name = document.getElementById("plan-name")?.value?.trim();
-    const description = document.getElementById("plan-desc")?.value?.trim();
-    const price = parseFloat(document.getElementById("plan-price")?.value);
-    const duration = document.getElementById("plan-duration")?.value;
-    const destination = document.getElementById("plan-destination")?.value?.trim();
-    const category = document.getElementById("plan-category")?.value;
+// ────────────────────────────────────────────────────
+// SAVE (CREATE / UPDATE) — hits API
+// ────────────────────────────────────────────────────
+async function savePlan() {
+    const name          = document.getElementById("plan-name")?.value?.trim();
+    const description   = document.getElementById("plan-desc")?.value?.trim();
+    const price         = parseFloat(document.getElementById("plan-price")?.value);
+    const duration      = document.getElementById("plan-duration")?.value;
+    const destination   = document.getElementById("plan-destination")?.value?.trim();
+    const category      = document.getElementById("plan-category")?.value;
     const statusChecked = document.getElementById("plan-status")?.checked;
 
-    // Validation
-    if (!name) { alert("Please enter a package name."); return; }
-    if (!description) { alert("Please enter a description."); return; }
-    if (isNaN(price) || price <= 0) { alert("Please enter a valid price."); return; }
-    if (!duration) { alert("Please select a duration."); return; }
-    if (!destination) { alert("Please enter a destination."); return; }
-    if (!category) { alert("Please select a category."); return; }
+    if (!name)                       { alert("Please enter a package name.");  return; }
+    if (!description)                { alert("Please enter a description.");   return; }
+    if (isNaN(price) || price <= 0)  { alert("Please enter a valid price.");   return; }
+    if (!duration)                   { alert("Please select a duration.");     return; }
+    if (!destination)                { alert("Please enter a destination.");   return; }
+    if (!category)                   { alert("Please select a category.");     return; }
 
-    let plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-    let activityLog = JSON.parse(localStorage.getItem("ntaActivity")) || [];
+    const body = {
+        name, description, price, duration, destination, category,
+        features: [...featuresList],
+        status: statusChecked ? "available" : "unavailable"
+    };
 
-    if (currentEditId) {
-        // UPDATE
-        const idx = plans.findIndex(p => p.id === currentEditId);
-        if (idx !== -1) {
-            plans[idx] = {
-                ...plans[idx],
-                name,
-                description,
-                price,
-                duration,
-                destination,
-                category,
-                features: [...featuresList],
-                status: statusChecked ? "available" : "unavailable"
-            };
+    const saveBtn = document.querySelector(".nta-btn-save");
+    if (saveBtn) { saveBtn.textContent = "Saving..."; saveBtn.disabled = true; }
 
-            activityLog.unshift({
-                id: Date.now(),
-                action: "Package updated",
-                detail: `"${name}" was updated`,
-                user: getCurrentUserName(),
-                timestamp: new Date().toISOString(),
-                type: "update"
-            });
+    try {
+        if (currentEditId) {
+            // UPDATE
+            const res  = await apiFetch(`/plans/${currentEditId}`, { method: "PATCH", body });
+            const saved = (await res.json?.().catch(() => ({}))).data || body;
+            const idx  = _plans.findIndex(p => String(p.id) === String(currentEditId));
+            if (idx !== -1) _plans[idx] = { ..._plans[idx], ...saved };
+        } else {
+            // CREATE
+            const res  = await apiFetch("/plans", { method: "POST", body });
+            const saved = (await res.json?.().catch(() => ({}))).data || { ...body, id: "PKG-" + Date.now() };
+            _plans.push(saved);
         }
-    } else {
-        // CREATE
-        const newPlan = {
-            id: "PKG-" + String(plans.length + 1).padStart(3, "0"),
-            name,
-            description,
-            price,
-            duration,
-            destination,
-            category,
-            features: [...featuresList],
-            status: statusChecked ? "available" : "unavailable",
-            createdAt: new Date().toISOString()
-        };
-        plans.push(newPlan);
-
-        activityLog.unshift({
-            id: Date.now(),
-            action: "Package created",
-            detail: `"${name}" was added`,
-            user: getCurrentUserName(),
-            timestamp: new Date().toISOString(),
-            type: "create"
-        });
+    } catch {
+        // Offline: apply locally
+        if (currentEditId) {
+            const idx = _plans.findIndex(p => String(p.id) === String(currentEditId));
+            if (idx !== -1) _plans[idx] = { ..._plans[idx], ...body };
+        } else {
+            _plans.push({ ...body, id: "PKG-" + Date.now(), createdAt: new Date().toISOString() });
+        }
     }
 
-    localStorage.setItem("ntaPlans", JSON.stringify(plans));
-    localStorage.setItem("ntaActivity", JSON.stringify(activityLog));
-
+    localStorage.setItem("ntaPlans", JSON.stringify(_plans));
     closeModal();
-    renderPlansTable();
+    renderPlansTable(_plans);
 }
 
-function confirmDelete() {
+// ────────────────────────────────────────────────────
+// CONFIRM DELETE — hits API
+// ────────────────────────────────────────────────────
+async function confirmDelete() {
     if (!currentDeleteId) return;
 
-    let plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-    let activityLog = JSON.parse(localStorage.getItem("ntaActivity")) || [];
-    const plan = plans.find(p => p.id === currentDeleteId);
-
-    plans = plans.filter(p => p.id !== currentDeleteId);
-    localStorage.setItem("ntaPlans", JSON.stringify(plans));
-
-    if (plan) {
-        activityLog.unshift({
-            id: Date.now(),
-            action: "Package deleted",
-            detail: `"${plan.name}" was removed`,
-            user: getCurrentUserName(),
-            timestamp: new Date().toISOString(),
-            type: "status"
-        });
-        localStorage.setItem("ntaActivity", JSON.stringify(activityLog));
+    try {
+        await apiFetch(`/plans/${currentDeleteId}`, { method: "DELETE" });
+    } catch {
+        // proceed with local delete even if API fails
     }
+
+    _plans = _plans.filter(p => String(p.id) !== String(currentDeleteId));
+    localStorage.setItem("ntaPlans", JSON.stringify(_plans));
 
     currentDeleteId = null;
     closeDeleteModal();
-    renderPlansTable();
+    renderPlansTable(_plans);
 }
 
+// ────────────────────────────────────────────────────
+// FEATURES
+// ────────────────────────────────────────────────────
 function addFeature() {
     const input = document.getElementById("feature-input");
-    const val = input?.value?.trim();
+    const val   = input?.value?.trim();
     if (!val) return;
-
     featuresList.push(val);
     input.value = "";
     refreshFeatureTags();
@@ -414,15 +395,42 @@ function removeFeature(index) {
 function refreshFeatureTags() {
     const container = document.getElementById("features-tags");
     if (!container) return;
-
     container.innerHTML = featuresList.map((f, i) => `
         <span class="nta-feature-tag">
             ${f}
             <span class="remove-feature" onclick="window.ntaRemoveFeature(${i})">&times;</span>
         </span>
-    `).join('');
+    `).join("");
 }
 
+// ────────────────────────────────────────────────────
+// SEARCH / FILTER — works on cached _plans
+// ────────────────────────────────────────────────────
+function searchPlans() {
+    const query        = document.getElementById("nta-search")?.value?.toLowerCase() || "";
+    const statusFilter = document.getElementById("nta-status-filter")?.value || "all";
+
+    let filtered = [..._plans];
+
+    if (query) {
+        filtered = filtered.filter(p =>
+            S(p.name).toLowerCase().includes(query) ||
+            S(p.description).toLowerCase().includes(query) ||
+            S(p.destination).toLowerCase().includes(query)
+        );
+    }
+    if (statusFilter !== "all") {
+        filtered = filtered.filter(p => p.status === statusFilter);
+    }
+
+    renderPlansTable(filtered);
+}
+
+function filterPlans() { searchPlans(); }
+
+// ────────────────────────────────────────────────────
+// MODALS CLOSE
+// ────────────────────────────────────────────────────
 function closeModal() {
     const modal = document.getElementById("nta-plan-modal");
     if (modal) {
@@ -430,7 +438,7 @@ function closeModal() {
         setTimeout(() => { modal.innerHTML = ""; }, 300);
     }
     currentEditId = null;
-    featuresList = [];
+    featuresList  = [];
 }
 
 function closeDeleteModal() {
@@ -442,42 +450,19 @@ function closeDeleteModal() {
     currentDeleteId = null;
 }
 
-function searchPlans() {
-    const query = document.getElementById("nta-search")?.value?.toLowerCase() || "";
-    const statusFilter = document.getElementById("nta-status-filter")?.value || "all";
-
-    let plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-
-    if (query) {
-        plans = plans.filter(p => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query) || (p.destination && p.destination.toLowerCase().includes(query)));
-    }
-    if (statusFilter !== "all") {
-        plans = plans.filter(p => p.status === statusFilter);
-    }
-
-    renderPlansTable(plans);
-}
-
-function filterPlans() {
-    searchPlans(); // Reuse combined filtering
-}
-
-function getCurrentUserName() {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    return user ? user.name : "Admin";
-}
-
+// ────────────────────────────────────────────────────
+// EXPOSE GLOBAL HANDLERS
+// ────────────────────────────────────────────────────
 function setupEventListeners() {
-    // Expose to global scope for inline handlers
-    window.ntaOpenCreateModal = openCreateModal;
-    window.ntaEditPlan = openEditModal;
-    window.ntaDeletePlan = openDeleteModal;
-    window.ntaSavePlan = savePlan;
-    window.ntaConfirmDelete = confirmDelete;
-    window.ntaCloseModal = closeModal;
+    window.ntaOpenCreateModal  = openCreateModal;
+    window.ntaEditPlan         = openEditModal;
+    window.ntaDeletePlan       = openDeleteModal;
+    window.ntaSavePlan         = savePlan;
+    window.ntaConfirmDelete    = confirmDelete;
+    window.ntaCloseModal       = closeModal;
     window.ntaCloseDeleteModal = closeDeleteModal;
-    window.ntaAddFeature = addFeature;
-    window.ntaRemoveFeature = removeFeature;
-    window.ntaSearchPlans = searchPlans;
-    window.ntaFilterPlans = filterPlans;
+    window.ntaAddFeature       = addFeature;
+    window.ntaRemoveFeature    = removeFeature;
+    window.ntaSearchPlans      = searchPlans;
+    window.ntaFilterPlans      = filterPlans;
 }

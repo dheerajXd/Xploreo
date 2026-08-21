@@ -28,7 +28,6 @@ import {
 @ApiProtectedResource()
 @Roles(
   Role.TRAVELLER,
-  Role.TRAVELLER_ACTOR,
   Role.GUIDE,
   Role.SUPERADMIN,
   Role.NONTECHADMIN,
@@ -38,7 +37,7 @@ export class TripsController {
   constructor(private readonly tripsService: TripsService) {}
 
   @Post()
-  @Roles(Role.TRAVELLER, Role.TRAVELLER_ACTOR, Role.SUPERADMIN, Role.NONTECHADMIN)
+  @Roles(Role.TRAVELLER, Role.SUPERADMIN, Role.NONTECHADMIN)
   @ApiOperation({ summary: 'Create a draft trip from a plan' })
   @ApiCreateEndpoint(CreateTripDto)
   @ApiBody({ type: CreateTripDto })

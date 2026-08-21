@@ -1,10 +1,11 @@
 import { getHotelDetailDataById } from "./travelerHotelDetailPage.js";
+import { apiGetAndSync, apiFetch } from "../utils/api.js";
 
 const SEARCH_STORAGE_KEY = "traveler_dashboard_search_state";
 const MY_TRIPS_PAGE = "./traveller_mytrips.html";
 const EXPLORE_PAGE = "./traveller_dashboard.html";
 
-export function renderTravelerHotelConfirmationPage(containerId) {
+export async function renderTravelerHotelConfirmationPage(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -23,7 +24,7 @@ export function renderTravelerHotelConfirmationPage(containerId) {
     const currentTraveler = getCurrentTraveler();
 
     // Sync with global Hotel Provider data
-    const allHotelBookings = JSON.parse(localStorage.getItem("hotelBookings") || "[]");
+    const allHotelBookings = await apiGetAndSync("/bookings/hotel", "hotelBookings", []);
     if (!allHotelBookings.find(b => b.id === bookingId)) {
         const hotelRecord = {
             id: bookingId,
@@ -39,6 +40,8 @@ export function renderTravelerHotelConfirmationPage(containerId) {
             amount: totalAmount,
             status: "Upcoming"
         };
+        // POST to backend and update localStorage cache
+        apiFetch("/bookings/hotel", { method: "POST", body: hotelRecord }).catch(() => {});
         allHotelBookings.push(hotelRecord);
         localStorage.setItem("hotelBookings", JSON.stringify(allHotelBookings));
     }

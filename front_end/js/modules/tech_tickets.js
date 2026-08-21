@@ -1,5 +1,6 @@
-import { fetchTickets, resolveTicket } from "../api/services.js";
-
+/* ================================================================
+   tech_tickets.js — 100% Client-side (localStorage)
+================================================================ */
 let tickets = [];
 let activeStatus = "all";
 let searchTerm = "";
@@ -17,7 +18,7 @@ async function loadTickets() {
   }
 
   try {
-    tickets = await fetchTickets();
+    tickets = fetchTickets();
     renderTickets();
   } catch (error) {
     console.error("Ticket fetch failed:", error);
@@ -27,6 +28,25 @@ async function loadTickets() {
       );
     }
   }
+}
+
+function fetchTickets() {
+  try {
+    return JSON.parse(localStorage.getItem("tickets") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function resolveTicket(id, payload = {}) {
+  const list = fetchTickets();
+  const idx = list.findIndex((t) => String(t.id) === String(id));
+  if (idx !== -1) {
+    list[idx] = { ...list[idx], status: "RESOLVED", ...payload };
+    localStorage.setItem("tickets", JSON.stringify(list));
+    return list[idx];
+  }
+  return null;
 }
 
 function bindTicketEvents() {
@@ -53,7 +73,7 @@ function bindTicketEvents() {
     if (!target) return;
 
     const id = target.dataset.id;
-    const ticket = tickets.find((item) => item.id === id);
+    const ticket = tickets.find((item) => String(item.id) === String(id));
     if (!ticket) return;
 
     if (target.dataset.action === "view") {
@@ -77,8 +97,7 @@ function renderTickets() {
     const statusMatch =
       activeStatus === "all" ||
       (activeStatus === "pending" && ticket.status === "OPEN") ||
-      (activeStatus === "resolved" && ticket.status === "RESOLVED") ||
-      (activeStatus === "in-progress" && false);
+      (activeStatus === "resolved" && ticket.status === "RESOLVED");
 
     const haystack = [
       ticket.id,
@@ -167,7 +186,7 @@ function openTicketModal(ticket) {
 
 async function resolveTicketFromUi(id) {
   try {
-    await resolveTicket(id, {
+    resolveTicket(id, {
       resolution: "Resolved by technical admin",
     });
     await loadTickets();

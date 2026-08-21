@@ -1,4 +1,13 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "./api/http.js";
+const API = "http://localhost:3000/api";
+function authHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "x-user-id":   localStorage.getItem("userID")   || "",
+        "x-user-role": localStorage.getItem("userRole") || ""
+    };
+}
+function getStorage(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } }
+function setStorage(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
 function showMessage(messageEl, text, isSuccess = false) {
     messageEl.textContent = text;
@@ -161,11 +170,18 @@ export function renderGuideCrudPage(containerId) {
     const load = async () => {
         try {
             clearMessage(message);
-            guides = await apiGet("/guide");
+            const res = await fetch(`${API}/guide`, { headers: authHeaders() });
+            if (res.ok) {
+                const json = await res.json();
+                guides = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : getStorage("guide"));
+                setStorage("guide", guides);
+            } else {
+                guides = getStorage("guide");
+            }
             render();
-        } catch (error) {
-            showMessage(message, error.message);
-            list.innerHTML = '<p class="crud-meta">Unable to load guides.</p>';
+        } catch {
+            guides = getStorage("guide");
+            render();
         }
     };
 
@@ -173,8 +189,19 @@ export function renderGuideCrudPage(containerId) {
         event.preventDefault();
         const id = document.getElementById("guideId").value;
         try {
-            if (id) await apiPatch(`/guide/${encodeURIComponent(id)}`, payload());
-            else await apiPost("/guide", payload());
+            const data = payload();
+            const method = id ? "PATCH" : "POST";
+            const url    = id ? `${API}/guide/${id}` : `${API}/guide`;
+            const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(data) });
+            const json = await res.json().catch(() => ({}));
+            const saved = json.data || json;
+            if (id) {
+                const idx = guides.findIndex((g) => String(guideIdOf(g)) === String(id));
+                if (idx !== -1) guides[idx] = { ...guides[idx], ...saved };
+            } else {
+                guides.push(saved.id ? saved : { id: Date.now(), ...data });
+            }
+            setStorage("guide", guides);
             showMessage(message, id ? "Guide updated successfully." : "Guide created successfully.", true);
             reset();
             await load();
@@ -191,7 +218,9 @@ export function renderGuideCrudPage(containerId) {
         if (button.dataset.action === "edit" && guide) fill(guide);
         if (button.dataset.action === "delete") {
             try {
-                await apiDelete(`/guide/${encodeURIComponent(id)}`);
+                await fetch(`${API}/guide/${id}`, { method: "DELETE", headers: authHeaders() });
+                guides = guides.filter((g) => String(guideIdOf(g)) !== String(id));
+                setStorage("guide", guides);
                 showMessage(message, "Guide deleted successfully.", true);
                 await load();
             } catch (error) {
@@ -296,12 +325,18 @@ export function renderPlansCrudPage(containerId) {
     const load = async () => {
         try {
             clearMessage(message);
-            const result = await apiGet("/plans");
-            plans = Array.isArray(result) ? result : result?.data || [];
+            const res = await fetch(`${API}/plans`, { headers: authHeaders() });
+            if (res.ok) {
+                const json = await res.json();
+                plans = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : getStorage("plans"));
+                setStorage("plans", plans);
+            } else {
+                plans = getStorage("plans");
+            }
             render();
-        } catch (error) {
-            showMessage(message, error.message);
-            list.innerHTML = '<p class="crud-meta">Unable to load plans.</p>';
+        } catch {
+            plans = getStorage("plans");
+            render();
         }
     };
 
@@ -309,13 +344,20 @@ export function renderPlansCrudPage(containerId) {
         event.preventDefault();
         const id = document.getElementById("planId").value;
         const body = payload();
+        const isEdit = document.getElementById("planId").disabled;
         try {
-            if (document.getElementById("planId").disabled) {
-                delete body.id;
-                await apiPatch(`/plans/${encodeURIComponent(id)}`, body);
+            const method = isEdit ? "PATCH" : "POST";
+            const url    = isEdit ? `${API}/plans/${id}` : `${API}/plans`;
+            const res  = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
+            const json = await res.json().catch(() => ({}));
+            const saved = json.data || json;
+            if (isEdit) {
+                const idx = plans.findIndex((p) => String(p.id) === String(id));
+                if (idx !== -1) plans[idx] = { ...plans[idx], ...saved };
             } else {
-                await apiPost("/plans", body);
+                plans.push(saved.id ? saved : { id: body.id || Date.now(), ...body });
             }
+            setStorage("plans", plans);
             showMessage(message, "Plan saved successfully.", true);
             reset();
             await load();
@@ -332,7 +374,9 @@ export function renderPlansCrudPage(containerId) {
         if (button.dataset.action === "edit" && plan) fill(plan);
         if (button.dataset.action === "delete") {
             try {
-                await apiDelete(`/plans/${encodeURIComponent(id)}`);
+                await fetch(`${API}/plans/${id}`, { method: "DELETE", headers: authHeaders() });
+                plans = plans.filter((p) => String(p.id) !== String(id));
+                setStorage("plans", plans);
                 showMessage(message, "Plan deleted successfully.", true);
                 await load();
             } catch (error) {
@@ -460,11 +504,18 @@ export function renderTripsCrudPage(containerId, currentUser = {}) {
     const load = async () => {
         try {
             clearMessage(message);
-            trips = await apiGet("/trips");
+            const res = await fetch(`${API}/trips`, { headers: authHeaders() });
+            if (res.ok) {
+                const json = await res.json();
+                trips = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : getStorage("trips"));
+                setStorage("trips", trips);
+            } else {
+                trips = getStorage("trips");
+            }
             render();
-        } catch (error) {
-            showMessage(message, error.message);
-            list.innerHTML = '<p class="crud-meta">Unable to load trips.</p>';
+        } catch {
+            trips = getStorage("trips");
+            render();
         }
     };
 
@@ -472,13 +523,20 @@ export function renderTripsCrudPage(containerId, currentUser = {}) {
         event.preventDefault();
         const id = document.getElementById("tripId").value;
         const body = payload();
+        const isEdit = document.getElementById("tripId").disabled;
         try {
-            if (document.getElementById("tripId").disabled) {
-                delete body.id;
-                await apiPatch(`/trips/${encodeURIComponent(id)}`, body);
+            const method = isEdit ? "PATCH" : "POST";
+            const url    = isEdit ? `${API}/trips/${id}` : `${API}/trips`;
+            const res  = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body) });
+            const json = await res.json().catch(() => ({}));
+            const saved = json.data || json;
+            if (isEdit) {
+                const idx = trips.findIndex((t) => String(t.id) === String(id));
+                if (idx !== -1) trips[idx] = { ...trips[idx], ...saved };
             } else {
-                await apiPost("/trips", body);
+                trips.push(saved.id ? saved : { id: body.id || Date.now(), ...body });
             }
+            setStorage("trips", trips);
             showMessage(message, "Trip saved successfully.", true);
             reset();
             await load();
@@ -495,7 +553,9 @@ export function renderTripsCrudPage(containerId, currentUser = {}) {
         if (button.dataset.action === "edit" && trip) fill(trip);
         if (button.dataset.action === "delete") {
             try {
-                await apiDelete(`/trips/${encodeURIComponent(id)}`);
+                await fetch(`${API}/trips/${id}`, { method: "DELETE", headers: authHeaders() });
+                trips = trips.filter((t) => String(t.id) !== String(id));
+                setStorage("trips", trips);
                 showMessage(message, "Trip deleted successfully.", true);
                 await load();
             } catch (error) {

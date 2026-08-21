@@ -1,4 +1,4 @@
-import { travelerData } from "../api/legacyData.js";
+const travelerData = (() => { try { return JSON.parse(localStorage.getItem("travelerData") || "{}"); } catch { return {}; } })();
 
 export const TRAVELER_BOOKING_KEYS = {
     selectedPackage: [

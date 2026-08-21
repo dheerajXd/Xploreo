@@ -5,7 +5,10 @@ import { createId } from '../common/utils/id';
 @Injectable()
 export class NontechadminRepository {
   private admins: Nontechadmin[] = [
-    { adminId: 'seed-nontech-1', fname: 'Priya', lname: 'Nair', email: 'priya@xploreo.com', phone_number: 9123456780, location: 'Mumbai' },
+    {
+      adminId: 'NTA001',
+      location: 'Mumbai',
+    },
   ];
 
   create(data: Omit<Nontechadmin, 'adminId'>): Nontechadmin {

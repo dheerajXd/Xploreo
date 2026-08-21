@@ -1,4 +1,4 @@
-import { experiences as experienceCatalog } from "../api/legacyData.js";
+const experienceCatalog = (() => { try { return JSON.parse(localStorage.getItem("experiences") || "[]"); } catch { return []; } })();
 import {
     attachModalDismissals,
     clearFieldErrors,
@@ -422,7 +422,7 @@ export function renderExperienceCatalogPage() {
         if (actionButton.dataset.action === "view-bookings") {
             const params = new URLSearchParams();
             if (selectedExperience) params.set("experience", selectedExperience.title);
-            window.location.href = `../pages/experience_bookings.html${params.toString() ? `?${params.toString()}` : ""}`;
+            window.location.href = `./experience_bookings.html${params.toString() ? `?${params.toString()}` : ""}`;
             return;
         }
 

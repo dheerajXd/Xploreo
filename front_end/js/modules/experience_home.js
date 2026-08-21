@@ -1,4 +1,6 @@
-import { homeTestimonials, experiences as experienceCatalog, bookingsData } from "../api/legacyData.js";
+const homeTestimonials = (() => { try { return JSON.parse(localStorage.getItem("homeTestimonials") || "[]"); } catch { return []; } })();
+const experienceCatalog = (() => { try { return JSON.parse(localStorage.getItem("experiences") || "[]"); } catch { return []; } })();
+const bookingsData = (() => { try { return JSON.parse(localStorage.getItem("experienceBookings") || "[]"); } catch { return []; } })();
 import { calculateDashboardStats, readStorage } from "./experience_shared.js";
 
 export function renderExperienceHomePage() {
@@ -144,7 +146,7 @@ export function renderExperienceHomePage() {
             const scheduleTitle = button.dataset.scheduleTitle;
             const params = new URLSearchParams();
             if (scheduleTitle) params.set("manage", scheduleTitle);
-            window.location.href = `../pages/experience_experience.html${params.toString() ? `?${params.toString()}` : ""}`;
+            window.location.href = `./experience_experience.html${params.toString() ? `?${params.toString()}` : ""}`;
         };
     }
 
@@ -179,7 +181,7 @@ export function renderExperienceHomePage() {
 
     if (viewAllBookingsButton) {
         viewAllBookingsButton.onclick = () => {
-            window.location.href = "../pages/experience_bookings.html";
+            window.location.href = "./experience_bookings.html";
         };
     }
 

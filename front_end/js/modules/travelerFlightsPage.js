@@ -1,11 +1,14 @@
-import { flightsData } from "../api/legacyData.js";
+import { apiGetAndSync } from "../utils/api.js";
 
 const SEARCH_STORAGE_KEY = "traveler_dashboard_search_state";
 const SAVED_FLIGHTS_KEY = "traveler_saved_mock_flights";
 
-export function renderTravelerFlightsPage(containerId) {
+export async function renderTravelerFlightsPage(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // Fetch flights from backend; sync to localStorage as cache
+    const flightsData = await apiGetAndSync("/flights", "flightsData", {});
 
     const searchValues = getSearchValues();
     const dateTabs = buildDateTabs(flightsData);

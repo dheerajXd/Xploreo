@@ -1,6 +1,5 @@
 import { attachLocationAutocomplete, getTodayDateString } from "../utils/locationAutocomplete.js";
-import { fetchPlans } from "../api/services.js";
-import { mapPlanToPackage } from "../api/adapters.js";
+import { apiGetAndSync } from "../utils/api.js";
 
 const SELECTED_PACKAGE_STORAGE_KEY = "traveler_selected_package";
 
@@ -26,13 +25,29 @@ export async function renderTravelerPackageSearchPage(containerId) {
     };
 
     if (!PACKAGE_RESULTS.length) {
-        container.innerHTML = `<div class="traveler-package-empty">Loading packages...</div>`;
         try {
-            const plans = await fetchPlans();
-            PACKAGE_RESULTS = plans.map((plan) => mapPlanToPackage(plan, getSearchValues()));
+            const raw = await apiGetAndSync("/plans", "plans", []);
+            PACKAGE_RESULTS = (Array.isArray(raw) ? raw : []).map((p) => ({
+                id: p.id || String(Date.now()),
+                title: p.title || p.name || "Package",
+                origin: p.originCity || "New Delhi",
+                destination: p.destination || "Bali",
+                nights: p.durationNights || 3,
+                days: (p.durationNights || 3) + 1,
+                pricePerPerson: p.pricePerPerson || p.price || 499,
+                withFlight: Boolean(p.includesFlight),
+                hotelCategory: p.hotelStars || 4,
+                stayLine: `${p.hotelStars || 4} Star Hotel`,
+                mealsLine: "Breakfast & Dinner",
+                transferLine: "Airport Transfers Included",
+                activityLine: "Guided City Sightseeing",
+                perk: (p.tags || ["Best Value"])[0],
+                emi: Math.round((p.pricePerPerson || p.price || 499) / 6),
+                budgetBucket: (p.pricePerPerson || p.price || 499) < 500 ? "under-500" : (p.pricePerPerson || p.price || 499) <= 1000 ? "500-1000" : "1000-2000",
+                image: p.image || "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=800"
+            }));
         } catch (error) {
-            container.innerHTML = `<div class="traveler-package-empty">Unable to load packages right now.</div>`;
-            return;
+            PACKAGE_RESULTS = [];
         }
     }
 

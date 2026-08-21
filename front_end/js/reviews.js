@@ -1,4 +1,7 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "./api/http.js";
+import { apiGetAndSync, apiPostAndSync, apiDeleteAndSync, apiPatchAndSync } from "./utils/api.js";
+
+function getStorage(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } }
+function setStorage(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
 function showMessage(messageEl, text, isSuccess = false) {
     messageEl.textContent = text;
@@ -112,7 +115,8 @@ export function renderReviewsPage(containerId, currentUser = {}) {
     const loadReviews = async () => {
         try {
             clearMessage(message);
-            reviews = await apiGet("/reviews");
+            reviews = await apiGetAndSync("/reviews", "reviews");
+            if (!Array.isArray(reviews)) reviews = getStorage("reviews");
             renderReviews();
         } catch (error) {
             showMessage(message, error.message);
@@ -124,8 +128,12 @@ export function renderReviewsPage(containerId, currentUser = {}) {
         event.preventDefault();
         const id = document.getElementById("reviewId").value;
         try {
-            if (id) await apiPatch(`/reviews/${encodeURIComponent(id)}`, getPayload());
-            else await apiPost("/reviews", getPayload());
+            const data = getPayload();
+            if (id) {
+                await apiPatchAndSync(`/reviews/${id}`, data, "reviews");
+            } else {
+                await apiPostAndSync("/reviews", data, "reviews");
+            }
             showMessage(message, "Review saved successfully.", true);
             resetForm();
             await loadReviews();
@@ -142,7 +150,7 @@ export function renderReviewsPage(containerId, currentUser = {}) {
         if (button.dataset.action === "edit" && review) fillForm(review);
         if (button.dataset.action === "delete") {
             try {
-                await apiDelete(`/reviews/${encodeURIComponent(id)}`);
+                await apiDeleteAndSync(`/reviews/${id}`, "reviews", id);
                 showMessage(message, "Review deleted successfully.", true);
                 await loadReviews();
             } catch (error) {

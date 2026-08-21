@@ -1,16 +1,11 @@
 // Non-Technical Admin Dashboard Renderer
-import { nontechAdminData } from "../api/legacyData.js";
+import { apiGetAndSync } from "../utils/api.js";
 
-export function renderNtaDashboard(containerId) {
+const N = (v) => (v == null || isNaN(Number(v))) ? -1 : Number(v);
+const S = (v) => (v == null || v === "") ? "#" : v;
+
+export async function renderNtaDashboard(containerId) {
     console.log("Rendering Non-Technical Admin Dashboard...");
-
-    // Initialize data in localStorage if not present
-    if (!localStorage.getItem("ntaPlans")) {
-        localStorage.setItem("ntaPlans", JSON.stringify(nontechAdminData.plans));
-    }
-    if (!localStorage.getItem("ntaActivity")) {
-        localStorage.setItem("ntaActivity", JSON.stringify(nontechAdminData.recentActivity));
-    }
 
     // Show the correct dashboard wrapper
     const ntaDash = document.getElementById("nta-dashboard");
@@ -27,8 +22,8 @@ export function renderNtaDashboard(containerId) {
     if (techDash) techDash.style.display = "none";
     if (expDash) expDash.style.display = "none";
 
-    const plans = JSON.parse(localStorage.getItem("ntaPlans")) || [];
-    const activity = JSON.parse(localStorage.getItem("ntaActivity")) || [];
+    const plans   = await apiGetAndSync("/plans", "ntaPlans",   []);
+    const activity = (() => { try { return JSON.parse(localStorage.getItem("ntaActivity") || "[]"); } catch { return []; } })();
 
     // --- 1. Header ---
     const header = document.getElementById("nta-header");
@@ -70,8 +65,8 @@ export function renderNtaDashboard(containerId) {
     // --- 3. Overview Section ---
     const overviewContainer = document.getElementById("nta-overview");
     if (overviewContainer) {
-        const totalDestinations = [...new Set(plans.map(p => p.destination).filter(Boolean))].length;
-        const avgPrice = plans.length > 0 ? Math.round(plans.reduce((sum, p) => sum + p.price, 0) / plans.length) : 0;
+        const totalDestinations = [...new Set(plans.map(p => S(p.destination)).filter(d => d !== "#"))].length;
+        const avgPrice = plans.length > 0 ? Math.round(plans.reduce((sum, p) => sum + N(p.price), 0) / plans.length) : -1;
         const categories = [...new Set(plans.map(p => p.category).filter(Boolean))];
 
         overviewContainer.innerHTML = `
@@ -89,7 +84,7 @@ export function renderNtaDashboard(containerId) {
                 </div>
                 <div class="nta-overview-item">
                     <div class="label">Average Price</div>
-                    <div class="value">₹${avgPrice.toLocaleString()}</div>
+                    <div class="value">₹${avgPrice === -1 ? "-1" : avgPrice.toLocaleString()}</div>
                     <div class="hint">Per package</div>
                 </div>
                 <div class="nta-overview-item">
@@ -145,16 +140,16 @@ export function renderNtaDashboard(containerId) {
                     <h2 style="margin: 0 0 4px 0; font-size: 18px; color: #111827;">Package Pricing</h2>
                     <p style="margin: 0; font-size: 13px; color: #6b7280;">Price comparison across travel packages</p>
                 </div>
-                <button class="view-all-btn" onclick="window.location.href='nta_plans.html'">View Packages</button>
+                <button class="view-all-btn" onclick="window.location.href='./nta_plans.html'">View Packages</button>
             </div>
             <div class="nta-mini-bars">
                 ${plans.map((plan, i) => {
                     const heightPct = Math.max(((plan.price || 0) / maxPrice) * 100, 5);
                     return `
                         <div class="nta-mini-bar-wrapper">
-                            <span class="nta-mini-bar-value">₹${(plan.price || 0).toLocaleString()}</span>
+                            <span class="nta-mini-bar-value">₹${N(plan.price) === -1 ? "-1" : N(plan.price).toLocaleString()}</span>
                             <div class="nta-mini-bar ${barColors[i % barColors.length]}" style="height: ${heightPct}%;"></div>
-                            <span class="nta-mini-bar-label" title="${plan.name}">${plan.name.split(' ').slice(0, 2).join(' ')}</span>
+                            <span class="nta-mini-bar-label" title="${S(plan.name)}">${S(plan.name) === "#" ? "#" : S(plan.name).split(" ").slice(0, 2).join(" ")}</span>
                         </div>
                     `;
                 }).join('')}

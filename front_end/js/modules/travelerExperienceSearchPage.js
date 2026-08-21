@@ -1,6 +1,5 @@
 import { attachLocationAutocomplete, getTodayDateString, extractUniqueLocations } from "../utils/locationAutocomplete.js";
-import { fetchExperiences } from "../api/services.js";
-import { mapExperienceToSearchCard } from "../api/adapters.js";
+import { apiGetAndSync } from "../utils/api.js";
 
 const SEARCH_STORAGE_KEY = "traveler_dashboard_search_state";
 const WISHLIST_STORAGE_KEY = "traveler_wishlist";
@@ -10,18 +9,11 @@ let EXPERIENCE_RESULTS = null;
 
 export async function renderTravelerExperienceSearchPage(containerId) {
     if (!EXPERIENCE_RESULTS) {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = `<div class="traveler-experience-empty">Loading experiences...</div>`;
-        }
         try {
-            const experiences = await fetchExperiences();
-            EXPERIENCE_RESULTS = experiences.map(mapExperienceToSearchCard);
+            EXPERIENCE_RESULTS = await apiGetAndSync("/experiences", "experienceCatalog", []);
+            if (!Array.isArray(EXPERIENCE_RESULTS)) EXPERIENCE_RESULTS = [];
         } catch (error) {
-            if (container) {
-                container.innerHTML = `<div class="traveler-experience-empty">Unable to load experiences right now.</div>`;
-            }
-            return;
+            EXPERIENCE_RESULTS = [];
         }
     }
     const container = document.getElementById(containerId);

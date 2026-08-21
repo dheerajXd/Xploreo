@@ -1,5 +1,5 @@
 // hotelprofile.js
-import { users } from '../api/legacyData.js';
+const users = (() => { try { return JSON.parse(localStorage.getItem("users") || "[]"); } catch { return []; } })();
 
 export function initHotelProfile() {
     const profileForm = document.getElementById('profileForm');

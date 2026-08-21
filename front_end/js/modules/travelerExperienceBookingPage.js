@@ -2,6 +2,8 @@ const SELECTED_EXPERIENCE_KEY = "traveler_selected_experience";
 const EXPERIENCE_BOOKING_DRAFT_KEY = "traveler_experience_booking_draft";
 const EXPERIENCE_CONFIRMATION_KEY = "traveler_experience_booking_confirmation";
 
+import { apiFetch, apiGetAndSync } from "../utils/api.js";
+
 export function renderTravelerExperienceBookingPage(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -262,12 +264,12 @@ function persistExperienceBookingDraft(draft) {
     localStorage.setItem(EXPERIENCE_BOOKING_DRAFT_KEY, JSON.stringify(draft));
 }
 
-function persistExperienceConfirmation(record) {
+async function persistExperienceConfirmation(record) {
     if (typeof localStorage === "undefined") return;
     localStorage.setItem(EXPERIENCE_CONFIRMATION_KEY, JSON.stringify(record));
 
-    // Sync with global Experience Provider data
-    const allExpBookings = JSON.parse(localStorage.getItem("experienceBookings") || "[]");
+    // Sync with global Experience Provider data via API
+    const allExpBookings = await apiGetAndSync("/bookings/experience", "experienceBookings", []);
     if (!allExpBookings.find(b => b.id === record.bookingId || b.bookingId === record.bookingId)) {
         const providerRecord = {
             id: record.bookingId,
@@ -282,6 +284,8 @@ function persistExperienceConfirmation(record) {
                 }
             ]
         };
+        // POST to backend
+        apiFetch("/bookings/experience", { method: "POST", body: providerRecord }).catch(() => {});
         allExpBookings.push(providerRecord);
         localStorage.setItem("experienceBookings", JSON.stringify(allExpBookings));
     }
@@ -313,6 +317,10 @@ function persistExperienceConfirmation(record) {
             plan_iternary: [record.option.title || "Experience"]
         };
 
+        // POST trip to backend
+        apiFetch("/trips", { method: "POST", body: tripRecord }).catch(() => {});
+
+        // Update local cache for tours
         const allTours = JSON.parse(localStorage.getItem("tours") || "[]");
         if (!allTours.find(t => String(t.id) === String(record.bookingId))) {
             allTours.push(tripRecord);

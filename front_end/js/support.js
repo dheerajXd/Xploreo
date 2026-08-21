@@ -1,17 +1,14 @@
+import { apiPostAndSync } from "./utils/api.js";
+
 export function renderSupportPage(containerId, user) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const supportData = JSON.parse(localStorage.getItem("supportData"));
-    const techAdminData = JSON.parse(localStorage.getItem("techAdminData"));
-
-    if (!supportData || !techAdminData) {
-        console.error("Data not found in localStorage.");
-        return;
-    }
+    const supportData = JSON.parse(localStorage.getItem("supportData")) || { contactInfo: { email: "support@xploreo.com" } };
+    const techAdminData = JSON.parse(localStorage.getItem("techAdminData")) || { tickets: [], userActivity: [] };
 
     // Filter tickets for THIS specific user from the master tech list
-    const userTickets = techAdminData.tickets.filter(t => t.userId === user.id);
+    const userTickets = (techAdminData.tickets || []).filter(t => t.userId === user?.id);
 
     container.innerHTML = `
         <div class="support-page">
@@ -56,7 +53,7 @@ export function renderSupportPage(containerId, user) {
                     <h3 class="section-title">Frequently Asked Questions</h3>
                     <span class="section-desc">Quick answers to common questions</span>
                     <div class="faq-list">
-                        ${supportData.faqs.map(faq => `
+                        ${(supportData.faqs || []).map(faq => `
                             <div class="faq-item">
                                 <button class="faq-question">
                                     <span>${faq.question}</span>
@@ -103,7 +100,7 @@ export function renderSupportPage(containerId, user) {
                         <div class="icon-box" style="background: white;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div>
                         <div class="contact-info">
                             <span class="contact-label">Email Support</span>
-                            <span class="contact-value">${supportData.contactInfo.email}</span>
+                            <span class="contact-value">${supportData.contactInfo?.email || "support@xploreo.com"}</span>
                             <span class="contact-meta">Response within 24 hours</span>
                         </div>
                     </div>
@@ -139,15 +136,15 @@ function setupSupportListeners(user, techAdminData) {
     // Form Submit
     const form = document.getElementById("ticketForm");
     if (form) {
-        form.onsubmit = (e) => {
+        form.onsubmit = async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             
             const newTicket = {
                 id: `TICK-${Math.floor(1000 + Math.random() * 9000)}`,
-                userId: user.id,
-                userName: user.name,
-                userRole: user.role,
+                userId: user?.id || "00001",
+                userName: user?.name || user?.username || "Explorer",
+                userRole: user?.role || "traveller",
                 subject: formData.get("subject"),
                 description: formData.get("message"),
                 status: "pending",
@@ -156,14 +153,18 @@ function setupSupportListeners(user, techAdminData) {
                 createdAt: new Date().toISOString()
             };
 
-            // Sync to Master Tech List
+            // Post to backend API
+            await apiPostAndSync("/tickets", newTicket, "tickets");
+
+            // Sync to Master Tech List & LocalStorage
+            techAdminData.tickets = techAdminData.tickets || [];
+            techAdminData.userActivity = techAdminData.userActivity || [];
             techAdminData.tickets.push(newTicket);
             
-            // Add to User Activity too
             techAdminData.userActivity.unshift({
                 id: `ACT-${Date.now()}`,
-                userId: user.id,
-                userName: user.name,
+                userId: user?.id || "00001",
+                userName: user?.name || user?.username || "Explorer",
                 action: `Created support ticket: "${newTicket.subject}"`,
                 timestamp: new Date().toISOString()
             });
@@ -175,4 +176,3 @@ function setupSupportListeners(user, techAdminData) {
         };
     }
 }
-

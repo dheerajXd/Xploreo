@@ -33,7 +33,6 @@ import {
 @ApiProtectedResource()
 @Roles(
   Role.TRAVELLER,
-  Role.TRAVELLER_ACTOR,
   Role.GUIDE,
   Role.SUPERADMIN,
   Role.NONTECHADMIN,

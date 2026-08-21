@@ -1,22 +1,12 @@
-import { fetchPartnerHotelBookings } from "../api/services.js";
-
+/* ================================================================
+   hotel-bookings-page.js — 100% Client-side (localStorage)
+================================================================ */
 export async function renderBookingsPage(containerId = "main") {
   const root =
     document.getElementById(containerId) || document.getElementById("main");
   if (!root) return;
 
-  root.innerHTML = `
-    <div class="hotel-page-header">
-      <h1>Bookings</h1>
-      <p>Manage and track all traveller hotel reservations</p>
-    </div>
-    <div class="hotel-content-card">Loading bookings...</div>
-  `;
-
-  const bookings = await fetchPartnerHotelBookings().catch((error) => {
-    console.error("Failed to load partner bookings:", error);
-    return [];
-  });
+  const bookings = fetchPartnerHotelBookings();
 
   root.innerHTML = `
     <div class="hotel-page-header">
@@ -25,8 +15,8 @@ export async function renderBookingsPage(containerId = "main") {
     </div>
     <section class="hotel-content-card hotel-summary-strip">
       <div><span>Total Bookings</span><strong>${bookings.length}</strong></div>
-      <div><span>Confirmed</span><strong>${bookings.filter((booking) => booking.status === "CONFIRMED").length}</strong></div>
-      <div><span>Revenue</span><strong>₹${bookings.reduce((sum, booking) => sum + Number(booking.totalAmount || 0), 0).toLocaleString()}</strong></div>
+      <div><span>Confirmed</span><strong>${bookings.filter((b) => b.status === "CONFIRMED").length}</strong></div>
+      <div><span>Revenue</span><strong>₹${bookings.reduce((sum, b) => sum + Number(b.totalAmount || 0), 0).toLocaleString()}</strong></div>
     </section>
     <div id="booking-list">
       ${
@@ -36,6 +26,14 @@ export async function renderBookingsPage(containerId = "main") {
       }
     </div>
   `;
+}
+
+function fetchPartnerHotelBookings() {
+  try {
+    return JSON.parse(localStorage.getItem("hotelBookings") || "[]");
+  } catch {
+    return [];
+  }
 }
 
 function renderBookingCard(booking) {

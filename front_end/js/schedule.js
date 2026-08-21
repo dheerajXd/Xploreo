@@ -1,4 +1,5 @@
-import { apiDelete, apiGet, apiPatch, apiPost } from "./api/http.js";
+function getStorage(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } }
+function setStorage(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
 function showMessage(messageEl, text, isSuccess = false) {
     messageEl.textContent = text;
@@ -121,8 +122,8 @@ export function renderSchedulePage(containerId, currentUser = {}) {
         try {
             clearMessage(message);
             const guideId = guideFilter.value.trim();
-            const endpoint = guideId ? `/schedule?guideId=${encodeURIComponent(guideId)}` : "/schedule";
-            scheduleItems = await apiGet(endpoint);
+            const all = getStorage("schedule");
+            scheduleItems = guideId ? all.filter((s) => String(s.guideId) === guideId) : all;
             renderSchedule();
         } catch (error) {
             showMessage(message, error.message);
@@ -134,8 +135,14 @@ export function renderSchedulePage(containerId, currentUser = {}) {
         event.preventDefault();
         const id = document.getElementById("scheduleId").value;
         try {
-            if (id) await apiPatch(`/schedule/${encodeURIComponent(id)}`, getPayload());
-            else await apiPost("/schedule", getPayload());
+            const data = getPayload();
+            if (id) {
+                const idx = scheduleItems.findIndex((s) => String(s.id) === String(id));
+                if (idx !== -1) scheduleItems[idx] = { ...scheduleItems[idx], ...data };
+            } else {
+                scheduleItems.push({ id: Date.now(), ...data });
+            }
+            setStorage("schedule", scheduleItems);
             showMessage(message, "Schedule saved successfully.", true);
             resetForm();
             await loadSchedule();
@@ -152,7 +159,8 @@ export function renderSchedulePage(containerId, currentUser = {}) {
         if (button.dataset.action === "edit" && item) fillForm(item);
         if (button.dataset.action === "delete") {
             try {
-                await apiDelete(`/schedule/${encodeURIComponent(id)}`);
+                scheduleItems = scheduleItems.filter((s) => String(s.id) !== String(id));
+                setStorage("schedule", scheduleItems);
                 showMessage(message, "Schedule deleted successfully.", true);
                 await loadSchedule();
             } catch (error) {

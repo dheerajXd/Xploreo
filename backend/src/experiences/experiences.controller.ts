@@ -30,9 +30,7 @@ import {
   Role.GUIDE,
   Role.SUPERADMIN,
   Role.NONTECHADMIN,
-  Role.EXPERIENCE,
-  Role.TRAVELLER_ACTOR,
-  Role.EXPERIENCE_PARTNER,
+  Role.EXPERIENCE
 )
 @Controller('experiences')
 export class ExperiencesController {
@@ -42,7 +40,6 @@ export class ExperiencesController {
     Role.SUPERADMIN,
     Role.NONTECHADMIN,
     Role.EXPERIENCE,
-    Role.EXPERIENCE_PARTNER,
   )
   @Post()
   @ApiOperation({ summary: 'Create an experience' })
@@ -59,11 +56,11 @@ export class ExperiencesController {
   }
 
   @Get()
-  @Roles(Role.TRAVELLER_ACTOR, Role.TRAVELLER, Role.EXPERIENCE_PARTNER)
+  @Roles(Role.TRAVELLER, Role.EXPERIENCE)
   @ApiOperation({ summary: 'Get all experiences' })
   @ApiReadEndpoint()
   findAll(@Req() req: any) {
-    if (req.user?.role === Role.EXPERIENCE_PARTNER) {
+    if (req.user?.role === Role.EXPERIENCE) {
       return this.experiencesService.findForPartner(req.user?.userId);
     }
 
