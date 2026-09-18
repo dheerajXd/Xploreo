@@ -184,6 +184,29 @@ Fully isolated using prefix
   margin-bottom: 6px;
   opacity: 0.8;
 }
+/* Booking Summary */
+.hotel-summary-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.hotel-summary-strip > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hotel-summary-strip span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.hotel-summary-strip strong {
+  font-size: 24px;
+  font-weight: 700;
+}
 
 /* Header with action */
 .hotel-flex-header {
