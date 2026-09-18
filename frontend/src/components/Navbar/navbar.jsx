@@ -6,7 +6,7 @@ export default function Navbar() {
 
     const user = {
         username : "Default User",
-        role : "traveller"
+        role : "guide"
     }
 
     return (
@@ -33,10 +33,10 @@ export default function Navbar() {
                     {user.role === "guide" && (
                         <>
                             <Link to = "Guide/dashboard" className = "navbar-link">Dashboard</Link>
-                            <Link to = "Guide/trips" className = "navbar-link">trips</Link>
+                            <Link to = "Guide/trips" className = "navbar-link">Trips</Link>
                             <Link to = "Guide/schedule" className = "navbar-link">Schedule</Link>
                             <Link to = "Guide/earnings" className = "navbar-link">Earnings</Link>
-                            <Link to = "guide/reviews.jsx" className = "navbar-link">Reviews</Link>   
+                            <Link to = "Guide/reviews.jsx" className = "navbar-link">Reviews</Link>   
                         </>
                     )}
             </div>
