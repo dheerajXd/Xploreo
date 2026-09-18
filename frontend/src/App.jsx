@@ -1,13 +1,17 @@
-import { useState } from 'react'
-import './App.css'
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import './App.css';
+import Landing from './pages/Home/landing';
 
 function App() {
 
 
   return (
-    <div>
-
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
