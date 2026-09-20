@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import "../../../../front_end/css/shared.css";
 import "../../../../front_end/css/hotelstyle.css";
+import Navbar from "../../components/Navbar/navbar";
 
 function Bookings() {
   const [bookings] = useState(() => {
@@ -25,8 +26,9 @@ function Bookings() {
   );
 
   return (
+    <div>
+        <Navbar />
     <main id="main" className="dashboard-wrapper">
-
       {/* Page Header */}
       <div className="hotel-page-header">
         <h1>Bookings</h1>
@@ -84,6 +86,7 @@ function Bookings() {
       </div>
 
     </main>
+    </div>
   );
 }
 

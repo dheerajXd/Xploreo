@@ -6,22 +6,20 @@ import Landing from "./pages/Home/landing";
 import Patners from "./pages/Home/partners";
 import Tours from "./pages/Home/tours";
 import Support from "./pages/Home/support";
-import Bookings from "./pages/HotelPartner/bookings";
+import Bookings from "./pages/Hotel/bookings";
+import guideDashboard from "./pages/Guide/dashboard";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-
         <Route path="/Home/partners" element={<Patners />} />
         <Route path="/Home/tours" element={<Tours />} />
         <Route path="/Home/support" element={<Support />} />
+        <Route path="/Guide/dashboard" element={<guideDashboard />} />
+        <Route path="/Hotel/bookings" element={<Bookings />}/>
 
-        <Route
-          path="/hotelpartner/bookings"
-          element={<Bookings />}
-        />
       </Routes>
     </BrowserRouter>
   );
