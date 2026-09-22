@@ -1,0 +1,30 @@
+.page-container {
+    padding : 0 20px;
+
+}
+
+.dashboard-header {
+    padding-top : 100px;
+}
+
+.experience-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.page-title {
+  color: var(--experience-text);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--experience-muted);
+}
+
+.stat-cards-container {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}

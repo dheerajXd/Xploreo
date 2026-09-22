@@ -6,7 +6,7 @@ export default function Navbar() {
 
     const user = {
         username : "Default User",
-        role : "guide"
+        role : "experience"
     }
 
     return (
