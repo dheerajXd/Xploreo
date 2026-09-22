@@ -48,3 +48,7 @@
 
     color: #64748b;
 }
+
+.stat-card:hover{
+    transform : translateY(1px);
+}
