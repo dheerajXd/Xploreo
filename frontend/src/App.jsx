@@ -11,6 +11,7 @@ import Support from "./pages/Home/support";
 import Bookings from "./pages/Hotel/bookings";
 import guideDashboard from "./pages/Guide/dashboard";
 import ExperienceDashboard from "./pages/Experience/dashboard";
+import Login from "./pages/Auth/login";
 
 function App() {
 
@@ -27,6 +28,8 @@ function App() {
         <Route path="/Home/partners" element={<Patners user = {user}/> } />
         <Route path="/Home/tours" element={<Tours user = {user}/> } />
         <Route path="/Home/support" element={<Support user = {user}/> } />
+
+        <Route path="/Auth/login" element={<Login user = {user}/>}/>
 
         <Route element={<ProtectedRoute allowedRoles={["guide"]} user={user} />}>
 

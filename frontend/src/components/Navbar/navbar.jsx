@@ -11,6 +11,7 @@ export default function Navbar(props) {
             <img src = {logo} alt = "Logo" />
             <div className = "navbar-title" > Xploreo </div>
             </div>
+            
             <div className = "navbar-links">
                     {props.user.role === "default" && (
                         <>
@@ -78,6 +79,11 @@ export default function Navbar(props) {
                             <Link to = "/Experience/profile" className = "navbar-link">Profile</Link>
                         </>
                     )}
+            </div>
+
+            <div className = "navbar-right">
+                <Link to = "/Auth/login" className="navbar-btn" >Login</Link>
+                <Link to = "/Auth/register" className="navbar-btn" >Register</Link>
             </div>
            
         </nav>
