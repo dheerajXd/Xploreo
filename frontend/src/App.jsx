@@ -13,22 +13,36 @@ import guideDashboard from "./pages/Guide/dashboard";
 import ExperienceDashboard from "./pages/Experience/dashboard";
 
 function App() {
+
+  const user = {
+    userid : "EXP001",
+    username : "EXP001",
+    role: "default"
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/Home/partners" element={<Patners />} />
-        <Route path="/Home/tours" element={<Tours />} />
-        <Route path="/Home/support" element={<Support />} />
+        <Route path="/" element={<Landing user = {user}/> } />
+        <Route path="/Home/partners" element={<Patners user = {user}/> } />
+        <Route path="/Home/tours" element={<Tours user = {user}/> } />
+        <Route path="/Home/support" element={<Support user = {user}/> } />
 
-        <Route path="/Guide/dashboard" element={<guideDashboard />} />
+        <Route element={<ProtectedRoute allowedRoles={["guide"]} user={user} />}>
 
-        <Route path="/Hotel/bookings" element={<Bookings />}/>
+          <Route path="/Guide/dashboard" element={<guideDashboard user = {user} />} />
 
-        <Route element={<ProtectedRoute allowedRoles={["experience"]} />}>
+        </Route>
+        
+        <Route element={<ProtectedRoute allowedRoles={["hotel"]} user={user}/>}>
 
-          <Route path="/Experience/dashboard" element={<ExperienceDashboard />} />
+          <Route path="/Hotel/bookings" element={<Bookings user={user}/>}/>
 
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={["experience"]} user={user} />}>
+
+          <Route path="/Experience/dashboard" element={<ExperienceDashboard user={user} />} />
 
         </Route>
 

@@ -4,7 +4,7 @@ import "../../../../front_end/css/shared.css";
 import "../../../../front_end/css/hotelstyle.css";
 import Navbar from "../../components/Navbar/navbar";
 
-function Bookings() {
+function Bookings(user) {
   const [bookings] = useState(() => {
     try {
       return JSON.parse(
@@ -27,7 +27,7 @@ function Bookings() {
 
   return (
     <div>
-        <Navbar />
+        <Navbar user={user} />
     <main id="main" className="dashboard-wrapper">
       {/* Page Header */}
       <div className="hotel-page-header">

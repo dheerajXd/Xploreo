@@ -1,8 +1,8 @@
 import Navbar from "../../components/Navbar/navbar"
 
-export default function Landing() {
+export default function Landing({user}) {
     return (
-        <Navbar />
+        <Navbar user={user} />
         
     )
 }

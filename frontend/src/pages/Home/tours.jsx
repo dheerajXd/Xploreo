@@ -1,7 +1,7 @@
 import Navbar from "../../components/Navbar/navbar";
 
-export default function Tours() {
+export default function Tours({user}) {
     return (
-        <Navbar />
+        <Navbar user={user} />
     );
 }

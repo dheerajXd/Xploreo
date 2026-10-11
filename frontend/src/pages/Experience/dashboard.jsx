@@ -3,10 +3,10 @@ import Statcard from "../../components/StatCards/statcard"
 
 import "./Experience.css"
 
-export default function ExperienceDashboard() {
+export default function ExperienceDashboard(user) {
     return (
         <div className = "page-container">
-            <Navbar />
+            <Navbar user={user} />
             <div className="dashboard-header">
                 <p class="experience-eyebrow">Experience Dashboard</p>
                 <h1 class="page-title">Home</h1>
