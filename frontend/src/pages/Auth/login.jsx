@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar/navbar";
 import { authApi } from "../../services/api";
 import "./auth.css";
 
-const destinationForRole = { guide: "/Guide/dashboard", hotel: "/Hotel/bookings", experience: "/Experience/dashboard" };
+const destinationForRole = { guide: "/guide/dashboard", hotel: "/hotel/dashboard", experience: "/experience/home" };
 
 export default function Login({ user, onAuthenticated }) {
   const navigate = useNavigate();
