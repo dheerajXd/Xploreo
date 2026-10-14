@@ -9,6 +9,7 @@ import profileCss from './css/profile.css?inline';
 import guidePortalCss from './css/guide-portal.css?inline';
 import dashboardCss from './css/dashboard.css?inline';
 import hotelStyleCss from './css/hotelstyle.css?inline';
+import hotelPortalCss from './css/hotel-portal.css?inline';
 import toursCss from './css/tours.css?inline';
 import trackingCss from './css/tracking.css?inline';
 import earningsCss from './css/earnings.css?inline';
@@ -34,4 +35,5 @@ export const GUIDE_SCHEDULE_CSS = [sharedCss, scheduleCss, moduleCrudCss, guideC
 export const GUIDE_SUPPORT_CSS = [sharedCss, supportCss, guideCommonCss];
 
 // Hotel portal pages (M3)
-export const HOTEL_PAGE_CSS = [sharedCss, hotelStyleCss, moduleCrudCss];
+// Hotel portal pages: exactly what the original hotels/*.html linked (shared.css + hotelstyle.css).
+export const HOTEL_PAGE_CSS = [sharedCss, hotelPortalCss];

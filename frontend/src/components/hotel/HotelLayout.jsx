@@ -3,7 +3,7 @@ import { Navbar, useAuth } from '@/foundation';
 
 const LINKS = [
   { to: '/hotel/dashboard', label: 'Dashboard', icon: 'dashboard.svg' },
-  { to: '/hotel/rooms', label: 'Rooms & Inventory', icon: 'tours.svg' },
+  { to: '/hotel/rooms', label: 'Services', icon: 'tours.svg' },
   { to: '/hotel/bookings', label: 'Bookings', icon: 'schedule.svg' },
   { to: '/hotel/earnings', label: 'Earnings', icon: 'earnings.svg' },
   { to: '/hotel/reviews', label: 'Reviews', icon: 'reviews.svg' },

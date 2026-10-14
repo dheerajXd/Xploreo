@@ -8,7 +8,7 @@ const listOf = (response) => (Array.isArray(response) ? response : response?.ite
 
 // ── Hotel CRUD ────────────────────────────────────────────────────────────────
 // Fields: CreateHotelDto / UpdateHotelDto (see backend/src/hotels/dto/)
-const HOTEL_FIELDS = ['name', 'city', 'location', 'description', 'stars', 'pricePerNight', 'taxesAndFees', 'totalRooms', 'image', 'images', 'amenities', 'status'];
+const HOTEL_FIELDS = ['name', 'city', 'location', 'description', 'stars', 'pricePerNight', 'taxesAndFees', 'image', 'images', 'amenities', 'status'];
 function pickHotel(values) {
   return Object.fromEntries(HOTEL_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
 }
@@ -39,7 +39,7 @@ export function deleteHotel(id) {
 }
 
 // ── Room types ────────────────────────────────────────────────────────────────
-const ROOM_FIELDS = ['type', 'description', 'pricePerNight', 'maxOccupancy', 'totalRooms', 'amenities', 'images'];
+const ROOM_FIELDS = ['type', 'description', 'pricePerNight', 'maxOccupancy', 'totalRooms', 'availableRooms', 'amenities', 'images', 'status'];
 function pickRoom(values) {
   return Object.fromEntries(ROOM_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
 }
@@ -97,8 +97,8 @@ export function cancelBooking(id) {
 
 // ── Bookings (traveller side) ─────────────────────────────────────────────────
 const BOOKING_CREATE_FIELDS = [
-  'id', 'hotelId', 'guestName', 'email', 'phone', 'checkIn', 'checkOut',
-  'guests', 'roomType', 'notes', 'rooms', 'totalAmount', 'guestNames',
+  'hotelId', 'guestName', 'email', 'phone', 'checkIn', 'checkOut',
+  'guests', 'roomType', 'notes', 'rooms',
 ];
 function pickBooking(values) {
   return Object.fromEntries(BOOKING_CREATE_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
@@ -110,25 +110,30 @@ export function createBooking(values) {
 }
 
 // ── Earnings (read-only) ──────────────────────────────────────────────────────
-// GET /hotels/:id/earnings
-export function getHotelEarnings(hotelId) {
-  return request(`/hotels/${enc(hotelId)}/earnings`);
+// GET /bookings/earnings — statement computed by the server from the partner's bookings
+export function getPartnerEarnings(hotelId) {
+  return request('/bookings/earnings', { params: { hotelId } });
 }
 
-// ── Hotel reviews ─────────────────────────────────────────────────────────────
+// ── Reviews ───────────────────────────────────────────────────────────────────
 // GET /hotels/:id/reviews
 export async function getHotelReviews(hotelId) {
   return listOf(await request(`/hotels/${enc(hotelId)}/reviews`));
 }
 
-
-// ── Partner profile (hotel variant) ──────────────────────────────────────────
-// Same profile endpoint as other partners: PATCH /auth/users/:id
-const PROFILE_FIELDS = ['name', 'email', 'phone', 'businessName'];
-function pickProfile(values) {
-  return Object.fromEntries(PROFILE_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
+// GET /hotels/partner/reviews — reviews across all of the partner's hotels
+export async function listPartnerReviews() {
+  return listOf(await request('/hotels/partner/reviews'));
 }
 
-export function updateHotelPartnerProfile(userId, values) {
-  return request(`/auth/users/${enc(userId)}`, { method: 'PATCH', body: pickProfile(values) });
+// ── Partner profile ───────────────────────────────────────────────────────────
+// GET/PATCH /hotels/partner/profile
+export function getPartnerProfile() {
+  return request('/hotels/partner/profile');
+}
+
+const PROFILE_FIELDS = ['hotelName', 'description', 'contactNumber', 'email', 'location', 'gst', 'bankAccount', 'payoutMethod', 'checkInTime', 'checkOutTime', 'cancellationPolicy', 'logo'];
+export function updatePartnerProfile(values) {
+  const body = Object.fromEntries(PROFILE_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
+  return request('/hotels/partner/profile', { method: 'PATCH', body });
 }
