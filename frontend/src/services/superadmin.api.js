@@ -1,0 +1,536 @@
+import { fetchData } from './api.js';
+import {
+  DEMO_DASHBOARD_METRICS,
+  DEMO_BOOKING_VELOCITY,
+  DEMO_RECENT_BOOKINGS,
+  DEMO_OPERATIONS_METRICS,
+  DEMO_TRANSACTION_LEDGER,
+  DEMO_REFUND_QUEUE,
+  DEMO_DISPUTES,
+  DEMO_USERS_AND_PARTNERS,
+  DEMO_FINANCE_METRICS,
+  DEMO_EARNINGS_SERIES,
+  DEMO_PAYOUTS,
+} from '../mocks/superadmin/superadmin.fixture.js';
+
+/**
+ * Backend base URL. Defaults to localhost:3000 if not specified in env.
+ */
+const BASE_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) ||
+  'http://localhost:3000';
+
+/**
+ * Custom Error class that retains HTTP status and field messages.
+ */
+export class ApiError extends Error {
+  constructor(message, status = 500, details = null) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
+/**
+ * In-memory mutable store for SuperAdmin mock operations.
+ * Isolates demo actions from backend and avoids state leaks.
+ */
+let mockStore = {
+  users: JSON.parse(JSON.stringify(DEMO_USERS_AND_PARTNERS)),
+  recentBookings: JSON.parse(JSON.stringify(DEMO_RECENT_BOOKINGS)),
+  ledger: JSON.parse(JSON.stringify(DEMO_TRANSACTION_LEDGER)),
+  refunds: JSON.parse(JSON.stringify(DEMO_REFUND_QUEUE)),
+  disputes: JSON.parse(JSON.stringify(DEMO_DISPUTES)),
+  payouts: JSON.parse(JSON.stringify(DEMO_PAYOUTS)),
+};
+
+/**
+ * Helper to determine if SuperAdmin mock mode is enabled.
+ * Uses VITE_MOCKS environment variable (e.g. VITE_MOCKS=all or VITE_MOCKS=superadmin).
+ * Defaults to true if no backend URL or explicitly set to mock.
+ */
+export function isSuperAdminMockMode() {
+  const envMocks =
+    typeof import.meta !== 'undefined' && import.meta.env?.VITE_MOCKS
+      ? import.meta.env.VITE_MOCKS
+      : null;
+  if (!envMocks) {
+    return true;
+  }
+  return envMocks === 'all' || envMocks.split(',').map((s) => s.trim()).includes('superadmin');
+}
+
+/**
+ * Resets in-memory mock store to initial demo fixtures.
+ */
+export function resetSuperAdminMockStore() {
+  mockStore = {
+    users: JSON.parse(JSON.stringify(DEMO_USERS_AND_PARTNERS)),
+    recentBookings: JSON.parse(JSON.stringify(DEMO_RECENT_BOOKINGS)),
+    ledger: JSON.parse(JSON.stringify(DEMO_TRANSACTION_LEDGER)),
+    refunds: JSON.parse(JSON.stringify(DEMO_REFUND_QUEUE)),
+    disputes: JSON.parse(JSON.stringify(DEMO_DISPUTES)),
+    payouts: JSON.parse(JSON.stringify(DEMO_PAYOUTS)),
+  };
+}
+
+/**
+ * Builds standard SuperAdmin authorization headers for live backend calls.
+ */
+function buildAdminHeaders(session = {}) {
+  const userId = session.userId || session.userid || 'SA001';
+  const role = session.role || 'superadmin';
+  return {
+    'x-user-role': role,
+    'x-user-id': String(userId),
+  };
+}
+
+// ============================================================================
+// 1. DASHBOARD & VELOCITY METHODS
+// ============================================================================
+
+/**
+ * Fetches high-level executive dashboard KPI metrics.
+ * 
+ * @param {Object} [session] - User session identity
+ * @returns {Promise<Object>} Dashboard KPI metrics
+ */
+export async function getDashboardMetrics(session = {}) {
+  if (isSuperAdminMockMode()) {
+    return { ...DEMO_DASHBOARD_METRICS, totalUsers: mockStore.users.length };
+  }
+
+  try {
+    // Live mode: Aggregates real users and trips counts
+    const headers = buildAdminHeaders(session);
+    const [usersRes, tripsRes] = await Promise.all([
+      fetchData(`${BASE_URL}/auth/users`, { headers }),
+      fetchData(`${BASE_URL}/trips`, { headers }),
+    ]);
+
+    const usersCount = Array.isArray(usersRes) ? usersRes.length : 0;
+    const trips = Array.isArray(tripsRes) ? tripsRes : [];
+    const totalRevenue = trips.reduce((sum, t) => sum + (Number(t.totalAmount) || 0), 0);
+    const activeTripsCount = trips.filter((t) => t.status === 'started' || t.status === 'confirmed').length;
+
+    return {
+      totalUsers: usersCount || DEMO_DASHBOARD_METRICS.totalUsers,
+      totalUsersChangePct: DEMO_DASHBOARD_METRICS.totalUsersChangePct,
+      grossRevenue: totalRevenue || DEMO_DASHBOARD_METRICS.grossRevenue,
+      grossRevenueChangePct: DEMO_DASHBOARD_METRICS.grossRevenueChangePct,
+      totalBookings: trips.length || DEMO_DASHBOARD_METRICS.totalBookings,
+      totalBookingsChangePct: DEMO_DASHBOARD_METRICS.totalBookingsChangePct,
+      activeTrips: activeTripsCount || DEMO_DASHBOARD_METRICS.activeTrips,
+      activeTripsChangePct: DEMO_DASHBOARD_METRICS.activeTripsChangePct,
+      periodLabel: DEMO_DASHBOARD_METRICS.periodLabel,
+    };
+  } catch (err) {
+    console.warn('[superadmin.api] Falling back to demo metrics due to:', err.message);
+    return { ...DEMO_DASHBOARD_METRICS, totalUsers: mockStore.users.length };
+  }
+}
+
+/**
+ * Fetches booking velocity & engagement series for charts.
+ * 
+ * @param {'weekly' | 'monthly' | 'quarterly'} [timeframe='weekly']
+ * @returns {Promise<Array>} Series points [{ label, bookings, revenue }]
+ */
+export async function getBookingVelocity(timeframe = 'weekly') {
+  // Chart time-series is client-side / simulated
+  const series = DEMO_BOOKING_VELOCITY[timeframe] || DEMO_BOOKING_VELOCITY.weekly;
+  return JSON.parse(JSON.stringify(series));
+}
+
+/**
+ * Fetches recent bookings table.
+ * 
+ * @param {number} [limit=10]
+ * @param {Object} [session]
+ * @returns {Promise<Array>} Recent bookings records
+ */
+export async function getRecentBookings(limit = 10, session = {}) {
+  if (isSuperAdminMockMode()) {
+    return mockStore.recentBookings.slice(0, limit);
+  }
+
+  try {
+    const headers = buildAdminHeaders(session);
+    const trips = await fetchData(`${BASE_URL}/trips`, { headers });
+    if (Array.isArray(trips) && trips.length > 0) {
+      return trips.slice(0, limit).map((t, idx) => ({
+        id: t.id || `BK-${idx + 1}`,
+        customerName: `Traveller #${t.travellerId || 'Guest'}`,
+        customerEmail: `user-${t.travellerId || 'guest'}@xploreo.com`,
+        role: 'traveller',
+        serviceTitle: t.itinerary?.day1?.hotel?.name || 'Custom Travel Itinerary',
+        serviceType: 'package',
+        amount: Number(t.totalAmount) || 25000,
+        currency: 'INR',
+        bookingDate: t.lastUpdatedAt || new Date().toISOString(),
+        status: t.status || 'confirmed',
+      }));
+    }
+  } catch (err) {
+    console.warn('[superadmin.api] Live trips fetch failed, falling back to demo store:', err.message);
+  }
+
+  return mockStore.recentBookings.slice(0, limit);
+}
+
+// ============================================================================
+// 2. OPERATIONS & BOOKINGS METHODS (OPSBOOK)
+// ============================================================================
+
+/**
+ * Fetches operations high-level summary metrics.
+ * 
+ * @returns {Promise<Object>} Operations metrics
+ */
+export async function getOperationsMetrics() {
+  return { ...DEMO_OPERATIONS_METRICS };
+}
+
+/**
+ * Fetches comprehensive transaction ledger.
+ * 
+ * @param {Object} [filters={}] - Optional filters (status, partnerType)
+ * @returns {Promise<Array>} Transaction ledger entries
+ */
+export async function getLedgerTransactions(filters = {}) {
+  let list = [...mockStore.ledger];
+  if (filters.status && filters.status !== 'all') {
+    list = list.filter((item) => item.status === filters.status);
+  }
+  if (filters.partnerType && filters.partnerType !== 'all') {
+    list = list.filter((item) => item.partnerType === filters.partnerType);
+  }
+  return list;
+}
+
+/**
+ * Fetches revenue recovery / refund requests queue.
+ * 
+ * @returns {Promise<Array>} Refund requests
+ */
+export async function getRefundRequests() {
+  return [...mockStore.refunds];
+}
+
+/**
+ * Processes a refund approval or rejection (in-memory mock-only action).
+ * 
+ * @param {string} refundId
+ * @param {'approve' | 'reject'} action
+ * @param {string} [notes='']
+ * @returns {Promise<Object>} Updated refund record
+ */
+export async function processRefundAction(refundId, action, notes = '') {
+  if (!refundId) throw new ApiError('Refund ID is required.', 400);
+  const idx = mockStore.refunds.findIndex((r) => r.refundId === refundId);
+  if (idx === -1) throw new ApiError(`Refund request ${refundId} not found.`, 404);
+
+  const updated = {
+    ...mockStore.refunds[idx],
+    status: action === 'approve' ? 'approved' : 'rejected',
+    processedAt: new Date().toISOString(),
+    reviewNotes: notes || (action === 'approve' ? 'Approved by SuperAdmin.' : 'Rejected by SuperAdmin.'),
+  };
+
+  mockStore.refunds[idx] = updated;
+
+  // If approved, update matching transaction in ledger to 'refunded'
+  if (action === 'approve') {
+    const bookingId = updated.bookingId;
+    const ledgerIdx = mockStore.ledger.findIndex((l) => l.bookingId === bookingId);
+    if (ledgerIdx !== -1) {
+      mockStore.ledger[ledgerIdx] = {
+        ...mockStore.ledger[ledgerIdx],
+        status: 'refunded',
+      };
+    }
+  }
+
+  return updated;
+}
+
+/**
+ * Fetches active dispute resolution items.
+ * 
+ * @returns {Promise<Array>} Dispute records
+ */
+export async function getDisputes() {
+  return [...mockStore.disputes];
+}
+
+/**
+ * Resolves a dispute with notes (in-memory mock-only action).
+ * 
+ * @param {string} disputeId
+ * @param {string} resolutionSummary
+ * @returns {Promise<Object>} Updated dispute record
+ */
+export async function resolveDisputeAction(disputeId, resolutionSummary = '') {
+  if (!disputeId) throw new ApiError('Dispute ID is required.', 400);
+  const idx = mockStore.disputes.findIndex((d) => d.disputeId === disputeId);
+  if (idx === -1) throw new ApiError(`Dispute ${disputeId} not found.`, 404);
+
+  const updated = {
+    ...mockStore.disputes[idx],
+    status: 'resolved',
+    resolvedAt: new Date().toISOString(),
+    summary: `${mockStore.disputes[idx].summary} | Resolution: ${resolutionSummary || 'Resolved by SuperAdmin.'}`,
+  };
+
+  mockStore.disputes[idx] = updated;
+  return updated;
+}
+
+// ============================================================================
+// 3. USERS & PARTNERS METHODS
+// ============================================================================
+
+/**
+ * Fetches users and partners across 4 entity tabs:
+ * 'guide', 'traveller', 'hotel', 'experience'.
+ * 
+ * @param {string} [roleFilter] - Optional role filter
+ * @param {Object} [session]
+ * @returns {Promise<Array>} Users and partners array
+ */
+export async function getUsersAndPartners(roleFilter = '', session = {}) {
+  if (isSuperAdminMockMode()) {
+    let list = [...mockStore.users];
+    if (roleFilter && roleFilter !== 'all') {
+      list = list.filter((u) => u.role === roleFilter);
+    }
+    return list;
+  }
+
+  try {
+    const headers = buildAdminHeaders(session);
+    const users = await fetchData(`${BASE_URL}/auth/users`, { headers });
+    if (Array.isArray(users)) {
+      let mapped = users.map((u) => ({
+        userId: u.userId || u.id,
+        username: u.username,
+        name: u.name,
+        email: u.email,
+        phone: u.phone,
+        role: u.role,
+        status: u.status || 'active',
+        location: u.role === 'guide' ? 'Jaipur' : 'India',
+        rating: 4.8,
+        joinedAt: '2025-06-01',
+        totalTripsOrBookings: 12,
+        verified: u.status === 'active',
+      }));
+
+      if (roleFilter && roleFilter !== 'all') {
+        mapped = mapped.filter((u) => u.role === roleFilter);
+      }
+      return mapped;
+    }
+    return [];
+  } catch (err) {
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to fetch users and partners from backend.', status);
+  }
+}
+
+/**
+ * Updates a user or partner's status ('active' | 'inactive' / restricted).
+ * 
+ * @param {string} userId
+ * @param {'active' | 'inactive'} newStatus
+ * @param {Object} [session]
+ * @returns {Promise<Object>} Updated user record
+ */
+export async function updateUserStatus(userId, newStatus, session = {}) {
+  if (!userId) throw new ApiError('User ID is required.', 400);
+  if (!['active', 'inactive'].includes(newStatus)) {
+    throw new ApiError('Status must be either "active" or "inactive".', 400);
+  }
+
+  if (isSuperAdminMockMode()) {
+    const idx = mockStore.users.findIndex((u) => u.userId === userId || u.username === userId);
+    if (idx === -1) throw new ApiError(`User ${userId} not found.`, 404);
+    mockStore.users[idx] = {
+      ...mockStore.users[idx],
+      status: newStatus,
+      verified: newStatus === 'active',
+    };
+    return mockStore.users[idx];
+  }
+
+  try {
+    const headers = buildAdminHeaders(session);
+    const updated = await fetchData(`${BASE_URL}/auth/users/${userId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: newStatus }),
+    });
+    return updated;
+  } catch (err) {
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to update user status.', status);
+  }
+}
+
+/**
+ * Updates a user or partner profile details.
+ * 
+ * @param {string} userId
+ * @param {Object} data - { name, email, phone, location }
+ * @param {Object} [session]
+ * @returns {Promise<Object>} Updated user record
+ */
+export async function updateUserProfile(userId, data = {}, session = {}) {
+  if (!userId) throw new ApiError('User ID is required.', 400);
+
+  if (isSuperAdminMockMode()) {
+    const idx = mockStore.users.findIndex((u) => u.userId === userId || u.username === userId);
+    if (idx === -1) throw new ApiError(`User ${userId} not found.`, 404);
+    mockStore.users[idx] = {
+      ...mockStore.users[idx],
+      ...data,
+    };
+    return mockStore.users[idx];
+  }
+
+  try {
+    const headers = buildAdminHeaders(session);
+    const updated = await fetchData(`${BASE_URL}/auth/users/${userId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+      }),
+    });
+    return updated;
+  } catch (err) {
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to update user profile.', status);
+  }
+}
+
+/**
+ * Registers a new user or partner entity.
+ * 
+ * @param {Object} data - { username, password, name, email, phone, role }
+ * @param {Object} [session]
+ * @returns {Promise<Object>} Created user record
+ */
+export async function createUserOrPartner(data = {}) {
+  const { username, password, name, email, phone, role } = data;
+  if (!username || !password || !name || !email || !role) {
+    throw new ApiError('Missing required user fields: username, password, name, email, role.', 400);
+  }
+
+  if (isSuperAdminMockMode()) {
+    const newUser = {
+      userId: username,
+      username,
+      name,
+      email,
+      phone: phone || '9000000000',
+      role,
+      status: 'active',
+      location: data.location || 'India',
+      rating: 5.0,
+      joinedAt: new Date().toISOString().split('T')[0],
+      totalTripsOrBookings: 0,
+      verified: true,
+    };
+    mockStore.users.unshift(newUser);
+    return newUser;
+  }
+
+  try {
+    const created = await fetchData(`${BASE_URL}/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+        name,
+        email,
+        phone: phone || '9000000000',
+        role,
+      }),
+    });
+    return created?.user || created;
+  } catch (err) {
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to create user or partner.', status);
+  }
+}
+
+// ============================================================================
+// 4. FINANCE & REPORTS METHODS
+// ============================================================================
+
+/**
+ * Fetches finance executive KPI metrics.
+ * 
+ * @returns {Promise<Object>} Finance metrics
+ */
+export async function getFinanceMetrics() {
+  return { ...DEMO_FINANCE_METRICS };
+}
+
+/**
+ * Fetches earnings performance chart data.
+ * 
+ * @param {'weekly' | 'monthly' | 'yearly'} [timeframe='weekly']
+ * @returns {Promise<Array>} Earnings series points
+ */
+export async function getEarningsSeries(timeframe = 'weekly') {
+  const series = DEMO_EARNINGS_SERIES[timeframe] || DEMO_EARNINGS_SERIES.weekly;
+  return JSON.parse(JSON.stringify(series));
+}
+
+/**
+ * Fetches partner payouts table.
+ * 
+ * @param {Object} [filters={}] - { status, partnerType }
+ * @returns {Promise<Array>} Payout records
+ */
+export async function getPayouts(filters = {}) {
+  let list = [...mockStore.payouts];
+  if (filters.status && filters.status !== 'all') {
+    list = list.filter((p) => p.status === filters.status);
+  }
+  if (filters.partnerType && filters.partnerType !== 'all') {
+    list = list.filter((p) => p.partnerType === filters.partnerType);
+  }
+  return list;
+}
+
+/**
+ * Processes payout action (e.g. approve / mark paid / retry failed).
+ * Mock-only action.
+ * 
+ * @param {string} payoutId
+ * @param {'pay' | 'retry'} action
+ * @returns {Promise<Object>} Updated payout record
+ */
+export async function processPayoutAction(payoutId, action = 'pay') {
+  if (!payoutId) throw new ApiError('Payout ID is required.', 400);
+  const idx = mockStore.payouts.findIndex((p) => p.payoutId === payoutId);
+  if (idx === -1) throw new ApiError(`Payout ${payoutId} not found.`, 404);
+
+  const updatedStatus = action === 'retry' ? 'pending' : 'paid';
+  const updated = {
+    ...mockStore.payouts[idx],
+    status: updatedStatus,
+    completedAt: updatedStatus === 'paid' ? new Date().toISOString() : null,
+    failureReason: null,
+  };
+
+  mockStore.payouts[idx] = updated;
+  return updated;
+}
