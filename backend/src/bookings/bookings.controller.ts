@@ -1,11 +1,13 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, Patch, Post, Body, Query, Req } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Role } from '../auth/entities/auth.entity';
 import {
   ApiCreateEndpoint,
   ApiProtectedResource,
+  ApiReadEndpoint,
 } from '../common/decorators/api-docs.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { NonEmptyStringPipe } from '../common/pipes/non-empty-string.pipe';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
@@ -21,5 +23,52 @@ export class BookingsController {
   @ApiCreateEndpoint(CreateBookingDto)
   create(@Body() dto: CreateBookingDto, @Req() req: any) {
     return this.bookingsService.create(req.user?.userId, dto);
+  }
+
+  // Literal path — must stay above ':id' so "earnings" is never read as a booking id.
+  @Get('earnings')
+  @Roles(Role.HOTEL)
+  @ApiOperation({ summary: "Partner's full earnings statement" })
+  @ApiQuery({ name: 'hotelId', required: false })
+  @ApiReadEndpoint()
+  earnings(@Req() req: any, @Query('hotelId') hotelId?: string) {
+    return this.bookingsService.earningsForPartner(req.user?.userId, hotelId);
+  }
+
+  @Get()
+  @Roles(Role.TRAVELLER, Role.HOTEL)
+  @ApiOperation({ summary: "Hotel partner sees their hotels' bookings; traveller sees their own" })
+  @ApiReadEndpoint()
+  findAll(@Req() req: any) {
+    return this.bookingsService.findForUser(req.user?.userId, req.user?.role);
+  }
+
+  @Get(':id')
+  @Roles(Role.TRAVELLER, Role.HOTEL)
+  @ApiOperation({ summary: 'Get a booking by ID' })
+  @ApiReadEndpoint()
+  findOne(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.bookingsService.findOne(id, req.user?.userId, req.user?.role);
+  }
+
+  @Patch(':id/cancel')
+  @Roles(Role.TRAVELLER, Role.HOTEL)
+  @ApiOperation({ summary: 'Traveller or hotel partner cancels a booking' })
+  cancel(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.bookingsService.cancel(id, req.user?.userId, req.user?.role);
+  }
+
+  @Patch(':id/check-in')
+  @Roles(Role.HOTEL)
+  @ApiOperation({ summary: 'Hotel partner checks in a guest' })
+  checkIn(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.bookingsService.checkIn(id, req.user?.userId);
+  }
+
+  @Patch(':id/check-out')
+  @Roles(Role.HOTEL)
+  @ApiOperation({ summary: 'Hotel partner checks out a guest' })
+  checkOut(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.bookingsService.checkOut(id, req.user?.userId);
   }
 }

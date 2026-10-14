@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Location } from './entities/location.entity';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class LocationRepository {
@@ -31,7 +32,7 @@ export class LocationRepository {
   update(id: string, data: Partial<Location>): Location | undefined {
     const idx = this.locations.findIndex((l) => l.locationId === id);
     if (idx === -1) return undefined;
-    this.locations[idx] = { ...this.locations[idx], ...data };
+    this.locations[idx] = { ...this.locations[idx], ...stripUndefined(data) };
     return this.locations[idx];
   }
 

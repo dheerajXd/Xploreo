@@ -7,6 +7,8 @@ import {
 import { StructuredItinerary } from '../common/entities/itinerary.entity';
 import { mergeStructuredItineraryPatch } from '../common/utils/itinerary-mapper';
 import { PlansRepository } from '../plans/plans.repository';
+import { GuideApplicationsRepository } from '../guide-applications/guide-applications.repository';
+import { GuideApplicationStatus } from '../guide-applications/entities/guide-application.entity';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripTrackingDto } from './dto/update-trip-tracking.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
@@ -18,6 +20,7 @@ export class TripsService {
   constructor(
     private readonly tripsRepository: TripsRepository,
     private readonly plansRepository: PlansRepository,
+    private readonly guideApplicationsRepository: GuideApplicationsRepository,
   ) {}
 
   create(dto: CreateTripDto) {
@@ -26,7 +29,7 @@ export class TripsService {
 
     const itinerary = dto.itinerary || plan.itinerary;
 
-    return this.tripsRepository.create({
+    const trip = this.tripsRepository.create({
       id: dto.id,
       travellerId: dto.travellerId,
       planId: dto.planId,
@@ -40,6 +43,71 @@ export class TripsService {
       progressPercentage: 0,
       lastUpdatedAt: new Date().toISOString(),
     });
+
+    // If a guide already applied (and was auto-accepted) to lead this plan, offer them the
+    // job as a pending assignment instead of leaving the trip unassigned.
+    const candidate = this.guideApplicationsRepository
+      .findAll()
+      .find((a) => a.planId === dto.planId && a.status === GuideApplicationStatus.ACCEPTED);
+    if (candidate) {
+      return this.assignPendingGuide(trip.id, candidate.guideId);
+    }
+    return trip;
+  }
+
+  // ── Guide-assignment lifecycle (a trip offered to a guide, pending their response) ──
+  assignPendingGuide(tripId: string, guideId: string): Trip {
+    const updated = this.tripsRepository.update(tripId, {
+      guideId,
+      status: TripStatus.PENDING_GUIDE_CONFIRM,
+    });
+    if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
+    return updated;
+  }
+
+  confirmByGuide(tripId: string, guideId: string | undefined): Trip {
+    const trip = this.findOne(tripId);
+    if (!guideId || trip.guideId !== guideId) {
+      throw new ForbiddenException('You are not assigned to this booking');
+    }
+    if (trip.status !== TripStatus.PENDING_GUIDE_CONFIRM) {
+      throw new BadRequestException(
+        `Only pending assignments can be confirmed (current: ${trip.status})`,
+      );
+    }
+    const updated = this.tripsRepository.update(tripId, { status: TripStatus.CONFIRMED });
+    if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
+    return updated;
+  }
+
+  rejectByGuide(tripId: string, guideId: string | undefined): Trip {
+    const trip = this.findOne(tripId);
+    if (!guideId || trip.guideId !== guideId) {
+      throw new ForbiddenException('You are not assigned to this booking');
+    }
+    if (trip.status !== TripStatus.PENDING_GUIDE_CONFIRM && trip.status !== TripStatus.CONFIRMED) {
+      throw new BadRequestException(`Cannot reject at this stage (current: ${trip.status})`);
+    }
+    const updated = this.tripsRepository.update(tripId, {
+      status: TripStatus.REJECTED_BY_GUIDE,
+      refundAmount: trip.totalAmount,
+    });
+    if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
+    return updated;
+  }
+
+  findAssignmentsForGuide(guideId: string): Trip[] {
+    return this.tripsRepository
+      .findByGuide(guideId)
+      .filter((t) =>
+        [
+          TripStatus.PENDING_GUIDE_CONFIRM,
+          TripStatus.CONFIRMED,
+          TripStatus.STARTED,
+          TripStatus.COMPLETED,
+          TripStatus.REJECTED_BY_GUIDE,
+        ].includes(t.status),
+      );
   }
 
   findAll() {
@@ -172,9 +240,11 @@ export class TripsService {
 
     const allowedTransitions: Record<TripStatus, TripStatus[]> = {
       [TripStatus.DRAFT]: [TripStatus.CONFIRMED],
+      [TripStatus.PENDING_GUIDE_CONFIRM]: [],
       [TripStatus.CONFIRMED]: [TripStatus.STARTED],
       [TripStatus.STARTED]: [TripStatus.COMPLETED],
       [TripStatus.COMPLETED]: [],
+      [TripStatus.REJECTED_BY_GUIDE]: [],
     };
 
     if (!allowedTransitions[trip.status].includes(status)) {

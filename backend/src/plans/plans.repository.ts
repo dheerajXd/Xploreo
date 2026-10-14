@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Plan } from './entities/plan.entity';
 import { createId } from '../common/utils/id';
 import { normalizeStructuredItinerary } from '../common/utils/itinerary-mapper';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class PlansRepository {
@@ -140,6 +141,7 @@ export class PlansRepository {
   ): Plan | undefined {
     const idx = this.plans.findIndex((p) => p.id === id);
     if (idx === -1) return undefined;
+    data = stripUndefined(data) as typeof data;
     this.plans[idx] = {
       ...this.plans[idx],
       ...data,

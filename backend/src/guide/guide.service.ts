@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { GuideRepository } from './guide.repository';
 import { CreateGuideDto } from './dto/create-guide.dto';
 import { UpdateGuideDto } from './dto/update-guide.dto';
@@ -40,7 +40,11 @@ export class GuideService {
     return this.guideRepository.findByLocation(locationId);
   }
 
-  update(id: string, dto: UpdateGuideDto) {
+  update(id: string, dto: UpdateGuideDto, actor?: { userId?: string; role?: string }) {
+    const isAdmin = actor?.role === 'superadmin' || actor?.role === 'nontechadmin';
+    if (!isAdmin && actor?.userId !== id) {
+      throw new ForbiddenException('You can only update your own guide profile.');
+    }
     const updated = this.guideRepository.update(id, dto);
     if (!updated) throw new NotFoundException(`Guide ${id} not found`);
     return updated;

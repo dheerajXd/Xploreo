@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 import {
   GuideRequest,
   GuideRequestStatus,
@@ -78,7 +79,7 @@ export class GuideRequestsRepository {
 
     this.requests[index] = {
       ...this.requests[index],
-      ...data,
+      ...stripUndefined(data),
     };
 
     return this.requests[index];

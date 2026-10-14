@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Role } from '../auth/entities/auth.entity';
@@ -33,23 +34,23 @@ export class ScheduleController {
   @Post()
   @ApiOperation({ summary: 'Create a schedule item' })
   @ApiCreateEndpoint(CreateScheduleDto)
-  create(@Body() dto: CreateScheduleDto) {
-    return this.scheduleService.create(dto);
+  create(@Body() dto: CreateScheduleDto, @Req() req: any) {
+    return this.scheduleService.create(dto, req.user);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all schedule items' })
+  @ApiOperation({ summary: "Get schedule items (scoped to the guide's own schedule)" })
   @ApiReadEndpoint()
   @ApiQuery({ name: 'guideId', required: false })
-  findAll(@Query('guideId') guideId?: string) {
-    return this.scheduleService.findAll(guideId);
+  findAll(@Query('guideId') guideId: string | undefined, @Req() req: any) {
+    return this.scheduleService.findAll(guideId, req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get schedule item by ID' })
   @ApiReadEndpoint()
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.scheduleService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.scheduleService.findOne(id, req.user);
   }
 
   @Patch(':id')
@@ -58,14 +59,15 @@ export class ScheduleController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateScheduleDto,
+    @Req() req: any,
   ) {
-    return this.scheduleService.update(id, dto);
+    return this.scheduleService.update(id, dto, req.user);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a schedule item' })
   @ApiDeleteEndpoint()
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.scheduleService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.scheduleService.remove(id, req.user);
   }
 }

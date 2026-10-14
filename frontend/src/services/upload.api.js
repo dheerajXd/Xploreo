@@ -3,6 +3,9 @@
 // In mock mode: sends JSON body to mock handlers via request(), with simulated progress.
 // Pages never call fetch/axios directly — they go through this service only.
 import { request } from '@/foundation';
+import { identityHeaders } from './session.js';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function isMockMode() {
   const flag = (import.meta.env.VITE_MOCKS || '').trim();
@@ -51,8 +54,9 @@ export async function uploadSingle(file, onProgress) {
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    xhr.open('POST', `${apiUrl}/upload/single`);
+    xhr.open('POST', `${API_BASE_URL}/upload/single`);
+    const headers = identityHeaders();
+    Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, value));
 
     if (onProgress) {
       xhr.upload.addEventListener('progress', (e) => {
@@ -121,9 +125,9 @@ export async function uploadMultiple(files, onProgress) {
   const formData = new FormData();
   files.forEach((f) => formData.append('files', f));
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-  const response = await fetch(`${apiUrl}/upload/multiple`, {
+  const response = await fetch(`${API_BASE_URL}/upload/multiple`, {
     method: 'POST',
+    headers: identityHeaders(),
     body: formData,
   });
 

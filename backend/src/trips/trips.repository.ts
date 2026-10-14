@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { normalizeStructuredItinerary } from '../common/utils/itinerary-mapper';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 import { Trip, TripStatus, TripTrackingStatus } from './entities/trip.entity';
 
 @Injectable()
@@ -152,10 +153,11 @@ export class TripsRepository {
     const index = this.trips.findIndex((trip) => trip.id === id);
     if (index === -1) return undefined;
 
+    const patch = stripUndefined(data);
     this.trips[index] = {
       ...this.trips[index],
-      ...data,
-      itinerary: data.itinerary || this.trips[index].itinerary,
+      ...patch,
+      itinerary: patch.itinerary || this.trips[index].itinerary,
     };
 
     return this.trips[index];

@@ -5,6 +5,7 @@ import {
   ExperienceAvailability,
 } from './entities/experience.entity';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class ExperiencesRepository {
@@ -90,7 +91,7 @@ export class ExperiencesRepository {
   update(id: string, data: Partial<Experience>): Experience | undefined {
     const idx = this.experiences.findIndex((e) => e.id === id);
     if (idx === -1) return undefined;
-    this.experiences[idx] = { ...this.experiences[idx], ...data };
+    this.experiences[idx] = { ...this.experiences[idx], ...stripUndefined(data) };
     return cloneExperience(this.experiences[idx]);
   }
 

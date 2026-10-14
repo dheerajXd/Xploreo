@@ -21,6 +21,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { PartnersModule } from './partners/partners.module';
 import { ExperienceBookingsModule } from './experience-bookings/experience-bookings.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { TicketsModule } from './tickets/tickets.module';
     TicketsModule,
     LocationModule,
     CitiesModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

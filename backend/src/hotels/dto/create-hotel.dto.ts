@@ -51,10 +51,22 @@ export class CreateHotelDto {
   @Min(0)
   taxesAndFees?: number;
 
+  @ApiPropertyOptional({ example: 30, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  totalRooms?: number;
+
   @ApiPropertyOptional({ example: 'https://example.com/hotel.jpg' })
   @IsOptional()
   @IsString()
   image?: string;
+
+  @ApiPropertyOptional({ example: ['https://example.com/hotel.jpg'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  images?: string[];
 
   @ApiPropertyOptional({ example: ['Pool', 'Breakfast', 'WiFi'] })
   @IsOptional()
@@ -62,8 +74,11 @@ export class CreateHotelDto {
   @IsString({ each: true })
   amenities?: string[];
 
-  @ApiPropertyOptional({ example: 'active', enum: ['active', 'inactive'] })
+  @ApiPropertyOptional({
+    example: 'active',
+    enum: ['active', 'inactive', 'restricted'],
+  })
   @IsOptional()
-  @IsIn(['active', 'inactive'])
-  status?: 'active' | 'inactive';
+  @IsIn(['active', 'inactive', 'restricted'])
+  status?: 'active' | 'inactive' | 'restricted';
 }

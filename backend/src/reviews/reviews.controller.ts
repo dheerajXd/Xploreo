@@ -7,8 +7,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Req,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Role } from '../auth/entities/auth.entity';
 import { Roles } from '../common/decorators/roles.decorator';
 import {
@@ -24,7 +26,14 @@ import { ReviewsService } from './reviews.service';
 
 @ApiTags('Reviews')
 @ApiProtectedResource()
-@Roles(Role.TRAVELLER, Role.GUIDE, Role.SUPERADMIN, Role.NONTECHADMIN)
+@Roles(
+  Role.TRAVELLER,
+  Role.GUIDE,
+  Role.HOTEL,
+  Role.EXPERIENCE,
+  Role.SUPERADMIN,
+  Role.NONTECHADMIN,
+)
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
@@ -37,10 +46,11 @@ export class ReviewsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all reviews' })
+  @ApiOperation({ summary: 'Get reviews, scoped to the signed-in partner/guide where applicable' })
+  @ApiQuery({ name: 'hotelId', required: false })
   @ApiReadEndpoint()
-  findAll() {
-    return this.reviewsService.findAll();
+  findAll(@Req() req: any, @Query('hotelId') hotelId?: string) {
+    return this.reviewsService.findForUser(req.user?.userId, req.user?.role, hotelId);
   }
 
   @Get(':id')

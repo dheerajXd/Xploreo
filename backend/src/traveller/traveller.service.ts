@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { TravellerRepository } from './traveller.repository';
 import { CreateTravellerDto } from './dto/create-traveller.dto';
 import { UpdateTravellerDto } from './dto/update-traveller.dto';
@@ -30,7 +30,11 @@ export class TravellerService {
     return t;
   }
 
-  update(id: string, dto: UpdateTravellerDto) {
+  update(id: string, dto: UpdateTravellerDto, actor?: { userId?: string; role?: string }) {
+    const isAdmin = actor?.role === 'superadmin' || actor?.role === 'nontechadmin';
+    if (!isAdmin && actor?.userId !== id) {
+      throw new ForbiddenException('You can only update your own profile.');
+    }
     const updated = this.travellerRepository.update(id, dto);
     if (!updated) throw new NotFoundException(`Traveller ${id} not found`);
     return updated;

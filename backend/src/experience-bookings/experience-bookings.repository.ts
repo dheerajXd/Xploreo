@@ -42,4 +42,16 @@ export class ExperienceBookingsRepository {
       .filter((booking) => ids.has(booking.experienceId))
       .map((booking) => ({ ...booking }));
   }
+
+  findById(id: string): ExperienceBooking | undefined {
+    const booking = this.bookings.find((b) => b.id === id);
+    return booking ? { ...booking } : undefined;
+  }
+
+  setStatus(id: string, status: ExperienceBookingStatus): ExperienceBooking | undefined {
+    const booking = this.bookings.find((b) => b.id === id);
+    if (!booking) return undefined;
+    booking.status = status;
+    return { ...booking };
+  }
 }

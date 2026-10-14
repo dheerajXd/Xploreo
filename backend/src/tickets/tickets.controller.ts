@@ -20,19 +20,19 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post()
-  @Roles( Role.TRAVELLER)
-  @ApiOperation({ summary: 'Traveller creates a support ticket' })
+  @Roles(Role.TRAVELLER, Role.GUIDE, Role.HOTEL, Role.EXPERIENCE)
+  @ApiOperation({ summary: 'Signed-in user creates a support ticket' })
   @ApiCreateEndpoint(CreateTicketDto)
   create(@Body() dto: CreateTicketDto, @Req() req: any) {
     return this.ticketsService.create(req.user?.userId, dto);
   }
 
   @Get()
-  @Roles(Role.TECHADMIN)
-  @ApiOperation({ summary: 'Technical admin views all support tickets' })
+  @Roles(Role.TRAVELLER, Role.GUIDE, Role.HOTEL, Role.EXPERIENCE, Role.TECHADMIN)
+  @ApiOperation({ summary: "Get the caller's own tickets (technical admin sees all)" })
   @ApiReadEndpoint()
-  findAll() {
-    return this.ticketsService.findAll();
+  findAll(@Req() req: any) {
+    return this.ticketsService.findForUser(req.user?.userId, req.user?.role);
   }
 
   @Patch(':id')

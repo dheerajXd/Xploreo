@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -63,16 +64,25 @@ export class AuthController {
     return this.authService.findOne(id);
   }
 
-  @Roles(Role.SUPERADMIN)
+  @Roles(
+    Role.SUPERADMIN,
+    Role.TRAVELLER,
+    Role.GUIDE,
+    Role.HOTEL,
+    Role.EXPERIENCE,
+    Role.TECHADMIN,
+    Role.NONTECHADMIN,
+  )
   @ApiProtectedResource()
   @Patch('users/:id')
-  @ApiOperation({ summary: 'Update a user' })
+  @ApiOperation({ summary: 'Update a user (self, or any user if SuperAdmin)' })
   @ApiUpdateEndpoint(UpdateAuthDto)
   update(
     @Param('id', NonEmptyStringPipe) id: string,
     @Body() dto: UpdateAuthDto,
+    @Req() req: any,
   ) {
-    return this.authService.update(id, dto);
+    return this.authService.update(id, dto, req.user);
   }
 
   @Roles(Role.SUPERADMIN)

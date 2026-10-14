@@ -19,4 +19,5 @@ export class Auth {
   email!: string;
   phone!: string;
   status!: 'active' | 'inactive';
+  region?: string;
 }
