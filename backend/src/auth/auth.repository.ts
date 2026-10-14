@@ -65,6 +65,7 @@ export class AuthRepository {
       email: 'hotel.partner@xploreo.com',
       phone: '9000000001',
       status: 'active',
+      region: 'Jaipur',
     },
     {
       userId: 'XP001',

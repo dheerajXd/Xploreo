@@ -137,6 +137,16 @@ export const hotels = [
 
   // ── Kerala: hotel-partner-ker has NO hotels → empty list state ─────────────────
   // (no entry — empty list seeded on purpose)
+
+  // ── Jaipur (HP001 — the real demo "Hotel Partner" login from backend auth) ─────
+  hotel(
+    'hotel-hp001-1', 'HP001',
+    'Xploreo Heritage Palace', 'Jaipur', 'Civil Lines, Jaipur',
+    "Xploreo's flagship demo property: a palace-style hotel with a pool, rooftop restaurant, and spa. Seeded so the Hotel Partner demo account has real services, bookings, earnings and reviews to show.",
+    4, 5400, 700, 24,
+    'https://images.unsplash.com/photo-1551882547-ff40c0d129df?auto=format&fit=crop&q=80&w=800',
+    'luxury',
+  ),
 ];
 
 export const findHotel = (id) => hotels.find((h) => h.id === id);
@@ -192,6 +202,11 @@ export const roomTypes = [
   // hotel-mum-1
   ROOM_TYPE('rt-mum-1-sea', 'hotel-mum-1', 'Sea View Deluxe',  'Floor-to-ceiling windows facing Marine Drive. King bed, marble bathroom.',               8200, 2, 18, ['AC', 'WiFi', 'TV', 'Bathtub', 'Minibar']),
   ROOM_TYPE('rt-mum-1-ste', 'hotel-mum-1', 'Marine Suite',     'Two-bedroom suite with living room, rooftop access and in-room dining.',                14000, 6, 18, ['AC', 'WiFi', 'TV', 'Bathtub', 'Butler', 'Rooftop Access']),
+
+  // hotel-hp001-1 (HP001 demo account)
+  ROOM_TYPE('rt-hp001-std', 'hotel-hp001-1', 'Standard Room',  'Comfortable room with city view, king bed and work desk.',                               4200, 2, 10, ['AC', 'WiFi', 'TV', 'Minibar']),
+  ROOM_TYPE('rt-hp001-dlx', 'hotel-hp001-1', 'Deluxe Room',    'Larger room with a lounge area, bathtub and pool view.',                                 5800, 2, 8,  ['AC', 'WiFi', 'TV', 'Bathtub', 'Pool View']),
+  ROOM_TYPE('rt-hp001-ste', 'hotel-hp001-1', 'Palace Suite',   'Two-room suite with a private balcony and butler service.',                              9200, 4, 6,  ['AC', 'WiFi', 'TV', 'Bathtub', 'Butler', 'Balcony']),
 ];
 
 export const findRoomType = (id) => roomTypes.find((r) => r.id === id);
@@ -242,7 +257,16 @@ const bk = (hotelId, travellerId, guestIdx, checkInOffset, checkOutOffset, roomT
     guestNames: [guestName],
     status,
     createdAt: created.toISOString(),
+    updatedAt: created.toISOString(),
   };
+};
+
+// Same shape as bk(), but totalAmount is priced off the room's real nightly rate
+// (nights × pricePerNight × rooms) instead of bk()'s flat demo rate.
+const bkPriced = (hotelId, travellerId, guestIdx, checkInOffset, checkOutOffset, roomType, pricePerNight, guests, rooms, status, notes = '') => {
+  const booking = bk(hotelId, travellerId, guestIdx, checkInOffset, checkOutOffset, roomType, guests, rooms, status, notes);
+  booking.totalAmount = pricePerNight * rooms * Math.max(1, checkOutOffset - checkInOffset);
+  return booking;
 };
 
 export const hotelBookings = [
@@ -277,6 +301,14 @@ export const hotelBookings = [
   bk('hotel-mum-1', 'trav-340', 2,  1,  3,  'Sea View Deluxe', 2, 1, 'CONFIRMED'),
   bk('hotel-mum-1', 'trav-341', 3, -2,  0,  'Marine Suite',    4, 1, 'CHECKED_IN'),
   bk('hotel-mum-1', 'trav-342', 4,  6,  9,  'Sea View Deluxe', 2, 1, 'CONFIRMED'),
+
+  // ── hotel-hp001-1 (HP001 demo account) — totalAmount priced off the real room rate ──
+  bkPriced('hotel-hp001-1', 'trav-350', 20,  3,   6,  'Deluxe Room',  5800, 2, 1, 'CONFIRMED'),
+  bkPriced('hotel-hp001-1', 'trav-351', 21,  7,  10,  'Palace Suite', 9200, 4, 1, 'CONFIRMED'),
+  bkPriced('hotel-hp001-1', 'trav-352', 22,  0,   2,  'Standard Room', 4200, 2, 1, 'CHECKED_IN'),
+  bkPriced('hotel-hp001-1', 'trav-353', 23, -6,  -3,  'Deluxe Room',  5800, 2, 1, 'CHECKED_OUT'),
+  bkPriced('hotel-hp001-1', 'trav-354', 24, -14, -11, 'Standard Room', 4200, 2, 1, 'CHECKED_OUT'),
+  bkPriced('hotel-hp001-1', 'trav-355', 25,  4,   5,  'Standard Room', 4200, 1, 1, 'CANCELLED'),
 ];
 
 export const findHotelBooking = (id) => hotelBookings.find((b) => b.id === id);
@@ -365,6 +397,26 @@ export const hotelReviews = [
     comment: 'Unmatched views of Marine Drive and the Queens Necklace. Luxurious rooms and world-class hospitality.',
     createdAt: isoAt(-4),
   },
+  {
+    id: 109,
+    userId: 20009,
+    userName: 'Nisha Nair',
+    targetType: 'hotel',
+    targetId: 'hotel-hp001-1',
+    rating: 5,
+    comment: 'Beautiful palace-style property with a wonderful pool and rooftop restaurant. The deluxe room was spotless and the staff were very attentive.',
+    createdAt: isoAt(-5),
+  },
+  {
+    id: 110,
+    userId: 20010,
+    userName: 'Dev Bose',
+    targetType: 'hotel',
+    targetId: 'hotel-hp001-1',
+    rating: 4,
+    comment: 'Great stay in the Palace Suite — spacious balcony and good breakfast. Would come back on my next Jaipur trip.',
+    createdAt: isoAt(-1),
+  },
 ];
 
 export function refreshHotelReviews(h) {
@@ -404,6 +456,118 @@ export function earningsForHotel(hotelId) {
   }));
   const total = items.reduce((sum, i) => sum + i.amount, 0);
   return { hotelId, items, total, currency: 'INR' };
+}
+
+// Full statement for the Earnings page (GET /bookings/earnings). Everything here is derived
+// live from hotelBookings, so a new booking/check-out/cancellation changes these numbers —
+// nothing on this page is a fixed/hardcoded number.
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export function earningsForPartner(partnerId, hotelId) {
+  const myHotels = hotels.filter((h) => h.partnerId === partnerId && !h.isDeleted && (!hotelId || h.id === hotelId));
+  const hotelIds = new Set(myHotels.map((h) => h.id));
+  const myBookings = hotelBookings.filter((b) => hotelIds.has(b.hotelId));
+
+  const completed = myBookings.filter((b) => b.status === 'CHECKED_OUT');
+  const cancelled = myBookings.filter((b) => b.status === 'CANCELLED');
+
+  const now = new Date();
+  const monthKey = (iso) => String(iso || '').slice(0, 7);
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonth = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+
+  const totalRevenue = completed.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+  const monthRevenue = completed.filter((b) => monthKey(b.checkOut) === thisMonth).reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+  const previousMonthRevenue = completed.filter((b) => monthKey(b.checkOut) === prevMonth).reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+  const refunded = cancelled.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+  const byRoomType = new Map();
+  completed.forEach((b) => byRoomType.set(b.roomType, (byRoomType.get(b.roomType) || 0) + (b.totalAmount || 0)));
+  const revenueByRoomType = [...byRoomType.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value, percent: totalRevenue ? Math.round((value / totalRevenue) * 100) : 0 }));
+  const topRoomType = revenueByRoomType[0]?.name ?? null;
+
+  const byDay = new Map();
+  myBookings.forEach((b) => {
+    const day = DAY_NAMES[new Date(b.checkIn).getDay()];
+    byDay.set(day, (byDay.get(day) || 0) + 1);
+  });
+  const busiestDay = [...byDay.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+  const totalRooms = myHotels.reduce((sum, h) => sum + (h.totalRooms || 0), 0);
+  const availableRooms = myHotels.reduce((sum, h) => sum + (h.availableRooms || 0), 0);
+  const occupancyRate = totalRooms ? Math.round(((totalRooms - availableRooms) / totalRooms) * 100) : 0;
+  const refundRate = myBookings.length ? Math.round((cancelled.length / myBookings.length) * 100) : 0;
+
+  const transactions = [...completed, ...cancelled]
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 10)
+    .map((b) => ({
+      id: b.id,
+      guestName: b.guestName,
+      roomType: b.roomType,
+      hotelName: hotels.find((h) => h.id === b.hotelId)?.name ?? '',
+      date: b.checkOut,
+      amount: b.totalAmount,
+      status: b.status,
+    }));
+
+  const nextPayout = new Date(now);
+  nextPayout.setDate(nextPayout.getDate() + 7);
+
+  return {
+    totalRevenue,
+    monthRevenue,
+    previousMonthRevenue,
+    refunded,
+    cancelledBookings: cancelled.length,
+    completedStays: completed.length,
+    avgBookingValue: completed.length ? Math.round(totalRevenue / completed.length) : 0,
+    topRoomType,
+    busiestDay,
+    occupancyRate,
+    refundRate,
+    revenueByRoomType,
+    transactions,
+    nextPayoutDate: nextPayout.toISOString().slice(0, 10),
+    pendingPayout: monthRevenue,
+  };
+}
+
+// ── Partner profile (GET/PATCH /hotels/partner/profile) ───────────────────────
+// Keyed by partnerId so every hotel-partner login gets (and can edit) its own profile —
+// nothing here is a single shared hardcoded record.
+const partnerProfiles = new Map();
+
+function defaultPartnerProfile(partnerId) {
+  const owned = hotels.filter((h) => h.partnerId === partnerId && !h.isDeleted);
+  return {
+    hotelName: owned[0]?.name ?? 'My Hotel',
+    description: owned[0]?.description ?? '',
+    contactNumber: '',
+    email: '',
+    location: owned[0]?.location ?? owned[0]?.city ?? '',
+    gst: '',
+    bankAccount: '**** **** **** 4521',
+    payoutMethod: 'Bank Transfer',
+    checkInTime: '12:00',
+    checkOutTime: '11:00',
+    cancellationPolicy: 'Free cancellation up to 24 hours before check-in.',
+    logo: owned[0]?.image ?? '',
+  };
+}
+
+export function getPartnerProfile(partnerId) {
+  if (!partnerProfiles.has(partnerId)) partnerProfiles.set(partnerId, defaultPartnerProfile(partnerId));
+  return partnerProfiles.get(partnerId);
+}
+
+export function savePartnerProfile(partnerId, patch) {
+  const next = { ...getPartnerProfile(partnerId), ...patch };
+  partnerProfiles.set(partnerId, next);
+  return next;
 }
 
 // ── Utility ───────────────────────────────────────────────────────────────────

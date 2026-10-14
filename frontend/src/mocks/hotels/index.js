@@ -14,10 +14,12 @@ import {
   bookingsForHotel,
   bookingsForTraveller,
   earningsForHotel,
+  earningsForPartner,
+  dayOffset,
   findHotel,
   findHotelBooking,
-  findHotelUser,
   findRoomType,
+  getPartnerProfile,
   hotelBookings,
   hotelReviews,
   hotels,
@@ -28,6 +30,7 @@ import {
   refreshRoomType,
   roomTypes,
   roomsForHotel,
+  savePartnerProfile,
 } from './db.js';
 import { experiences as partnerExperiences, reviews as partnerReviews } from '../partners/db.js';
 
@@ -43,11 +46,11 @@ function validateHotel(body, { partial }) {
   const errors = {};
   const need = (k) => !partial || body[k] !== undefined;
 
-  if (need('name')          && (typeof body.name !== 'string'        || !body.name.trim()))         errors.name        = 'name should not be empty';
-  if (need('city')          && (typeof body.city !== 'string'        || !body.city.trim()))         errors.city        = 'city should not be empty';
-  if (need('location')      && (typeof body.location !== 'string'    || !body.location.trim()))     errors.location    = 'location should not be empty';
-  if (need('description')   && (typeof body.description !== 'string' || !body.description.trim()))  errors.description = 'description should not be empty';
-  if (need('stars')         && !(Number.isInteger(body.stars)        && body.stars >= 1 && body.stars <= 5)) errors.stars = 'stars must be an integer between 1 and 5';
+  if (need('name') && (typeof body.name !== 'string' || !body.name.trim())) errors.name = 'name should not be empty';
+  if (need('city') && (typeof body.city !== 'string' || !body.city.trim())) errors.city = 'city should not be empty';
+  if (need('location') && (typeof body.location !== 'string' || !body.location.trim())) errors.location = 'location should not be empty';
+  if (need('description') && (typeof body.description !== 'string' || !body.description.trim())) errors.description = 'description should not be empty';
+  if (need('stars') && !(Number.isInteger(body.stars) && body.stars >= 1 && body.stars <= 5)) errors.stars = 'stars must be an integer between 1 and 5';
   if (need('pricePerNight') && !(typeof body.pricePerNight === 'number' && body.pricePerNight >= 0)) errors.pricePerNight = 'pricePerNight must not be less than 0';
   if (body.status !== undefined && !['active', 'inactive', 'restricted'].includes(body.status)) {
     errors.status = 'status must be one of the following values: active, inactive, restricted';
@@ -112,25 +115,25 @@ registerMock('POST', '/hotels', (ctx) => {
     throw new ApiError(403, `You can only create hotels in your region (${user.region}).`);
   }
   const h = {
-    id:            body.id ?? newHotelId(user.id),
-    partnerId:     user.id,
-    name:          body.name.trim(),
-    city:          user.region,
-    location:      body.location.trim(),
-    description:   body.description.trim(),
-    stars:         body.stars,
-    rating:        0,
-    reviewCount:   0,
+    id: body.id ?? newHotelId(user.id),
+    partnerId: user.id,
+    name: body.name.trim(),
+    city: user.region,
+    location: body.location.trim(),
+    description: body.description.trim(),
+    stars: body.stars,
+    rating: 0,
+    reviewCount: 0,
     pricePerNight: body.pricePerNight,
-    taxesAndFees:  body.taxesAndFees ?? 0,
-    totalRooms:    body.totalRooms ?? 0,
+    taxesAndFees: body.taxesAndFees ?? 0,
+    totalRooms: body.totalRooms ?? 0,
     availableRooms: body.totalRooms ?? 0,
-    image:         body.image ?? '',
-    images:        body.images ?? [],
-    amenities:     body.amenities ?? [],
-    status:        body.status ?? 'active',
-    isDeleted:     false,
-    createdAt:     nowIso(),
+    image: body.image ?? '',
+    images: body.images ?? [],
+    amenities: body.amenities ?? [],
+    status: body.status ?? 'active',
+    isDeleted: false,
+    createdAt: nowIso(),
   };
   hotels.push(h);
   return structuredClone(h);
@@ -170,10 +173,10 @@ const ROOM_FIELDS = ['id', 'hotelId', 'type', 'description', 'pricePerNight', 'm
 function validateRoomType(body, { partial }) {
   const errors = {};
   const need = (k) => !partial || body[k] !== undefined;
-  if (need('type')          && (typeof body.type !== 'string'          || !body.type.trim()))         errors.type          = 'type should not be empty';
+  if (need('type') && (typeof body.type !== 'string' || !body.type.trim())) errors.type = 'type should not be empty';
   if (need('pricePerNight') && !(typeof body.pricePerNight === 'number' && body.pricePerNight >= 0)) errors.pricePerNight = 'pricePerNight must not be less than 0';
-  if (need('maxOccupancy')  && !(Number.isInteger(body.maxOccupancy)   && body.maxOccupancy >= 1))   errors.maxOccupancy  = 'maxOccupancy must be at least 1';
-  if (need('totalRooms')    && !(Number.isInteger(body.totalRooms)     && body.totalRooms >= 0))     errors.totalRooms    = 'totalRooms must not be less than 0';
+  if (need('maxOccupancy') && !(Number.isInteger(body.maxOccupancy) && body.maxOccupancy >= 1)) errors.maxOccupancy = 'maxOccupancy must be at least 1';
+  if (need('totalRooms') && !(Number.isInteger(body.totalRooms) && body.totalRooms >= 0)) errors.totalRooms = 'totalRooms must not be less than 0';
   if (Object.keys(errors).length) throw new ApiError(400, Object.values(errors)[0], errors);
 }
 
@@ -197,16 +200,16 @@ registerMock('POST', '/hotels/:id/rooms', (ctx) => {
     throw fieldError('type', `A room type "${body.type}" already exists for this hotel.`);
   }
   const rt = {
-    id:            body.id ?? `rt-${found.id}-${Date.now()}`,
-    hotelId:       found.id,
-    type:          body.type.trim(),
-    description:   body.description ?? '',
+    id: body.id ?? `rt-${found.id}-${Date.now()}`,
+    hotelId: found.id,
+    type: body.type.trim(),
+    description: body.description ?? '',
     pricePerNight: body.pricePerNight,
-    maxOccupancy:  body.maxOccupancy,
-    totalRooms:    body.totalRooms ?? 0,
+    maxOccupancy: body.maxOccupancy,
+    totalRooms: body.totalRooms ?? 0,
     availableRooms: body.totalRooms ?? 0,
-    amenities:     body.amenities ?? [],
-    images:        body.images ?? [],
+    amenities: body.amenities ?? [],
+    images: body.images ?? [],
   };
   roomTypes.push(rt);
   return structuredClone(rt);
@@ -344,14 +347,14 @@ registerMock('POST', '/bookings', (ctx) => {
   const body = whitelist(ctx.body, BOOKING_FIELDS);
 
   const errors = {};
-  if (!body.hotelId)   errors.hotelId   = 'hotelId should not be empty';
+  if (!body.hotelId) errors.hotelId = 'hotelId should not be empty';
   if (!body.guestName) errors.guestName = 'guestName should not be empty';
-  if (!body.email)     errors.email     = 'email should not be empty';
-  if (!body.phone)     errors.phone     = 'phone should not be empty';
-  if (!body.checkIn)   errors.checkIn   = 'checkIn should not be empty';
-  if (!body.checkOut)  errors.checkOut  = 'checkOut should not be empty';
+  if (!body.email) errors.email = 'email should not be empty';
+  if (!body.phone) errors.phone = 'phone should not be empty';
+  if (!body.checkIn) errors.checkIn = 'checkIn should not be empty';
+  if (!body.checkOut) errors.checkOut = 'checkOut should not be empty';
   if (!(Number.isInteger(body.guests) && body.guests >= 1)) errors.guests = 'guests must be at least 1';
-  if (!body.roomType)  errors.roomType  = 'roomType should not be empty';
+  if (!body.roomType) errors.roomType = 'roomType should not be empty';
   if (Object.keys(errors).length) throw new ApiError(400, Object.values(errors)[0], errors);
 
   const hotel = findHotel(body.hotelId);
@@ -365,22 +368,23 @@ registerMock('POST', '/bookings', (ctx) => {
 
   const nights = Math.max(1, (new Date(body.checkOut) - new Date(body.checkIn)) / 86400000);
   const booking = {
-    id:          body.id ?? newBookingId(),
-    hotelId:     body.hotelId,
+    id: body.id ?? newBookingId(),
+    hotelId: body.hotelId,
     travellerId: user.id,
-    guestName:   body.guestName.trim(),
-    email:       body.email.trim(),
-    phone:       body.phone.trim(),
-    checkIn:     body.checkIn,
-    checkOut:    body.checkOut,
-    guests:      body.guests,
-    roomType:    body.roomType.trim(),
-    notes:       body.notes ?? '',
-    rooms:       body.rooms ?? 1,
+    guestName: body.guestName.trim(),
+    email: body.email.trim(),
+    phone: body.phone.trim(),
+    checkIn: body.checkIn,
+    checkOut: body.checkOut,
+    guests: body.guests,
+    roomType: body.roomType.trim(),
+    notes: body.notes ?? '',
+    rooms: body.rooms ?? 1,
     totalAmount: body.totalAmount ?? (hotel.pricePerNight * nights * (body.rooms ?? 1)),
-    guestNames:  body.guestNames ?? [body.guestName.trim()],
-    status:      'CONFIRMED',
-    createdAt:   nowIso(),
+    guestNames: body.guestNames ?? [body.guestName.trim()],
+    status: 'CONFIRMED',
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
   };
   hotelBookings.push(booking);
   // Availability updates immediately on confirmation
@@ -410,6 +414,7 @@ registerMock('PATCH', '/bookings/:id/cancel', (ctx) => {
 
   if (booking.status === 'CANCELLED') throw new ApiError(400, 'Booking is already cancelled.');
   booking.status = 'CANCELLED';
+  booking.updatedAt = nowIso();
   const hotel = findHotel(booking.hotelId);
   const rt = roomTypes.find((r) => r.hotelId === booking.hotelId && r.type === booking.roomType);
   if (rt) refreshRoomType(rt);
@@ -427,6 +432,7 @@ registerMock('PATCH', '/bookings/:id/check-in', (ctx) => {
   if (hotel?.partnerId !== user.id) throw new ApiError(403, 'This booking belongs to another hotel partner.');
   if (booking.status !== 'CONFIRMED') throw new ApiError(400, `Only CONFIRMED bookings can be checked in (current: ${booking.status}).`);
   booking.status = 'CHECKED_IN';
+  booking.updatedAt = nowIso();
   return structuredClone(booking);
 });
 
@@ -440,6 +446,8 @@ registerMock('PATCH', '/bookings/:id/check-out', (ctx) => {
   if (hotel?.partnerId !== user.id) throw new ApiError(403, 'This booking belongs to another hotel partner.');
   if (booking.status !== 'CHECKED_IN') throw new ApiError(400, `Only CHECKED_IN bookings can be checked out (current: ${booking.status}).`);
   booking.status = 'CHECKED_OUT';
+  booking.updatedAt = nowIso();
+  booking.checkOut = dayOffset(0);
   const rt = roomTypes.find((r) => r.hotelId === booking.hotelId && r.type === booking.roomType);
   if (rt) refreshRoomType(rt);
   if (hotel) refreshHotel(hotel);
@@ -452,6 +460,27 @@ registerMock('GET', '/hotels/:id/earnings', (ctx) => {
   return structuredClone(earningsForHotel(found.id));
 });
 
+// GET /bookings/earnings — the full statement the Earnings page renders,
+// computed live from the partner's own bookings (optional ?hotelId= filter)
+registerMock('GET', '/bookings/earnings', (ctx) => {
+  const user = requireRole(ctx, 'hotel');
+  return structuredClone(earningsForPartner(user.id, ctx.query?.hotelId));
+});
+
+// ── Partner profile ────────────────────────────────────────────────────────────
+// GET/PATCH /hotels/partner/profile — one profile per signed-in hotel partner
+registerMock('GET', '/hotels/partner/profile', (ctx) => {
+  const user = requireRole(ctx, 'hotel');
+  return structuredClone(getPartnerProfile(user.id));
+});
+
+const PARTNER_PROFILE_FIELDS = ['hotelName', 'description', 'contactNumber', 'email', 'location', 'gst', 'bankAccount', 'payoutMethod', 'checkInTime', 'checkOutTime', 'cancellationPolicy', 'logo'];
+registerMock('PATCH', '/hotels/partner/profile', (ctx) => {
+  const user = requireRole(ctx, 'hotel');
+  const body = whitelist(ctx.body, PARTNER_PROFILE_FIELDS);
+  return structuredClone(savePartnerProfile(user.id, body));
+});
+
 // ── Reviews for Hotels & General Reviews ─────────────────────────────────────
 // GET /hotels/:id/reviews (hotel reviews filtered to a property)
 registerMock('GET', '/hotels/:id/reviews', (ctx) => {
@@ -459,7 +488,8 @@ registerMock('GET', '/hotels/:id/reviews', (ctx) => {
   return structuredClone(
     hotelReviews
       .filter((r) => r.targetType === 'hotel' && r.targetId === found.id)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map((r) => ({ ...r, authorName: r.authorName ?? r.userName })),
   );
 });
 
@@ -472,7 +502,10 @@ registerMock('GET', '/reviews', (ctx) => {
     return structuredClone(
       hotelReviews
         .filter((r) => r.targetType === 'hotel' && myHotelIds.has(r.targetId) && (!hotelIdFilter || r.targetId === hotelIdFilter))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        // The Reviews/Dashboard pages read authorName + hotelName; derive both live from the
+        // hotel record instead of duplicating them onto every seed review.
+        .map((r) => ({ ...r, authorName: r.authorName ?? r.userName, hotelName: findHotel(r.targetId)?.name ?? '' })),
     );
   }
   if (ctx.user?.role === 'guide') {
@@ -560,12 +593,12 @@ registerMock('POST', '/upload/single', (ctx) => {
     success: true,
     message: 'File uploaded successfully',
     data: {
-      filename:     `${uuid}.${ext}`,
+      filename: `${uuid}.${ext}`,
       originalName: filename,
       mimetype,
-      size:         sizeBytes,
-      path:         `/uploads/images/${uuid}.${ext}`,
-      url:          `/uploads/images/${uuid}.${ext}`,
+      size: sizeBytes,
+      path: `/uploads/images/${uuid}.${ext}`,
+      url: `/uploads/images/${uuid}.${ext}`,
     },
   };
 });
@@ -581,7 +614,7 @@ registerMock('POST', '/upload/multiple', (ctx) => {
   const data = files.map((file) => {
     if ((file.sizeBytes ?? 0) > MAX_SIZE) throw new ApiError(400, `File "${file.filename}" is too large.`, { file: `File "${file.filename}" is too large.` });
     if (!ALLOWED.includes(file.mimetype ?? '')) throw new ApiError(400, `Invalid type for "${file.filename}".`, { file: `Invalid type for "${file.filename}".` });
-    const ext  = (file.filename ?? 'img').split('.').pop() || 'jpg';
+    const ext = (file.filename ?? 'img').split('.').pop() || 'jpg';
     const uuid = `mock-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     return { filename: `${uuid}.${ext}`, originalName: file.filename, mimetype: file.mimetype, size: file.sizeBytes, path: `/uploads/images/${uuid}.${ext}`, url: `/uploads/images/${uuid}.${ext}` };
   });

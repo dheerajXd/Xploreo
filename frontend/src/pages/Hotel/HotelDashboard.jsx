@@ -36,7 +36,7 @@ export default function HotelDashboard() {
     const totalRooms = hotels.reduce((s, h) => s + (h.totalRooms || 0), 0);
     const available = hotels.reduce((s, h) => s + (h.availableRooms || 0), 0);
     const monthRevenue = bookings
-      .filter((b) => b.status === 'CHECKED_OUT' && String(b.checkedOutAt || '').slice(0, 7) === monthKey)
+      .filter((b) => b.status === 'CHECKED_OUT' && String(b.checkOut || '').slice(0, 7) === monthKey)
       .reduce((s, b) => s + (b.totalAmount || 0), 0);
     const upcoming = bookings
       .filter((b) => b.status === 'CONFIRMED' && b.checkIn >= today)

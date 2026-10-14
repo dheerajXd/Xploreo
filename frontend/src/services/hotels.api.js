@@ -121,9 +121,10 @@ export async function getHotelReviews(hotelId) {
   return listOf(await request(`/hotels/${enc(hotelId)}/reviews`));
 }
 
-// GET /hotels/partner/reviews — reviews across all of the partner's hotels
+// GET /reviews — reviews across all of the partner's hotels (server scopes this to the
+// signed-in partner's own hotels; see backend/src/reviews)
 export async function listPartnerReviews() {
-  return listOf(await request('/hotels/partner/reviews'));
+  return listOf(await request('/reviews'));
 }
 
 // ── Partner profile ───────────────────────────────────────────────────────────
