@@ -18,4 +18,21 @@ export const authApi = {
   register: (details) => apiRequest("/auth/register", { method: "POST", body: JSON.stringify(details) }),
 };
 
+export async function fetchData(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const json = await response.json();
+  return json?.data !== undefined ? json.data : json;
+}
+
 export { API_BASE_URL };

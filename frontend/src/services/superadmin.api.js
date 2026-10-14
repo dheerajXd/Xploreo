@@ -18,7 +18,7 @@ import {
  */
 const BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) ||
-  'http://localhost:3000';
+  'http://localhost:3000/api';
 
 /**
  * Custom Error class that retains HTTP status and field messages.

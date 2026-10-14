@@ -4,7 +4,7 @@ import { MOCK_PLANS } from '../mocks/plans/plans.fixture.js';
 /**
  * Backend base URL. Defaults to localhost:3000 if not specified in env.
  */
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api';
 
 /**
  * In-memory fallback copy of mock plans for development / offline mode.

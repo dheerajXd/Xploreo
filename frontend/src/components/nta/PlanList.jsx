@@ -38,6 +38,9 @@ export default function PlanList({
   const [error, setError] = useState(null);
 
   const assignedRegion = currentUser?.region || '';
+  const userRole = (currentUser?.role || '').toLowerCase();
+  const isSuperAdmin = userRole === 'superadmin';
+  const canDelete = isSuperAdmin;
 
   // Search & Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -338,7 +341,7 @@ export default function PlanList({
               plan={plan}
               onViewDetails={(p) => setActiveDetailsPlan(p)}
               onEdit={onEditPlan}
-              onDelete={(p) => setPlanToDelete(p)}
+              onDelete={canDelete ? (p) => setPlanToDelete(p) : undefined}
               currentUser={currentUser}
             />
           ))}

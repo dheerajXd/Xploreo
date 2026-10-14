@@ -19,7 +19,9 @@ export default function HotelLayout() {
         profileTo="/hotel/profile"
         onLogout={logout}
       />
-      <Outlet />
+      <main className="admin-portal-content">
+        <Outlet />
+      </main>
     </>
   );
 }

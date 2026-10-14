@@ -4,7 +4,14 @@ import Navbar from "../../components/Navbar/navbar";
 import { authApi } from "../../services/api";
 import "./auth.css";
 
-const destinationForRole = { guide: "/guide/dashboard", hotel: "/hotel/dashboard", experience: "/experience/home" };
+const destinationForRole = {
+  guide: "/guide/dashboard",
+  hotel: "/hotel/dashboard",
+  experience: "/experience/home",
+  superadmin: "/superadmin/dashboard",
+  nontechadmin: "/nta/dashboard",
+  techadmin: "/tech-admin/dashboard",
+};
 
 export default function Login({ user, onAuthenticated }) {
   const navigate = useNavigate();

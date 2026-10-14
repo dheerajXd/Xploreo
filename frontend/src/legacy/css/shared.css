@@ -258,6 +258,12 @@ body {
 }
 
 
+.admin-portal-content {
+  padding-top: 60px;
+  box-sizing: border-box;
+  min-height: calc(100vh - 60px);
+}
+
 .page-wrapper {
   padding: 100px 30px 30px 30px;
   max-width: 1400px;

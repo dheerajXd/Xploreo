@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./routes/ProtectedRoutes";
 import Login from "./pages/Auth/login";
 import Register from "./pages/Auth/register";
+import UnauthorizedPage from "./pages/Unauthorized";
 import Landing from "./pages/Home/landing";
 import Partners from "./pages/Home/partners";
 import Tours from "./pages/Home/tours";
@@ -12,6 +13,9 @@ import { guidePortal } from "./routes/guide.routes.jsx";
 import { experiencePortal } from "./routes/experience.routes.jsx";
 import { hotelPortal } from "./routes/hotel.routes.jsx";
 import { travellerDetailRoutes } from "./routes/travellerDetail.routes.jsx";
+import { superadminPortal } from "./routes/superadmin.routes.jsx";
+import { nontechadminPortal } from "./routes/nontechadmin.routes.jsx";
+import { techadminPortal } from "./routes/techadmin.routes.jsx";
 
 function AppRoutes() {
   const { user, authenticate } = useAuth();
@@ -24,6 +28,7 @@ function AppRoutes() {
       <Route path="/Home/support" element={<Support user={user} />} />
       <Route path="/Auth/login" element={<Login user={user} onAuthenticated={authenticate} />} />
       <Route path="/Auth/register" element={<Register user={user} onAuthenticated={authenticate} />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route element={<ProtectedRoute allowedRoles={["guide"]} user={user} />}>
         <Route path={guidePortal.basePath} element={<guidePortal.layout />}>
           {guidePortal.routes.map((route) => (
@@ -41,6 +46,27 @@ function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={["experience"]} user={user} />}>
         <Route path={experiencePortal.basePath} element={<experiencePortal.layout />}>
           {experiencePortal.routes.map((route) => (
+            <Route key={route.path ?? "index"} {...route} />
+          ))}
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["superadmin"]} user={user} />}>
+        <Route path={superadminPortal.basePath} element={<superadminPortal.layout />}>
+          {superadminPortal.routes.map((route) => (
+            <Route key={route.path ?? "index"} {...route} />
+          ))}
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["nontechadmin"]} user={user} />}>
+        <Route path={nontechadminPortal.basePath} element={<nontechadminPortal.layout />}>
+          {nontechadminPortal.routes.map((route) => (
+            <Route key={route.path ?? "index"} {...route} />
+          ))}
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["techadmin"]} user={user} />}>
+        <Route path={techadminPortal.basePath} element={<techadminPortal.layout />}>
+          {techadminPortal.routes.map((route) => (
             <Route key={route.path ?? "index"} {...route} />
           ))}
         </Route>
