@@ -23,6 +23,11 @@ export class CreateReviewDto {
   @IsString()
   targetId!: string;
 
+  @ApiPropertyOptional({ example: 'trip-kerala-completed' })
+  @IsOptional()
+  @IsString()
+  tripId?: string;
+
   @ApiProperty({ example: 5, minimum: 1, maximum: 5 })
   @Type(() => Number)
   @IsInt()

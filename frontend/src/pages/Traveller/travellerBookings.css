@@ -1,0 +1,821 @@
+/**
+ * travellerBookings.css
+ * Production Stylesheet for Xploreo Traveller My Bookings Hub.
+ *
+ * Visual Identity: Matches Xploreo Traveller Dashboard and Browse design system:
+ * - White and light backgrounds (#f8fafc / #ffffff)
+ * - Teal-to-blue gradients (linear-gradient(135deg, #0d9488, #0284c7))
+ * - Clean Inter typography, generous whitespace, rounded cards (1rem)
+ * - Desktop-first layout optimized for 1440 × 900 screens
+ * - Subtle elevation shadows, badge pills, and accessible states
+ */
+
+/* ── Container & Base Page ─────────────────────────────────── */
+.trav-bookings-page-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.trav-bookings-page {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 5rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── 1. Page Header Banner ─────────────────────────────────── */
+.trav-bookings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.trav-bookings-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.trav-bookings-icon-badge {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  flex-shrink: 0;
+}
+
+.trav-bookings-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d9488;
+  margin: 0 0 0.25rem 0;
+}
+
+.trav-bookings-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.trav-bookings-subtitle {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.trav-bookings-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 0.4rem 1rem 0.4rem 0.5rem;
+}
+
+.trav-bookings-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.trav-bookings-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.trav-bookings-username {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.trav-bookings-role-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #0d9488;
+  letter-spacing: 0.05em;
+}
+
+/* ── 2. KPI Overview Cards ─────────────────────────────────── */
+.trav-bookings-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.trav-bookings-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trav-bookings-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.trav-kpi-icon-wrap {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.trav-kpi-icon-wrap.kpi-blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.trav-kpi-icon-wrap.kpi-green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.trav-kpi-icon-wrap.kpi-red {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.trav-kpi-icon-wrap.kpi-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.trav-kpi-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.trav-kpi-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.trav-kpi-lbl {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* ── 3. Demo Mode Notice ───────────────────────────────────── */
+.trav-demo-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.trav-demo-banner-text code {
+  background: #fef3c7;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.trav-demo-toggle-btn {
+  background: #ffffff;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.trav-demo-toggle-btn:hover {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+/* ── 4. Booking Filter & Search Toolbar ────────────────────── */
+.trav-bookings-controls-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.trav-bookings-controls-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.trav-category-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.trav-cat-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trav-cat-btn:hover:not(.is-active) {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.trav-cat-btn.is-active {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+.trav-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  min-width: 320px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.trav-search-box:focus-within {
+  border-color: #0d9488;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.trav-search-icon {
+  font-size: 0.95rem;
+  color: #94a3b8;
+}
+
+.trav-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  color: #0f172a;
+  width: 100%;
+  font-family: inherit;
+}
+
+.trav-search-clear-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trav-search-clear-btn:hover {
+  color: #0f172a;
+}
+
+.trav-filter-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.trav-status-tabs {
+  display: flex;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  padding: 0.3rem;
+  border-radius: 0.75rem;
+}
+
+.trav-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trav-tab-btn:hover:not(.is-active) {
+  color: #0f172a;
+}
+
+.trav-tab-btn.is-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.trav-tab-count {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.trav-tab-btn.is-active .trav-tab-count {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.trav-filter-counter {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.trav-filter-counter strong {
+  color: #0f172a;
+}
+
+/* ── 5. Loading Skeleton ───────────────────────────────────── */
+.trav-loading-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trav-skeleton-card {
+  height: 130px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: travSkeletonShimmer 1.5s infinite;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+@keyframes travSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── 6. Error State ────────────────────────────────────────── */
+.trav-state-error {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.05);
+}
+
+.trav-error-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.trav-state-error h3 {
+  color: #991b1b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.trav-state-error p {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0 0 1.25rem 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.trav-error-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.trav-btn-retry {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+  padding: 0.55rem 1.4rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trav-btn-retry:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+}
+
+.trav-btn-retry.trav-btn-demo {
+  background: #ffffff;
+  color: #0284c7;
+  border: 1.5px solid #0284c7;
+}
+
+.trav-btn-retry.trav-btn-demo:hover {
+  background: #f0f9ff;
+}
+
+/* ── 7. Empty State ────────────────────────────────────────── */
+.trav-state-empty {
+  background: #ffffff;
+  border: 2px dashed #e2e8f0;
+  border-radius: 1rem;
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+
+.trav-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+}
+
+.trav-state-empty h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.trav-state-empty p {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.trav-btn-reset-filters {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trav-btn-reset-filters:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ── 8. Booking Cards List ─────────────────────────────────── */
+.trav-bookings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.trav-booking-item-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.trav-booking-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(13, 148, 136, 0.08);
+  border-color: #cbd5e1;
+}
+
+/* Card Media / Thumbnail */
+.trav-booking-card-media {
+  width: 170px;
+  height: 115px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: #e2e8f0;
+}
+
+.trav-booking-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.trav-booking-item-card:hover .trav-booking-card-img {
+  transform: scale(1.05);
+}
+
+.trav-card-type-tag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+}
+
+/* Card Main Info */
+.trav-card-info-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.trav-card-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.trav-status-badge {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.trav-status-badge.is-confirmed {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.trav-status-badge.is-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.trav-status-badge.is-pending {
+  background: #fef3c7;
+  color: #854d0e;
+  border: 1px solid #fde68a;
+}
+
+.trav-status-badge.is-demo {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.trav-booking-id {
+  font-size: 0.775rem;
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+}
+
+.trav-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trav-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.trav-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trav-meta-icon {
+  font-size: 0.95rem;
+}
+
+.trav-card-booked-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.1rem;
+}
+
+/* Card Price & Action */
+.trav-card-price-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.85rem;
+  flex-shrink: 0;
+}
+
+.trav-card-price-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.trav-card-price-lbl {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.trav-card-price {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0d9488;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.trav-btn-view-details {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trav-btn-view-details:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ── 9. Booking Details View (Preserved for compatibility) ── */
+.trav-details-view {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.03);
+}
+
+.trav-back-nav {
+  margin-bottom: 1.5rem;
+}
+
+.trav-back-btn {
+  background: none;
+  border: none;
+  color: #0d9488;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.trav-back-btn:hover {
+  color: #0284c7;
+}
+
+.trav-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.trav-details-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.trav-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.trav-info-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.trav-info-val {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}

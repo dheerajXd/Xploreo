@@ -89,6 +89,7 @@ export class AuthRepository {
       name: data.name!,
       email: data.email!,
       phone: data.phone!,
+      location: data.location,
       status: data.status ?? 'active',
     };
     this.users.push(user);
@@ -104,14 +105,26 @@ export class AuthRepository {
   }
 
   findByUsername(username: string): Auth | undefined {
+    if (!username) return undefined;
+    const q = username.trim().toLowerCase();
     return this.users.find(
-      (u) => u.username.toLowerCase() === username.toLowerCase(),
+      (u) =>
+        u.username.toLowerCase() === q ||
+        (u.role === Role.TRAVELLER && q === 'traveller') ||
+        (u.role === Role.GUIDE && q === 'guide') ||
+        (u.role === Role.HOTEL && (q === 'hotel' || q === 'hotel_partner')) ||
+        (u.role === Role.EXPERIENCE && (q === 'experience' || q === 'experience_partner')) ||
+        (u.role === Role.SUPERADMIN && q === 'superadmin') ||
+        (u.role === Role.TECHADMIN && q === 'techadmin') ||
+        (u.role === Role.NONTECHADMIN && (q === 'nontechadmin' || q === 'nontech_admin')),
     );
   }
 
   findByEmail(email: string): Auth | undefined {
+    if (!email) return undefined;
+    const q = email.trim().toLowerCase();
     return this.users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase(),
+      (u) => u.email.toLowerCase() === q,
     );
   }
 

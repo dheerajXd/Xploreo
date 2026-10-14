@@ -1,7 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateString, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateExperienceBookingDto {
+  @ApiPropertyOptional({ example: 'eb-001' })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'exp-sunset-walk' })
   @IsString()
   experienceId!: string;

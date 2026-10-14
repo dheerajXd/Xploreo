@@ -29,6 +29,7 @@ export class AuthService {
       name: dto.name,
       email: dto.email,
       phone: dto.phone,
+      location: dto.location,
       status: 'active',
     });
 
@@ -37,9 +38,10 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
+    const rawUsername = dto.username?.trim();
     const user =
-      this.authRepository.findByUsername(dto.username) ??
-      this.authRepository.findByEmail(dto.username);
+      this.authRepository.findByUsername(rawUsername) ??
+      this.authRepository.findByEmail(rawUsername);
     if (!user || user.password !== dto.password) {
       throw new UnauthorizedException('Invalid username or password');
     }

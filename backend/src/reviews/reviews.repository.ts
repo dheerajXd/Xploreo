@@ -9,6 +9,7 @@ export type Review = {
   authorName?: string;
   targetType: ReviewTargetType;
   targetId: string;
+  tripId?: string;
   rating: number;
   comment: string;
   createdAt: Date;
@@ -27,6 +28,7 @@ export class ReviewsRepository {
       authorName: dto.authorName,
       targetType: dto.targetType,
       targetId: dto.targetId,
+      tripId: dto.tripId,
       rating: dto.rating,
       comment: dto.comment,
       createdAt: new Date(),
@@ -51,6 +53,10 @@ export class ReviewsRepository {
 
   findById(id: number): Review | undefined {
     return this.reviews.find((item) => item.id === id);
+  }
+
+  findByTripId(tripId: string): Review | undefined {
+    return this.reviews.find((item) => item.tripId === tripId);
   }
 
   update(id: number, dto: UpdateReviewDto): Review | undefined {
