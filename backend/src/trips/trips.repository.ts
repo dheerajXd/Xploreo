@@ -9,7 +9,7 @@ export class TripsRepository {
   private trips: Trip[] = [
     {
       id: 'trip-kerala-1',
-      travellerId: '20001',
+      travellerId: 'T001',
       planId: 'plan-1',
       guideId: '10001',
       status: TripStatus.CONFIRMED,
@@ -61,7 +61,7 @@ export class TripsRepository {
     },
     {
       id: 'trip-kerala-completed',
-      travellerId: '20001',
+      travellerId: 'T001',
       planId: 'plan-1',
       guideId: '10001',
       status: TripStatus.COMPLETED,

@@ -4,20 +4,24 @@ import {
   REVIEW_TARGET_TYPES,
   VALID_TARGET_TYPES,
 } from '../../utils/reviewUtils.js';
+import { getUser } from '../../services/session.js';
 
 /**
  * ReviewSubmissionForm
  * Submits review conforming strictly to backend CreateReviewDto:
- * - userId: number
+ * - userId: string (strictly derived from authenticated session)
  * - targetType: 'guide' | 'hotel' | 'experience'
- * - targetId: number
+ * - targetId: string
  * - rating: number (1-5)
  * - comment: string
+ * - tripId: string (required completed trip)
  *
  * Features:
  * - Interactive accessible star rating picker
  * - Form validation with per-field errors
  * - Disables submission while pending (prevents duplicates)
+ * - Derives submitting user from authenticated session (prevents impersonation)
+ * - Displays clear validation error if user ID cannot be resolved from session
  * - Preserves user input if submission fails
  * - Accessible ARIA attributes
  */
@@ -29,24 +33,25 @@ export default function ReviewSubmissionForm({
   currentUserId = null,
   defaultTargetType = REVIEW_TARGET_TYPES.GUIDE,
   defaultTargetId = '',
-  initialMode = 'live',
   completedTrips = [],
   selectedTripId = '',
 }) {
-  const isAlphanumericUser = Boolean(currentUserId && isNaN(Number(currentUserId)));
+  const sessionUser = getUser();
+  const rawUserId = currentUserId ?? (sessionUser && sessionUser.role !== 'default' ? (sessionUser.userId ?? sessionUser.id) : null);
+  const authenticatedUserId = rawUserId !== null && rawUserId !== undefined ? String(rawUserId).trim() : '';
+  const hasValidUserId = authenticatedUserId.length > 0;
 
-  const [submissionMode, setSubmissionMode] = useState(
-    initialMode === 'demo' ? 'demo' : 'live'
-  );
+  const userIdError = !hasValidUserId
+    ? 'Authenticated traveller session required. Please log in to submit a review.'
+    : null;
 
   const initialTrip = completedTrips.find((t) => t.id === selectedTripId) || completedTrips[0];
   const initialTripId = initialTrip?.id || selectedTripId || '';
 
   const [formData, setFormData] = useState({
-    userId: currentUserId || '20001',
     tripId: initialTripId,
     targetType: defaultTargetType,
-    targetId: defaultTargetId || (initialTrip?.guideId ? String(initialTrip.guideId) : '10001'),
+    targetId: defaultTargetId || (initialTrip?.guideId ? String(initialTrip.guideId) : ''),
     rating: 5,
     comment: '',
   });
@@ -60,26 +65,16 @@ export default function ReviewSubmissionForm({
     setFormData(updated);
 
     if (submitAttempted) {
-      if (submissionMode === 'demo') {
-        const errors = {};
-        if (!updated.userId || String(updated.userId).trim() === '') {
-          errors.userId = 'Valid traveller/user ID is required';
-        }
-        if (!updated.targetId || String(updated.targetId).trim() === '') {
-          errors.targetId = 'Target ID is required';
-        }
-        if (!updated.comment || updated.comment.trim().length < 3) {
-          errors.comment = 'Comment must be at least 3 characters long';
-        }
-        setFieldErrors(errors);
-      } else {
-        const validation = validateReviewForm({
-          ...updated,
-          userId: Number(updated.userId) || 20001,
-          targetId: Number(updated.targetId) || 10001,
-        });
-        setFieldErrors(validation.errors);
+      const validation = validateReviewForm({
+        ...updated,
+        userId: hasValidUserId ? authenticatedUserId : undefined,
+        targetId: updated.targetId,
+      });
+      const errors = { ...validation.errors };
+      if (!hasValidUserId) {
+        errors.userId = userIdError;
       }
+      setFieldErrors(errors);
     }
   };
 
@@ -87,72 +82,54 @@ export default function ReviewSubmissionForm({
     e.preventDefault();
     setSubmitAttempted(true);
 
+    if (!hasValidUserId) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        userId: userIdError,
+      }));
+      return;
+    }
+
     if (completedTrips.length === 0) {
-      setFieldErrors({ tripId: 'Reviews can only be submitted for completed trips.' });
+      setFieldErrors((prev) => ({
+        ...prev,
+        tripId: 'Reviews can only be submitted for completed trips.',
+      }));
       return;
     }
+
     if (!formData.tripId) {
-      setFieldErrors({ tripId: 'Please select an eligible completed trip' });
+      setFieldErrors((prev) => ({
+        ...prev,
+        tripId: 'Please select an eligible completed trip',
+      }));
       return;
     }
-
-    if (submissionMode === 'demo') {
-      const errors = {};
-      if (!formData.userId || String(formData.userId).trim() === '') {
-        errors.userId = 'Valid traveller/user ID is required';
-      }
-      if (!formData.targetId || String(formData.targetId).trim() === '') {
-        errors.targetId = 'Target ID is required';
-      }
-      if (!formData.rating || formData.rating < 1 || formData.rating > 5) {
-        errors.rating = 'Rating must be between 1 and 5';
-      }
-      if (!formData.comment || formData.comment.trim().length < 3) {
-        errors.comment = 'Comment must be at least 3 characters long';
-      }
-
-      setFieldErrors(errors);
-      if (Object.keys(errors).length > 0) return;
-
-      if (onSubmit && !isSubmitting) {
-        await onSubmit({
-          userId: String(formData.userId),
-          targetType: formData.targetType,
-          targetId: String(formData.targetId),
-          tripId: formData.tripId,
-          rating: Number(formData.rating),
-          comment: formData.comment.trim(),
-          isDemo: true,
-        });
-      }
-      return;
-    }
-
-    // Live mode validation
-    const activeUserId = !isNaN(Number(formData.userId))
-      ? Number(formData.userId)
-      : (String(formData.userId).trim().toLowerCase() === 't001' ? 20001 : 20001);
 
     const validation = validateReviewForm({
       ...formData,
-      userId: activeUserId,
-      targetId: Number(formData.targetId) || 10001,
+      userId: authenticatedUserId,
+      targetId: formData.targetId,
     });
-    setFieldErrors(validation.errors);
 
-    if (!validation.isValid) {
+    const combinedErrors = { ...validation.errors };
+    if (!hasValidUserId) {
+      combinedErrors.userId = userIdError;
+    }
+    setFieldErrors(combinedErrors);
+
+    if (!validation.isValid || !hasValidUserId) {
       return;
     }
 
     if (onSubmit && !isSubmitting) {
       await onSubmit({
-        userId: activeUserId,
+        userId: authenticatedUserId,
         targetType: formData.targetType,
-        targetId: Number(formData.targetId) || 10001,
+        targetId: String(formData.targetId).trim(),
         tripId: formData.tripId,
         rating: Number(formData.rating),
         comment: formData.comment.trim(),
-        isDemo: false,
       });
     }
   };
@@ -166,84 +143,6 @@ export default function ReviewSubmissionForm({
       noValidate
       data-testid="review-submission-form"
     >
-      {/* Mode Selector & Blocker Documentation */}
-      <div
-        className="trav-review-mode-strip"
-        style={{
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '0.75rem',
-          marginBottom: '1rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '0.88rem',
-        }}
-      >
-        <span>
-          <strong>Submission Mode:</strong>{' '}
-          {submissionMode === 'demo' ? (
-            <span style={{ color: '#d97706', fontWeight: 600 }}>Demo / Preview Mode</span>
-          ) : (
-            <span style={{ color: '#16a34a', fontWeight: 600 }}>Live Backend Mode</span>
-          )}
-        </span>
-        <button
-          type="button"
-          style={{
-            background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '6px',
-            padding: '0.3rem 0.6rem',
-            fontSize: '0.8rem',
-            cursor: 'pointer',
-            fontWeight: 500,
-          }}
-          onClick={() => {
-            setSubmissionMode(submissionMode === 'demo' ? 'live' : 'demo');
-            setFieldErrors({});
-          }}
-        >
-          Switch to {submissionMode === 'demo' ? 'Live Mode' : 'Demo Mode'}
-        </button>
-      </div>
-
-      {submissionMode === 'demo' ? (
-        <div
-          className="trav-form-alert"
-          style={{
-            background: 'rgba(217, 119, 6, 0.1)',
-            border: '1px solid rgba(217, 119, 6, 0.3)',
-            borderRadius: '8px',
-            padding: '0.65rem 0.9rem',
-            marginBottom: '1rem',
-            fontSize: '0.85rem',
-            color: '#92400e',
-          }}
-          data-testid="review-demo-notice"
-        >
-          <strong>ℹ️ Demo Review Notice:</strong> Backend <code>CreateReviewDto</code> strictly requires integer IDs (<code>@IsInt()</code>). In Demo Mode, string IDs (e.g. <code>T001</code>) are accepted without silent coercion and simulated locally.
-        </div>
-      ) : isAlphanumericUser ? (
-        <div
-          className="trav-form-alert"
-          style={{
-            background: 'rgba(220, 38, 38, 0.1)',
-            border: '1px solid rgba(220, 38, 38, 0.3)',
-            borderRadius: '8px',
-            padding: '0.65rem 0.9rem',
-            marginBottom: '1rem',
-            fontSize: '0.85rem',
-            color: '#b91c1c',
-          }}
-          data-testid="review-contract-blocker-notice"
-        >
-          <strong>⚠️ Backend Contract Blocker:</strong> Live backend requires positive integer IDs, but active user ID is &quot;{currentUserId}&quot;. Switch to Demo Mode above to submit without violating backend contracts.
-        </div>
-      ) : null}
-
       {apiError && (
         <div
           className="trav-form-alert trav-form-alert-error"
@@ -254,30 +153,40 @@ export default function ReviewSubmissionForm({
         </div>
       )}
 
-      {/* Traveller / User ID (if not injected via auth prop) */}
-      {!currentUserId && (
-        <div className="trav-form-group">
-          <label htmlFor="review-user-id" className="trav-form-label">
-            Traveller ID <span aria-hidden="true">*</span>
-          </label>
-          <input
-            id="review-user-id"
-            type={submissionMode === 'demo' ? 'text' : 'number'}
-            className={`trav-form-input ${fieldErrors.userId ? 'has-error' : ''}`}
-            placeholder={submissionMode === 'demo' ? 'e.g. T001 or 20001' : 'e.g. 20001'}
-            value={formData.userId}
-            onChange={(e) => handleFieldChange('userId', e.target.value)}
-            disabled={isSubmitting}
-            required
-            aria-describedby={fieldErrors.userId ? 'err-user-id' : undefined}
-          />
-          {fieldErrors.userId && (
-            <p id="err-user-id" className="trav-form-error-msg" role="alert">
-              {fieldErrors.userId}
-            </p>
+      {/* Authenticated Identity Attribution (prevents user impersonation) */}
+      <div className="trav-form-group">
+        <label className="trav-form-label">
+          Submitting as Traveller
+        </label>
+        <div
+          className="trav-authenticated-identity"
+          style={{
+            fontSize: '0.88rem',
+            color: hasValidUserId ? '#334155' : '#b91c1c',
+            padding: '0.55rem 0.75rem',
+            background: hasValidUserId ? '#f8fafc' : '#fef2f2',
+            border: `1px solid ${hasValidUserId ? '#e2e8f0' : '#fecaca'}`,
+            borderRadius: '6px',
+            fontWeight: 500,
+          }}
+          data-testid="authenticated-traveller-display"
+        >
+          {hasValidUserId ? (
+            <span>
+              Traveller: <strong>{sessionUser?.name || sessionUser?.username || authenticatedUserId}</strong> ({authenticatedUserId})
+            </span>
+          ) : (
+            <span>
+              ⚠️ Not authenticated as a traveller
+            </span>
           )}
         </div>
-      )}
+        {(!hasValidUserId || fieldErrors.userId) && (
+          <p className="trav-form-error-msg" role="alert" data-testid="err-user-id">
+            {fieldErrors.userId || userIdError}
+          </p>
+        )}
+      </div>
 
       {/* Completed Journey Selector */}
       <div className="trav-form-group">
@@ -365,9 +274,9 @@ export default function ReviewSubmissionForm({
         </label>
         <input
           id="review-target-id"
-          type={submissionMode === 'demo' ? 'text' : 'number'}
+          type="text"
           className={`trav-form-input ${fieldErrors.targetId ? 'has-error' : ''}`}
-          placeholder={submissionMode === 'demo' ? 'e.g. exp-1, hotel-1, or 10001' : 'e.g. 10001'}
+          placeholder="e.g. 10001 or hotel-goa-001"
           value={formData.targetId}
           onChange={(e) => handleFieldChange('targetId', e.target.value)}
           disabled={isSubmitting}
@@ -462,10 +371,12 @@ export default function ReviewSubmissionForm({
         <button
           type="submit"
           className="trav-review-btn trav-review-btn-primary"
-          disabled={isSubmitting || completedTrips.length === 0}
+          disabled={isSubmitting || completedTrips.length === 0 || !hasValidUserId}
           data-testid="submit-review-button"
         >
-          {completedTrips.length === 0
+          {!hasValidUserId
+            ? 'Authenticated Session Required'
+            : completedTrips.length === 0
             ? 'Completed Trip Required'
             : isSubmitting
             ? 'Submitting Review...'

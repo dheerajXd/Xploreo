@@ -1,4 +1,4 @@
-﻿/**
+/**
  * reviewUtils.js
  * Pure utility functions and validation conforming to backend Reviews contracts:
  * - backend/src/reviews/dto/create-review.dto.ts
@@ -28,8 +28,8 @@ export function validateReviewForm(data = {}) {
   const errors = {};
 
   // userId check
-  const userIdNum = Number(data.userId);
-  if (!data.userId || Number.isNaN(userIdNum) || !Number.isInteger(userIdNum) || userIdNum <= 0) {
+  const userIdStr = data.userId !== null && data.userId !== undefined ? String(data.userId).trim() : '';
+  if (!userIdStr) {
     errors.userId = 'Valid traveller/user ID is required';
   }
 
@@ -39,9 +39,9 @@ export function validateReviewForm(data = {}) {
   }
 
   // targetId check
-  const targetIdNum = Number(data.targetId);
-  if (!data.targetId || Number.isNaN(targetIdNum) || !Number.isInteger(targetIdNum) || targetIdNum <= 0) {
-    errors.targetId = 'Target ID must be a valid positive integer';
+  const targetIdStr = data.targetId !== null && data.targetId !== undefined ? String(data.targetId).trim() : '';
+  if (!targetIdStr) {
+    errors.targetId = 'Target ID is required';
   }
 
   // rating check (backend @Min(1) @Max(5) @IsInt())

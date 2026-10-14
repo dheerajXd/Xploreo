@@ -41,8 +41,8 @@ export class ReviewsController {
   @Post()
   @ApiOperation({ summary: 'Create a review' })
   @ApiCreateEndpoint(CreateReviewDto)
-  create(@Body() dto: CreateReviewDto) {
-    return this.reviewsService.create(dto);
+  create(@Body() dto: CreateReviewDto, @Req() req: any) {
+    return this.reviewsService.create(dto, req.user?.userId);
   }
 
   @Get()

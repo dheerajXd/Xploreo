@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar/navbar.jsx';
 import TravellerReviewsList from './TravellerReviewsList.jsx';
 import ReviewSubmissionForm from './ReviewSubmissionForm.jsx';
 import { apiRequest } from '../../services/api.js';
+import { identityHeaders } from '../../services/session.js';
 import './travellerReviews.css';
 
 /**
@@ -210,16 +211,17 @@ export default function TravellerReviewsPage({
         setLiveReviews((prev) => [newDemoReview, ...prev]);
         setSubmitSuccessMsg('Review submitted in Demo Mode!');
       } else {
-        const activeUserId = !isNaN(Number(formData.userId))
-          ? Number(formData.userId)
-          : (String(effectiveUser.userId).toLowerCase() === 't001' ? 20001 : 20001);
+        const activeUserId = String(formData.userId || effectiveUser?.userId || '').trim();
 
         await apiRequest('/reviews', {
           method: 'POST',
+          headers: {
+            ...identityHeaders(),
+          },
           body: JSON.stringify({
             userId: activeUserId,
             targetType: formData.targetType,
-            targetId: Number(formData.targetId) || 10001,
+            targetId: String(formData.targetId).trim(),
             tripId: targetTripId,
             rating: Number(formData.rating),
             comment: formData.comment.trim(),

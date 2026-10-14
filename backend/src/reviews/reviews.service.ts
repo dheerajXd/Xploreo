@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,12 +22,16 @@ export class ReviewsService {
     private readonly tripsRepository: TripsRepository,
   ) {}
 
-  create(dto: CreateReviewDto) {
-    const dtoUserIdStr = String(dto.userId).trim();
+  create(dto: CreateReviewDto, authenticatedUserId?: string) {
+    const effectiveUserId = (authenticatedUserId || '').trim();
+    if (!effectiveUserId) {
+      throw new ForbiddenException('x-user-id header is required');
+    }
+    dto.userId = effectiveUserId;
     const existingReviews = this.reviewsRepository.findAll();
 
     const matchesUser = (rUserId: string | number) => {
-      return String(rUserId).trim() === dtoUserIdStr;
+      return String(rUserId).trim().toLowerCase() === effectiveUserId.toLowerCase();
     };
 
     if (dto.tripId) {
@@ -34,7 +39,7 @@ export class ReviewsService {
       if (!trip) {
         throw new NotFoundException(`Trip ${dto.tripId} not found`);
       }
-      if (String(trip.travellerId).trim() !== dtoUserIdStr) {
+      if (String(trip.travellerId).trim().toLowerCase() !== effectiveUserId.toLowerCase()) {
         throw new BadRequestException('You can only review trips that belong to you');
       }
       const isCompleted =
@@ -57,7 +62,7 @@ export class ReviewsService {
       }
     } else {
       // If tripId is omitted, verify that the traveller has at least one completed trip
-      const travellerTrips = this.tripsRepository.findByTraveller(dtoUserIdStr);
+      const travellerTrips = this.tripsRepository.findByTraveller(effectiveUserId);
       const completedTrips = travellerTrips.filter(
         (t) =>
           t.status === TripStatus.COMPLETED ||

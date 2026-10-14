@@ -5,7 +5,7 @@ import { stripUndefined } from '../common/utils/strip-undefined';
 
 export type Review = {
   id: number;
-  userId: number;
+  userId: string;
   authorName?: string;
   targetType: ReviewTargetType;
   targetId: string;

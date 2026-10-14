@@ -9,10 +9,10 @@ export enum ReviewTargetType {
 }
 
 export class CreateReviewDto {
-  @ApiProperty({ example: 20001 })
-  @Type(() => Number)
-  @IsInt()
-  userId!: number;
+  @ApiPropertyOptional({ example: 'T001', description: 'Canonical authenticated user ID' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
 
   @ApiProperty({ enum: ReviewTargetType, example: ReviewTargetType.GUIDE })
   @IsEnum(ReviewTargetType)
