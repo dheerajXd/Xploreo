@@ -24,7 +24,7 @@ export class ReviewsRepository {
   create(dto: CreateReviewDto): Review {
     const review: Review = {
       id: this.nextId++,
-      userId: dto.userId,
+      userId: dto.userId ?? '',
       authorName: dto.authorName,
       targetType: dto.targetType,
       targetId: dto.targetId,
