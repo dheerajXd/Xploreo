@@ -4,7 +4,8 @@ import Navbar from '../../components/Navbar/navbar.jsx';
 import { formatCurrency } from '../../utils/checkoutUtils.js';
 import { reconcileTripTracking, mapBackendTrip } from '../../utils/tripTrackingUtils.js';
 import { apiRequest, getSavedUser } from '../../services/api.js';
-import { sampleTripsList } from '../../preview/sampleData.js';
+// Production-safe fixture fallback when useFixtures is enabled without preview bundle
+const sampleTripsList = [];
 import TripLiveTrackerWidget from './TripLiveTrackerWidget.jsx';
 import TravellerTripDetailsView from './TravellerTripDetailsView.jsx';
 import './travellerTrips.css';
