@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Guide } from './entities/guide.entity';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class GuideRepository {
@@ -42,7 +43,7 @@ export class GuideRepository {
   update(userId: string, data: Partial<Guide>): Guide | undefined {
     const idx = this.guides.findIndex((g) => g.userId === userId);
     if (idx === -1) return undefined;
-    this.guides[idx] = { ...this.guides[idx], ...data };
+    this.guides[idx] = { ...this.guides[idx], ...stripUndefined(data) };
     return this.guides[idx];
   }
 

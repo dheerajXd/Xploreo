@@ -1,5 +1,7 @@
 import { NestFactory, Reflector } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
 import { setupSwagger } from './docs/swagger.setup';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -9,9 +11,13 @@ import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const reflector = app.get(Reflector);
+
+  // Uploaded images are served as plain static files, outside the /api prefix (matches the
+  // "/uploads/images/<file>" url the upload endpoints return).
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
   // Global prefix
   app.setGlobalPrefix('api');

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Traveller, Interest } from './entities/traveller.entity';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class TravellerRepository {
@@ -32,7 +33,7 @@ export class TravellerRepository {
   update(userId: string, data: Partial<Traveller>): Traveller | undefined {
     const idx = this.travellers.findIndex((t) => t.userId === userId);
     if (idx === -1) return undefined;
-    this.travellers[idx] = { ...this.travellers[idx], ...data };
+    this.travellers[idx] = { ...this.travellers[idx], ...stripUndefined(data) };
     return this.travellers[idx];
   }
 

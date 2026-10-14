@@ -83,21 +83,22 @@ export class ExperiencesController {
 
   @Roles(Role.SUPERADMIN, Role.NONTECHADMIN, Role.EXPERIENCE)
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an experience' })
+  @ApiOperation({ summary: "Update an experience (partner's own, or admin)" })
   @ApiUpdateEndpoint(UpdateExperienceDto)
   @ApiBody({ type: UpdateExperienceDto })
   update(
     @Param('id', NonEmptyStringPipe) id: string,
     @Body() dto: UpdateExperienceDto,
+    @Req() req: any,
   ) {
-    return this.experiencesService.update(id, dto);
+    return this.experiencesService.update(id, dto, req.user);
   }
 
-  @Roles(Role.SUPERADMIN)
+  @Roles(Role.SUPERADMIN, Role.EXPERIENCE)
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete an experience' })
+  @ApiOperation({ summary: "Delete an experience (partner's own, or admin)" })
   @ApiDeleteEndpoint()
-  remove(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.experiencesService.remove(id);
+  remove(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.experiencesService.remove(id, req.user);
   }
 }

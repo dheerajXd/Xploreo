@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Role } from '../auth/entities/auth.entity';
 import {
   ApiCreateEndpoint,
@@ -7,7 +7,9 @@ import {
   ApiReadEndpoint,
 } from '../common/decorators/api-docs.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { NonEmptyStringPipe } from '../common/pipes/non-empty-string.pipe';
 import { CreateExperienceBookingDto } from './dto/create-experience-booking.dto';
+import { UpdateExperienceBookingStatusDto } from './dto/update-experience-booking-status.dto';
 import { ExperienceBookingsService } from './experience-bookings.service';
 
 @ApiTags('Phase 2 - Experience Bookings')
@@ -26,6 +28,16 @@ export class ExperienceBookingsController {
     return this.experienceBookingsService.create(req.user?.userId, dto);
   }
 
+  @Get('earnings')
+  @Roles(Role.EXPERIENCE)
+  @ApiOperation({ summary: "Partner's earnings statement, computed live from their bookings" })
+  @ApiQuery({ name: 'days', required: false, example: 30 })
+  @ApiReadEndpoint()
+  earnings(@Req() req: any, @Query('days') days?: string) {
+    const parsed = days === 'all' ? 'all' : Number(days) || 30;
+    return this.experienceBookingsService.earningsForPartner(req.user?.userId, parsed);
+  }
+
   @Get()
   @Roles(Role.TRAVELLER, Role.SUPERADMIN, Role.EXPERIENCE)
   @ApiOperation({ summary: 'View experience bookings' })
@@ -39,5 +51,16 @@ export class ExperienceBookingsController {
     }
 
     return this.experienceBookingsService.findAll();
+  }
+
+  @Patch(':id/status')
+  @Roles(Role.TRAVELLER, Role.EXPERIENCE)
+  @ApiOperation({ summary: 'Update an experience booking status' })
+  updateStatus(
+    @Param('id', NonEmptyStringPipe) id: string,
+    @Body() dto: UpdateExperienceBookingStatusDto,
+    @Req() req: any,
+  ) {
+    return this.experienceBookingsService.updateStatus(id, dto.status, req.user);
   }
 }

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -65,7 +66,20 @@ export class AuthService {
     return safe;
   }
 
-  async update(id: string, dto: UpdateAuthDto) {
+  async update(
+    id: string,
+    dto: UpdateAuthDto,
+    actor?: { userId?: string; role?: string },
+  ) {
+    const isAdmin = actor?.role === 'superadmin';
+    if (!isAdmin) {
+      if (actor?.userId !== id) {
+        throw new ForbiddenException('You can only update your own account.');
+      }
+      if (dto.role !== undefined) {
+        throw new ForbiddenException('You cannot change your account type.');
+      }
+    }
     const updated = await this.authRepository.update(id, dto);
     if (!updated) throw new NotFoundException(`User ${id} not found`);
     const { password: _pw, ...safe } = updated;

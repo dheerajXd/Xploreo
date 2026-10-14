@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreateReviewDto, ReviewTargetType } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 export type Review = {
   id: number;
   userId: number;
+  authorName?: string;
   targetType: ReviewTargetType;
-  targetId: number;
+  targetId: string;
   rating: number;
   comment: string;
   createdAt: Date;
@@ -14,24 +16,15 @@ export type Review = {
 
 @Injectable()
 export class ReviewsRepository {
-  private reviews: Review[] = [
-    {
-      id: 1,
-      userId: 20001,
-      targetType: ReviewTargetType.GUIDE,
-      targetId: 10001,
-      rating: 5,
-      comment: 'Friendly guide and a very well planned city walk.',
-      createdAt: new Date(),
-    },
-  ];
+  private reviews: Review[] = [];
 
-  private nextId = 2;
+  private nextId = 1;
 
   create(dto: CreateReviewDto): Review {
     const review: Review = {
       id: this.nextId++,
       userId: dto.userId,
+      authorName: dto.authorName,
       targetType: dto.targetType,
       targetId: dto.targetId,
       rating: dto.rating,
@@ -49,6 +42,13 @@ export class ReviewsRepository {
     );
   }
 
+  findByTarget(targetType: ReviewTargetType, targetIds: string[]): Review[] {
+    const idSet = new Set(targetIds);
+    return this.reviews
+      .filter((r) => r.targetType === targetType && idSet.has(r.targetId))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
   findById(id: number): Review | undefined {
     return this.reviews.find((item) => item.id === id);
   }
@@ -59,7 +59,7 @@ export class ReviewsRepository {
 
     this.reviews[index] = {
       ...this.reviews[index],
-      ...dto,
+      ...stripUndefined(dto),
       id: this.reviews[index].id,
       createdAt: this.reviews[index].createdAt,
     };

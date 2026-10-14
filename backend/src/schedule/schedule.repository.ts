@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateScheduleDto, ScheduleStatus } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleItem } from './entities/schedule.entity';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class ScheduleRepository {
@@ -75,7 +76,7 @@ export class ScheduleRepository {
 
     this.schedule[index] = {
       ...this.schedule[index],
-      ...dto,
+      ...stripUndefined(dto),
       id: this.schedule[index].id,
       createdAt: this.schedule[index].createdAt,
     };

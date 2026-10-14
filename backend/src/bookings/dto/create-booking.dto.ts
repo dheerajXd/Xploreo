@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsDateString,
   IsInt,
   IsOptional,
@@ -44,6 +45,18 @@ export class CreateBookingDto {
   @ApiProperty({ example: 'Deluxe Room' })
   @IsString()
   roomType!: string;
+
+  @ApiPropertyOptional({ example: 1, minimum: 1 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  rooms?: number;
+
+  @ApiPropertyOptional({ example: ['Anjali Sharma'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  guestNames?: string[];
 
   @ApiPropertyOptional({ example: 'Late check-in requested.' })
   @IsOptional()

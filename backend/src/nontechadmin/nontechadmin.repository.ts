@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Nontechadmin } from './entities/nontechadmin.entity';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class NontechadminRepository {
@@ -26,7 +27,7 @@ export class NontechadminRepository {
   update(id: string, data: Partial<Nontechadmin>): Nontechadmin | undefined {
     const idx = this.admins.findIndex((a) => a.adminId === id);
     if (idx === -1) return undefined;
-    this.admins[idx] = { ...this.admins[idx], ...data };
+    this.admins[idx] = { ...this.admins[idx], ...stripUndefined(data) };
     return this.admins[idx];
   }
 

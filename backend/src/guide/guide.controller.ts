@@ -28,6 +28,8 @@ import {
 @Roles(
   Role.TRAVELLER,
   Role.GUIDE,
+  Role.HOTEL,
+  Role.EXPERIENCE,
   Role.SUPERADMIN,
   Role.NONTECHADMIN,
 )
@@ -72,8 +74,9 @@ export class GuideController {
   update(
     @Param('id', NonEmptyStringPipe) id: string,
     @Body() dto: UpdateGuideDto,
+    @Req() req: any,
   ) {
-    return this.guideService.update(id, dto);
+    return this.guideService.update(id, dto, req.user);
   }
 
   @Roles(Role.SUPERADMIN)

@@ -25,7 +25,7 @@ import {
 
 @ApiTags('Traveller')
 @ApiProtectedResource()
-@Roles(Role.TRAVELLER, Role.SUPERADMIN, Role.NONTECHADMIN)
+@Roles(Role.TRAVELLER, Role.GUIDE, Role.SUPERADMIN, Role.NONTECHADMIN)
 @Controller('traveller')
 export class TravellerController {
   constructor(private readonly travellerService: TravellerService) {}
@@ -59,8 +59,9 @@ export class TravellerController {
   update(
     @Param('id', NonEmptyStringPipe) id: string,
     @Body() dto: UpdateTravellerDto,
+    @Req() req: any,
   ) {
-    return this.travellerService.update(id, dto);
+    return this.travellerService.update(id, dto, req.user);
   }
 
   @Roles(Role.SUPERADMIN)

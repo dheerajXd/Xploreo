@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Auth, Role } from './entities/auth.entity';
 import { createId } from '../common/utils/id';
+import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class AuthRepository {
@@ -117,7 +118,7 @@ export class AuthRepository {
   update(userId: string, data: Partial<Auth>): Auth | undefined {
     const idx = this.users.findIndex((u) => u.userId === userId);
     if (idx === -1) return undefined;
-    this.users[idx] = { ...this.users[idx], ...data };
+    this.users[idx] = { ...this.users[idx], ...stripUndefined(data) };
     return this.users[idx];
   }
 
