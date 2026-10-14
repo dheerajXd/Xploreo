@@ -45,4 +45,4 @@ export default function Login({ user, onAuthenticated }) {
             </div>;
 }
 
-export function AuthVisual({ title, text }) { return <aside className="auth-visual" aria-label="Travel media placeholder"><div className="media-placeholder"><span>YOUR IMAGE OR VIDEO</span><small>Replace this area with your travel photo or video</small></div><div className="visual-copy"><span className="visual-mark">✦</span><h2>{title}</h2><p>{text}</p></div></aside>; }
+export function AuthVisual({ title, text }) { return <aside className="auth-visual" aria-label="Sailboat on calm water at sunset"><img className="auth-visual-image" src="/images/auth-sailboat-sunset.png" alt="Sailboat on calm water at sunset" /><div className="visual-copy"><span className="visual-mark">✦</span><h2>{title}</h2><p>{text}</p></div></aside>; }
