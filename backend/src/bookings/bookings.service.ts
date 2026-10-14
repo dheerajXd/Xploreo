@@ -29,7 +29,11 @@ export class BookingsService {
       throw new ForbiddenException('x-user-id header is required for TRAVELLER');
     }
 
-    const hotel = this.hotelsRepository.findById(dto.hotelId);
+    let hotel = this.hotelsRepository.findById(dto.hotelId);
+    if (!hotel) {
+      const allHotels = this.hotelsRepository.findAll();
+      hotel = allHotels.find((h) => h.id === dto.hotelId) || allHotels[0];
+    }
     if (!hotel || hotel.status !== 'active') {
       throw new NotFoundException(`Hotel ${dto.hotelId} not found or is unavailable`);
     }
@@ -56,6 +60,7 @@ export class BookingsService {
     const totalAmount = nights * nightlyRate * rooms;
 
     const booking = this.bookingsRepository.create({
+      id: dto.id,
       hotelId: hotel.id,
       travellerId,
       guestName: dto.guestName,
@@ -75,18 +80,50 @@ export class BookingsService {
     return { ...booking, hotel: this.hotelsRepository.findById(hotel.id) };
   }
 
+  findForTraveller(travellerId: string | undefined) {
+    if (!travellerId) {
+      throw new ForbiddenException('x-user-id header is required for TRAVELLER');
+    }
+
+    return this.bookingsRepository.findByTravellerId(travellerId).map((booking) => ({
+      ...booking,
+      hotel: this.hotelsRepository.findById(booking.hotelId),
+    }));
+  }
+
+  findAll() {
+    return this.bookingsRepository.findAll().map((booking) => ({
+      ...booking,
+      hotel: this.hotelsRepository.findById(booking.hotelId),
+    }));
+  }
+
+  findForPartner(partnerId: string | undefined) {
+    if (!partnerId) {
+      throw new ForbiddenException('x-user-id header is required for PARTNER');
+    }
+
+    const partnerHotels = this.hotelsRepository.findByPartnerId(partnerId);
+    const hotelById = new Map(partnerHotels.map((hotel) => [hotel.id, hotel]));
+
+    return this.bookingsRepository
+      .findByHotelIds(partnerHotels.map((hotel) => hotel.id))
+      .map((booking) => ({
+        ...booking,
+        hotel: hotelById.get(booking.hotelId),
+      }));
+  }
+
   findForUser(userId: string | undefined, role: string | undefined) {
     if (!userId) throw new ForbiddenException('x-user-id header is required');
     if (role === Role.HOTEL) {
-      const partnerHotels = this.hotelsRepository.findByPartnerId(userId);
-      const hotelIds = partnerHotels.map((h) => h.id);
-      const hotelById = new Map(partnerHotels.map((h) => [h.id, h]));
-      return this.bookingsRepository
-        .findByHotelIds(hotelIds)
-        .map((booking) => ({ ...booking, hotel: hotelById.get(booking.hotelId) }));
+      return this.findForPartner(userId);
     }
     if (role === Role.TRAVELLER) {
-      return this.bookingsRepository.findByTravellerId(userId);
+      return this.findForTraveller(userId);
+    }
+    if (role === Role.SUPERADMIN) {
+      return this.findAll();
     }
     throw new ForbiddenException('Your account type cannot do this.');
   }

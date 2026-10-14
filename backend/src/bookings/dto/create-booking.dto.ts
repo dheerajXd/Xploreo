@@ -10,6 +10,11 @@ import {
 } from 'class-validator';
 
 export class CreateBookingDto {
+  @ApiPropertyOptional({ example: 'b-001' })
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @ApiProperty({ example: 'hotel-goa-001' })
   @IsString()
   hotelId!: string;

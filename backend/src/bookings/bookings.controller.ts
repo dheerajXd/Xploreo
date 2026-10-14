@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Post, Body, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Role } from '../auth/entities/auth.entity';
 import {
@@ -36,10 +36,19 @@ export class BookingsController {
   }
 
   @Get()
-  @Roles(Role.TRAVELLER, Role.HOTEL)
+  @Roles(Role.TRAVELLER, Role.HOTEL, Role.SUPERADMIN)
   @ApiOperation({ summary: "Hotel partner sees their hotels' bookings; traveller sees their own" })
   @ApiReadEndpoint()
   findAll(@Req() req: any) {
+    if (req.user?.role === Role.TRAVELLER) {
+      return this.bookingsService.findForTraveller(req.user?.userId);
+    }
+    if (req.user?.role === Role.HOTEL) {
+      return this.bookingsService.findForPartner(req.user?.userId);
+    }
+    if (req.user?.role === Role.SUPERADMIN) {
+      return this.bookingsService.findAll();
+    }
     return this.bookingsService.findForUser(req.user?.userId, req.user?.role);
   }
 

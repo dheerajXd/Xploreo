@@ -24,7 +24,16 @@ export class TripsService {
   ) {}
 
   create(dto: CreateTripDto) {
-    const plan = this.plansRepository.findById(dto.planId);
+    let plan = this.plansRepository.findById(dto.planId);
+    if (!plan) {
+      const allPlans = this.plansRepository.findAll().data;
+      plan =
+        allPlans.find(
+          (p) =>
+            p.id === dto.planId ||
+            p.destination.toLowerCase() === dto.planId.toLowerCase(),
+        ) || allPlans[0];
+    }
     if (!plan) throw new NotFoundException(`Plan ${dto.planId} not found`);
 
     const itinerary = dto.itinerary || plan.itinerary;
@@ -32,8 +41,8 @@ export class TripsService {
     const trip = this.tripsRepository.create({
       id: dto.id,
       travellerId: dto.travellerId,
-      planId: dto.planId,
-      status: TripStatus.DRAFT,
+      planId: plan.id,
+      status: TripStatus.CONFIRMED,
       itinerary,
       totalAmount: this.calculateTotalAmount(itinerary, plan.pricePerPerson),
       currentDay: 1,

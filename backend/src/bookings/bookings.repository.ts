@@ -11,10 +11,15 @@ type CreateBookingRecord = Omit<
 export class BookingsRepository {
   private readonly bookings: Booking[] = [];
 
-  create(data: CreateBookingRecord): Booking {
+  create(data: CreateBookingRecord & { id?: string }): Booking {
+    if (data.id) {
+      const existing = this.bookings.find((b) => b.id === data.id);
+      if (existing) return { ...existing };
+    }
+
     const now = new Date();
     const booking: Booking = {
-      id: randomUUID(),
+      id: data.id || randomUUID(),
       ...data,
       status: BookingStatus.CONFIRMED,
       createdAt: now,
@@ -46,8 +51,9 @@ export class BookingsRepository {
   }
 
   findByTravellerId(travellerId: string): Booking[] {
+    const normalized = String(travellerId).trim().toLowerCase();
     return this.bookings
-      .filter((booking) => booking.travellerId === travellerId)
+      .filter((booking) => String(booking.travellerId).trim().toLowerCase() === normalized)
       .map((booking) => ({ ...booking }));
   }
 
