@@ -1,0 +1,733 @@
+/* travellerCheckout.css - Redesigned Xploreo Traveller Checkout & Payment */
+/* Follows Xploreo Design System: white & soft-slate backgrounds, teal-to-blue accents, rounded cards, subtle shadows */
+
+/* ── Page Root & Layout ────────────────────────────────────────── */
+.trav-checkout-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Minimal Checkout-Specific Top Navigation Bar ──────────────── */
+.trav-checkout-navbar {
+  height: 68px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.trav-checkout-navbar-inner {
+  max-width: 1360px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trav-checkout-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #475569;
+  font-size: 0.925rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.trav-checkout-back-link:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.trav-checkout-back-link svg {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.trav-checkout-back-link:hover svg {
+  color: #0d9488;
+  transform: translateX(-2px);
+}
+
+.trav-checkout-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.trav-checkout-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.trav-checkout-brand-title {
+  font-family: 'Pacifico', cursive;
+  font-size: 26px;
+  font-weight: 400;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.trav-checkout-security-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #0f766e;
+  letter-spacing: 0.02em;
+}
+
+.trav-checkout-security-pill svg {
+  color: #0d9488;
+}
+
+/* ── Main Container (Target 1440 × 900) ────────────────────────── */
+.trav-checkout-page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem 2rem;
+  box-sizing: border-box;
+}
+
+/* ── Page Header & Titles ──────────────────────────────────────── */
+.trav-checkout-header {
+  margin-bottom: 1.5rem;
+}
+
+.trav-checkout-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d9488;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.trav-checkout-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0d9488;
+  display: inline-block;
+}
+
+.trav-checkout-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+}
+
+.trav-checkout-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Demo Notice Banner ────────────────────────────────────────── */
+.trav-checkout-demo-banner {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.7), rgba(253, 230, 138, 0.45));
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 0.95rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.925rem;
+  color: #92400e;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.06);
+}
+
+.trav-checkout-demo-banner strong {
+  color: #78350f;
+}
+
+.trav-checkout-demo-banner code {
+  background: rgba(245, 158, 11, 0.18);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #78350f;
+}
+
+/* ── Stepper Wrap ──────────────────────────────────────────────── */
+.trav-checkout-stepper-wrap {
+  margin-bottom: 2rem;
+  background: #ffffff;
+  padding: 1.15rem 1.75rem;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.trav-checkout-stepper-wrap .trav-stepper {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.trav-checkout-stepper-wrap .trav-step-item.is-active .trav-step-badge {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  border-color: #0d9488;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2);
+}
+
+.trav-checkout-stepper-wrap .trav-step-item.is-completed .trav-step-badge {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.trav-checkout-stepper-wrap .trav-step-divider.is-completed {
+  background-color: #10b981;
+}
+
+/* ── Two-Column Desktop Grid (1440 × 900 Layout) ───────────────── */
+.trav-checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.trav-checkout-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.trav-checkout-sidebar-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trav-checkout-sidebar-sticky {
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Content Card (Left & Center) ──────────────────────────────── */
+.trav-checkout-content-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  padding: 2.25rem;
+  box-sizing: border-box;
+}
+
+.trav-checkout-section-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.trav-step-badge-pill {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #ccfbf1;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.trav-checkout-section-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.015em;
+}
+
+.trav-checkout-section-desc {
+  font-size: 0.925rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ── Step 0: Review Itinerary Spotlight ────────────────────────── */
+.trav-review-spotlight {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.trav-review-spotlight-top {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.trav-review-spotlight-img {
+  width: 104px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.trav-review-spotlight-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.trav-review-type-badge {
+  display: inline-block;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0d9488;
+  background: #ccfbf1;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.35rem;
+}
+
+.trav-review-spotlight-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.3;
+}
+
+.trav-review-spotlight-loc {
+  font-size: 0.875rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.trav-review-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.trav-review-schedule-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.trav-review-schedule-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.trav-review-schedule-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.trav-review-inclusions-card {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.25rem;
+}
+
+.trav-inclusions-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 0.75rem 0;
+}
+
+.trav-inclusions-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.trav-inclusions-item {
+  font-size: 0.85rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trav-inclusions-item svg {
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+/* ── Prominent Payable Card (Right Sidebar) ────────────────────── */
+.trav-payable-highlight-card {
+  background: linear-gradient(135deg, #f0fdfa, #f0f9ff);
+  border: 1.5px solid #0d9488;
+  border-radius: 16px;
+  padding: 1.35rem 1.6rem;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
+}
+
+.trav-payable-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trav-payable-label {
+  display: block;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.trav-payable-sublabel {
+  display: block;
+  font-size: 0.775rem;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.trav-payable-amount {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0d9488;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* ── Sidebar Security & Trust Box ──────────────────────────────── */
+.trav-checkout-trust-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.trav-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.trav-trust-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.trav-trust-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.trav-trust-desc {
+  display: block;
+  font-size: 0.775rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+/* ── Action Buttons ────────────────────────────────────────────── */
+.trav-checkout-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.trav-btn-secondary {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 0.8rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trav-btn-secondary:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.trav-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trav-btn-primary {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem 1.85rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.975rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+  font-family: inherit;
+}
+
+.trav-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0f766e, #0369a1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+}
+
+.trav-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Simulation Outcome Selector ───────────────────────────────── */
+.trav-simulation-panel {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 1.35rem;
+  margin-top: 1.75rem;
+}
+
+.trav-simulation-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.4rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.trav-simulation-options {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+}
+
+.trav-simulation-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #475569;
+  cursor: pointer;
+  padding: 0.55rem 0.85rem;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.trav-simulation-label:hover {
+  border-color: #0d9488;
+}
+
+.trav-simulation-label.is-active {
+  border-color: #0d9488;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-weight: 700;
+}
+
+/* ── Step 3: Confirmation / Outcome Screen ─────────────────────── */
+.trav-checkout-outcome-card {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.trav-confirmation-view {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.trav-confirm-icon-success {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0 auto 1.25rem auto;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+.trav-confirm-icon-cancel {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #fef3c7;
+  color: #b45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem auto;
+}
+
+.trav-confirm-icon-error {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 auto 1.25rem auto;
+}
+
+.trav-receipt-card {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin: 2rem auto;
+  max-width: 520px;
+  text-align: left;
+}
+
+.trav-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.925rem;
+}
+
+.trav-receipt-row:last-child {
+  border-bottom: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #0f172a;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid #cbd5e1;
+}
+
+/* ── Component Theme Overrides to Match Teal/Blue Design System ── */
+.trav-checkout-page .trav-form-container,
+.trav-checkout-page .trav-payment-selector {
+  border: none;
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.trav-checkout-page .trav-btn-submit {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+  border-radius: 10px;
+}
+
+.trav-checkout-page .trav-btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0f766e, #0369a1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+}
+
+.trav-checkout-page .trav-method-option.is-selected {
+  border-color: #0d9488;
+  background: #f0fdfa;
+}
+
+.trav-checkout-page .trav-radio-input {
+  accent-color: #0d9488;
+}
+
+.trav-checkout-page .trav-summary-card {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+
+.trav-checkout-page .trav-price-total-amount {
+  color: #0d9488;
+}

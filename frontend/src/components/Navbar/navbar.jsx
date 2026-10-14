@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext.jsx";
 import "./navbar.css";
 
-const publicLinks = [["Home", "/"], ["Partners", "/Home/partners"], ["Tours", "/Home/tours"], ["Support", "/Home/support"]];
+const publicLinks = [
+  ["Home", "/"],
+  ["Partners", "/Home/partners"],
+  ["Tours", "/Home/tours"],
+  ["Support", "/Home/support"],
+];
 
 const portalLabels = {
   superadmin: "SuperAdmin Dashboard",
@@ -22,21 +28,94 @@ const portalDestinations = {
   guide: "/guide/dashboard",
   hotel: "/hotel/dashboard",
   experience: "/experience/home",
-  traveller: "/",
+  traveller: "/Traveller/dashboard",
 };
 
-export default function Navbar({ user: propUser }) {
+export default function Navbar({ user: propUser } = {}) {
   const auth = useAuth();
   const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const user = propUser || auth?.user || { role: "default" };
-  const signedIn = user?.role && user.role !== "default";
-  const portalPath = portalDestinations[user?.role] || "/";
-  const portalLabel = portalLabels[user?.role] || "Dashboard";
+  const role = (user?.role || "default").toLowerCase();
+  const signedIn = role && role !== "default";
+
+  const displayName = user?.name ? user.name.split(" ")[0] : (user?.username || "Traveller");
+  const initial = (user?.name || user?.username || "T").charAt(0).toUpperCase();
 
   const handleLogout = () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("xploreoUser");
+      localStorage.removeItem("currentUser");
+    }
     auth?.logout();
-    navigate("/");
+    setDropdownOpen(false);
+    navigate("/Auth/login");
   };
+
+  if (role === "traveller") {
+    return (
+      <header className="site-header traveller-header">
+        <nav className="navbar navbar-traveler" aria-label="Traveller navigation">
+          <Link to="/" className="navbar-logo" aria-label="Xploreo home">
+            <img src={logo} alt="Logo" />
+            <div className="navbar-title navbar-title-pacifico">Xploreo</div>
+          </Link>
+          <div className="navbar-links">
+            <NavLink to="/Traveller/dashboard" className="navbar-link">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              Dashboard
+            </NavLink>
+            <NavLink to="/Traveller/bookings" className="navbar-link">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              Bookings
+            </NavLink>
+            <NavLink to="/Traveller/trips" className="navbar-link">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              Trips
+            </NavLink>
+            <NavLink to="/Traveller/reviews" className="navbar-link">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              Reviews
+            </NavLink>
+          </div>
+          <div className="navbar-user-section">
+            <span className="navbar-user-greeting">Hello, {displayName} 👋</span>
+            <button
+              type="button"
+              className="navbar-avatar-btn"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-label="User profile menu"
+            >
+              <span className="navbar-avatar-initial">{initial}</span>
+            </button>
+            {dropdownOpen && (
+              <div className="navbar-profile-dropdown">
+                <div className="dropdown-header">
+                  <p className="dropdown-name">{user?.name || user?.username}</p>
+                  <p className="dropdown-email">{user?.email || user?.userId || 'Traveller'}</p>
+                </div>
+                <hr className="dropdown-divider" />
+                <Link to="/Traveller/tickets" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  Support Tickets
+                </Link>
+                <Link to="/Traveller/reviews" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  My Reviews
+                </Link>
+                <hr className="dropdown-divider" />
+                <button type="button" className="dropdown-item dropdown-logout" onClick={handleLogout}>
+                  Log Out
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+      </header>
+    );
+  }
+
+  const portalPath = portalDestinations[role] || "/";
+  const portalLabel = portalLabels[role] || "Dashboard";
 
   return (
     <header className="site-header">
@@ -51,7 +130,7 @@ export default function Navbar({ user: propUser }) {
               {label}
             </NavLink>
           ))}
-          {signedIn && user.role !== "traveller" && (
+          {signedIn && (
             <NavLink to={portalPath} className="navbar-link" style={{ color: "#0f766e", fontWeight: 700 }}>
               {portalLabel}
             </NavLink>

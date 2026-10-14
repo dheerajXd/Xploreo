@@ -1,0 +1,907 @@
+/**
+ * travellerTrips.css
+ * Production Stylesheet for Xploreo Traveller My Trips & Live Tracking Hub.
+ *
+ * Visual Identity: Matches Xploreo Traveller Dashboard, Browse, and Bookings design system:
+ * - White and light backgrounds (#f8fafc / #ffffff)
+ * - Teal-to-blue gradients (linear-gradient(135deg, #0d9488, #0284c7))
+ * - Clean Inter typography, generous whitespace, rounded cards (1rem)
+ * - Desktop-first layout optimized for 1440 × 900 screens
+ * - Subtle elevation shadows, progress timelines, live pulse badges
+ */
+
+/* ── Container & Base Page ─────────────────────────────────── */
+.trav-trips-page-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.trav-trips-page {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 5rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── 1. Page Header Banner ─────────────────────────────────── */
+.trav-trips-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.trav-trips-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.trav-trips-icon-badge {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  flex-shrink: 0;
+}
+
+.trav-page-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d9488;
+  margin: 0 0 0.25rem 0;
+}
+
+.trav-trips-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.trav-trips-subtitle {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.trav-trips-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 0.4rem 1rem 0.4rem 0.5rem;
+}
+
+.trav-trips-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.trav-trips-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.trav-trips-username {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.trav-trips-role-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #0d9488;
+  letter-spacing: 0.05em;
+}
+
+/* ── 2. KPI Overview Cards ─────────────────────────────────── */
+.trav-trips-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.trav-trips-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trav-trips-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+}
+
+.trav-kpi-icon-wrap {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.trav-kpi-icon-wrap.kpi-blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.trav-kpi-icon-wrap.kpi-green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.trav-kpi-icon-wrap.kpi-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.trav-kpi-icon-wrap.kpi-amber {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.trav-kpi-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.trav-kpi-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.trav-kpi-lbl {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+/* ── 3. Tabs & Search Toolbar ──────────────────────────────── */
+.trav-trips-controls-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+}
+
+.trav-trips-tabs {
+  display: flex;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  padding: 0.3rem;
+  border-radius: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.trav-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trav-tab-btn:hover:not(.is-active) {
+  color: #0f172a;
+}
+
+.trav-tab-btn.is-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.trav-tab-count {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.trav-tab-btn.is-active .trav-tab-count {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.trav-trips-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  min-width: 300px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.trav-trips-search-box:focus-within {
+  border-color: #0d9488;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.trav-search-icon {
+  font-size: 0.95rem;
+  color: #94a3b8;
+}
+
+.trav-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  color: #0f172a;
+  width: 100%;
+  font-family: inherit;
+}
+
+.trav-search-clear-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trav-search-clear-btn:hover {
+  color: #0f172a;
+}
+
+/* ── 4. Live Pulse Dot & Indicator ─────────────────────────── */
+.trav-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.trav-live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: travPulse 1.8s infinite;
+  display: inline-block;
+}
+
+@keyframes travPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* ── 5. Trip Cards List ────────────────────────────────────── */
+.trav-trips-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.trav-trip-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.trav-trip-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(13, 148, 136, 0.08);
+  border-color: #cbd5e1;
+}
+
+.trav-trip-card.is-active-trip {
+  border-left: 4px solid #0d9488;
+}
+
+.trav-trip-card-main-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: space-between;
+}
+
+/* Destination Media */
+.trav-trip-card-media {
+  width: 170px;
+  height: 110px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: #e2e8f0;
+}
+
+.trav-trip-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.trav-trip-card:hover .trav-trip-card-img {
+  transform: scale(1.05);
+}
+
+.trav-trip-dest-tag {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+}
+
+/* Trip Info Body */
+.trav-trip-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.trav-trip-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.trav-booking-id {
+  font-size: 0.775rem;
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+}
+
+.trav-status-badge {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.trav-status-badge.is-confirmed {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.trav-trip-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trav-trip-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.trav-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trav-meta-icon {
+  font-size: 0.95rem;
+}
+
+/* Action Block */
+.trav-trip-action-block {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.trav-btn-view-details {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.35rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trav-btn-view-details:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+
+.trav-btn-write-review {
+  background: #ffffff;
+  color: #0d9488;
+  border: 1.5px solid #0d9488;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trav-btn-write-review:hover {
+  background: #0d9488;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  transform: translateY(-1px);
+}
+
+.trav-btn-reviewed {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  opacity: 0.85;
+}
+
+/* ── 6. Progress Tracking Component ────────────────────────── */
+.trav-progress-widget {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+}
+
+.trav-progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.trav-progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.trav-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0d9488 0%, #0284c7 100%);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.trav-current-stop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.trav-stop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #ffffff;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.trav-tracking-timestamp {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Tracking Badges */
+.trav-tracking-badge {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+.trav-tracking-badge.is-ongoing {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.trav-tracking-badge.is-paused {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.trav-tracking-badge.is-completed {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.trav-tracking-badge.is-not-started {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── 7. Loading Skeleton ───────────────────────────────────── */
+.trav-loading-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trav-skeleton-card {
+  height: 140px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: travSkeletonShimmer 1.5s infinite;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+@keyframes travSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── 8. Error State ────────────────────────────────────────── */
+.trav-state-error {
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.05);
+}
+
+.trav-error-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.trav-state-error h3 {
+  color: #991b1b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.trav-state-error p {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0 0 1.25rem 0;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.trav-btn-retry {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+  padding: 0.55rem 1.4rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trav-btn-retry:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+}
+
+/* ── 9. Empty State ────────────────────────────────────────── */
+.trav-state-empty {
+  background: #ffffff;
+  border: 2px dashed #e2e8f0;
+  border-radius: 1rem;
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+
+.trav-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+}
+
+.trav-state-empty h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.trav-state-empty p {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.trav-btn-reset-filters {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trav-btn-reset-filters:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ── 10. Live Detail View ──────────────────────────────────── */
+.trav-trip-details-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.trav-back-nav {
+  margin-bottom: 1.5rem;
+}
+
+.trav-back-btn {
+  background: none;
+  border: none;
+  color: #0d9488;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.trav-back-btn:hover {
+  color: #0284c7;
+}
+
+.trav-polling-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.trav-btn-poll-refresh {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.trav-btn-poll-refresh:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.trav-btn-poll-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.trav-itinerary-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  border-left: 2px solid #e2e8f0;
+  padding-left: 1.5rem;
+  margin-left: 0.5rem;
+}
+
+.trav-timeline-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.trav-timeline-dot {
+  position: absolute;
+  left: -1.95rem;
+  top: 0.2rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0d9488;
+}
+
+.trav-timeline-node.is-active .trav-timeline-dot {
+  background: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
+}
+
+.trav-timeline-day {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0d9488;
+}
+
+.trav-timeline-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.trav-timeline-detail {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
