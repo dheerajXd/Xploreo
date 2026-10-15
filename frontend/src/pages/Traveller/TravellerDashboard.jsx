@@ -369,7 +369,6 @@ export default function TravellerDashboard({
   const [hotelGuests, setHotelGuests] = useState('2');
 
   // Package search form state
-  const [packageFrom, setPackageFrom] = useState('');
   const [packageDestination, setPackageDestination] = useState('');
   const [packageDeparture, setPackageDeparture] = useState('');
   const [packageRooms, setPackageRooms] = useState('1');
@@ -378,6 +377,49 @@ export default function TravellerDashboard({
   // Experience search form state
   const [experienceDestination, setExperienceDestination] = useState('');
   const [experienceDate, setExperienceDate] = useState('');
+
+  // Independent search validation error states
+  const [hotelErrors, setHotelErrors] = useState({});
+  const [packageErrors, setPackageErrors] = useState({});
+  const [experienceErrors, setExperienceErrors] = useState({});
+
+  const validateHotelSearch = () => {
+    const errors = {};
+    if (!hotelDestination || !hotelDestination.trim()) {
+      errors.destination = 'Please enter a destination';
+    }
+    if (!hotelCheckIn) {
+      errors.checkIn = 'Please select a check-in date';
+    }
+    if (!hotelCheckOut) {
+      errors.checkOut = 'Please select a check-out date';
+    } else if (hotelCheckIn && hotelCheckOut < hotelCheckIn) {
+      errors.checkOut = 'Check-out date must be after check-in date';
+    }
+    return errors;
+  };
+
+  const validatePackageSearch = () => {
+    const errors = {};
+    if (!packageDestination || !packageDestination.trim()) {
+      errors.destination = 'Please enter a destination';
+    }
+    if (!packageDeparture) {
+      errors.departure = 'Please select a departure date';
+    }
+    return errors;
+  };
+
+  const validateExperienceSearch = () => {
+    const errors = {};
+    if (!experienceDestination || !experienceDestination.trim()) {
+      errors.destination = 'Please enter a destination';
+    }
+    if (!experienceDate) {
+      errors.date = 'Please select an activity date';
+    }
+    return errors;
+  };
 
   const inRouter = useInRouterContext();
   const navigate = inRouter ? useNavigate() : null;
@@ -408,8 +450,14 @@ export default function TravellerDashboard({
 
   const handleHotelSearch = (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    const errors = validateHotelSearch();
+    if (Object.keys(errors).length > 0) {
+      setHotelErrors(errors);
+      return;
+    }
+    setHotelErrors({});
     log('Dashboard: search hotels', {
-      destination: hotelDestination,
+      destination: hotelDestination.trim(),
       checkIn: hotelCheckIn,
       checkOut: hotelCheckOut,
       rooms: hotelRooms,
@@ -417,43 +465,53 @@ export default function TravellerDashboard({
     });
     const params = new URLSearchParams();
     params.set('category', 'hotels');
-    if (hotelDestination) params.set('search', hotelDestination);
-    if (hotelCheckIn) params.set('checkIn', hotelCheckIn);
-    if (hotelCheckOut) params.set('checkOut', hotelCheckOut);
-    if (hotelRooms) params.set('rooms', hotelRooms);
-    if (hotelGuests) params.set('guests', hotelGuests);
+    params.set('search', hotelDestination.trim());
+    params.set('checkIn', hotelCheckIn);
+    params.set('checkOut', hotelCheckOut);
+    params.set('rooms', hotelRooms);
+    params.set('guests', hotelGuests);
     handleNavigate(`/Traveller/browse?${params.toString()}`, SECTION.BROWSE);
   };
 
   const handlePackageSearch = (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    const errors = validatePackageSearch();
+    if (Object.keys(errors).length > 0) {
+      setPackageErrors(errors);
+      return;
+    }
+    setPackageErrors({});
     log('Dashboard: search packages', {
-      from: packageFrom,
-      destination: packageDestination,
+      destination: packageDestination.trim(),
       departureDate: packageDeparture,
       rooms: packageRooms,
       guests: packageGuests,
     });
     const params = new URLSearchParams();
     params.set('category', 'packages');
-    if (packageDestination) params.set('search', packageDestination);
-    if (packageFrom) params.set('from', packageFrom);
-    if (packageDeparture) params.set('checkIn', packageDeparture);
-    if (packageRooms) params.set('rooms', packageRooms);
-    if (packageGuests) params.set('guests', packageGuests);
+    params.set('search', packageDestination.trim());
+    params.set('checkIn', packageDeparture);
+    params.set('rooms', packageRooms);
+    params.set('guests', packageGuests);
     handleNavigate(`/Traveller/browse?${params.toString()}`, SECTION.BROWSE);
   };
 
   const handleExperienceSearch = (e) => {
     if (e && e.preventDefault) e.preventDefault();
+    const errors = validateExperienceSearch();
+    if (Object.keys(errors).length > 0) {
+      setExperienceErrors(errors);
+      return;
+    }
+    setExperienceErrors({});
     log('Dashboard: search experiences', {
-      destination: experienceDestination,
+      destination: experienceDestination.trim(),
       activityDate: experienceDate,
     });
     const params = new URLSearchParams();
     params.set('category', 'experiences');
-    if (experienceDestination) params.set('search', experienceDestination);
-    if (experienceDate) params.set('checkIn', experienceDate);
+    params.set('search', experienceDestination.trim());
+    params.set('checkIn', experienceDate);
     handleNavigate(`/Traveller/browse?${params.toString()}`, SECTION.BROWSE);
   };
 
@@ -605,11 +663,11 @@ export default function TravellerDashboard({
 
               {/* Panel 1: Hotels Search */}
               {searchTab === 'hotels' && (
-                <form id="panel-hotels" role="tabpanel" aria-labelledby="tab-hotels" className="trav-dash-panel" onSubmit={handleHotelSearch}>
+                <form id="panel-hotels" role="tabpanel" aria-labelledby="tab-hotels" className="trav-dash-panel" onSubmit={handleHotelSearch} noValidate>
                   <div className="trav-dash-form-row">
                     <div className="trav-dash-field trav-dash-field-grow">
                       <label htmlFor="hotel-destination">DESTINATION</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${hotelErrors.destination ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
@@ -619,14 +677,24 @@ export default function TravellerDashboard({
                           type="text"
                           placeholder="Where are you going?"
                           value={hotelDestination}
-                          onChange={(e) => setHotelDestination(e.target.value)}
+                          aria-invalid={Boolean(hotelErrors.destination)}
+                          aria-describedby={hotelErrors.destination ? 'hotel-destination-error' : undefined}
+                          onChange={(e) => {
+                            setHotelDestination(e.target.value);
+                            if (hotelErrors.destination) setHotelErrors((prev) => ({ ...prev, destination: null }));
+                          }}
                         />
                       </div>
+                      {hotelErrors.destination && (
+                        <span id="hotel-destination-error" className="trav-dash-field-error" role="alert">
+                          {hotelErrors.destination}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field">
                       <label htmlFor="hotel-checkin">CHECK-IN DATE</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${hotelErrors.checkIn ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
@@ -638,14 +706,24 @@ export default function TravellerDashboard({
                           type="date"
                           min={todayStr}
                           value={hotelCheckIn}
-                          onChange={(e) => setHotelCheckIn(e.target.value)}
+                          aria-invalid={Boolean(hotelErrors.checkIn)}
+                          aria-describedby={hotelErrors.checkIn ? 'hotel-checkin-error' : undefined}
+                          onChange={(e) => {
+                            setHotelCheckIn(e.target.value);
+                            if (hotelErrors.checkIn) setHotelErrors((prev) => ({ ...prev, checkIn: null }));
+                          }}
                         />
                       </div>
+                      {hotelErrors.checkIn && (
+                        <span id="hotel-checkin-error" className="trav-dash-field-error" role="alert">
+                          {hotelErrors.checkIn}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field">
                       <label htmlFor="hotel-checkout">CHECK-OUT DATE</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${hotelErrors.checkOut ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
@@ -657,9 +735,19 @@ export default function TravellerDashboard({
                           type="date"
                           min={hotelCheckIn || todayStr}
                           value={hotelCheckOut}
-                          onChange={(e) => setHotelCheckOut(e.target.value)}
+                          aria-invalid={Boolean(hotelErrors.checkOut)}
+                          aria-describedby={hotelErrors.checkOut ? 'hotel-checkout-error' : undefined}
+                          onChange={(e) => {
+                            setHotelCheckOut(e.target.value);
+                            if (hotelErrors.checkOut) setHotelErrors((prev) => ({ ...prev, checkOut: null }));
+                          }}
                         />
                       </div>
+                      {hotelErrors.checkOut && (
+                        <span id="hotel-checkout-error" className="trav-dash-field-error" role="alert">
+                          {hotelErrors.checkOut}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field trav-dash-field-sm">
@@ -714,28 +802,11 @@ export default function TravellerDashboard({
 
               {/* Panel 2: Holiday Packages Search */}
               {searchTab === 'packages' && (
-                <form id="panel-packages" role="tabpanel" aria-labelledby="tab-packages" className="trav-dash-panel" onSubmit={handlePackageSearch}>
+                <form id="panel-packages" role="tabpanel" aria-labelledby="tab-packages" className="trav-dash-panel" onSubmit={handlePackageSearch} noValidate>
                   <div className="trav-dash-form-row">
-                    <div className="trav-dash-field">
-                      <label htmlFor="package-from">FROM CITY</label>
-                      <div className="trav-dash-input-wrap">
-                        <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <input
-                          id="package-from"
-                          type="text"
-                          placeholder="Your origin city"
-                          value={packageFrom}
-                          onChange={(e) => setPackageFrom(e.target.value)}
-                        />
-                      </div>
-                    </div>
-
                     <div className="trav-dash-field trav-dash-field-grow">
                       <label htmlFor="package-destination">DESTINATION</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${packageErrors.destination ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
@@ -745,14 +816,24 @@ export default function TravellerDashboard({
                           type="text"
                           placeholder="Where to?"
                           value={packageDestination}
-                          onChange={(e) => setPackageDestination(e.target.value)}
+                          aria-invalid={Boolean(packageErrors.destination)}
+                          aria-describedby={packageErrors.destination ? 'package-destination-error' : undefined}
+                          onChange={(e) => {
+                            setPackageDestination(e.target.value);
+                            if (packageErrors.destination) setPackageErrors((prev) => ({ ...prev, destination: null }));
+                          }}
                         />
                       </div>
+                      {packageErrors.destination && (
+                        <span id="package-destination-error" className="trav-dash-field-error" role="alert">
+                          {packageErrors.destination}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field">
                       <label htmlFor="package-departure">DEPARTURE DATE</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${packageErrors.departure ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
@@ -764,9 +845,19 @@ export default function TravellerDashboard({
                           type="date"
                           min={todayStr}
                           value={packageDeparture}
-                          onChange={(e) => setPackageDeparture(e.target.value)}
+                          aria-invalid={Boolean(packageErrors.departure)}
+                          aria-describedby={packageErrors.departure ? 'package-departure-error' : undefined}
+                          onChange={(e) => {
+                            setPackageDeparture(e.target.value);
+                            if (packageErrors.departure) setPackageErrors((prev) => ({ ...prev, departure: null }));
+                          }}
                         />
                       </div>
+                      {packageErrors.departure && (
+                        <span id="package-departure-error" className="trav-dash-field-error" role="alert">
+                          {packageErrors.departure}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field trav-dash-field-sm">
@@ -819,11 +910,11 @@ export default function TravellerDashboard({
 
               {/* Panel 3: Experiences Search */}
               {searchTab === 'experiences' && (
-                <form id="panel-experiences" role="tabpanel" aria-labelledby="tab-experiences" className="trav-dash-panel" onSubmit={handleExperienceSearch}>
+                <form id="panel-experiences" role="tabpanel" aria-labelledby="tab-experiences" className="trav-dash-panel" onSubmit={handleExperienceSearch} noValidate>
                   <div className="trav-dash-form-row">
                     <div className="trav-dash-field trav-dash-field-grow">
                       <label htmlFor="experience-destination">DESTINATION</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${experienceErrors.destination ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
@@ -833,14 +924,24 @@ export default function TravellerDashboard({
                           type="text"
                           placeholder="Where do you want to explore?"
                           value={experienceDestination}
-                          onChange={(e) => setExperienceDestination(e.target.value)}
+                          aria-invalid={Boolean(experienceErrors.destination)}
+                          aria-describedby={experienceErrors.destination ? 'experience-destination-error' : undefined}
+                          onChange={(e) => {
+                            setExperienceDestination(e.target.value);
+                            if (experienceErrors.destination) setExperienceErrors((prev) => ({ ...prev, destination: null }));
+                          }}
                         />
                       </div>
+                      {experienceErrors.destination && (
+                        <span id="experience-destination-error" className="trav-dash-field-error" role="alert">
+                          {experienceErrors.destination}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-field trav-dash-field-grow">
                       <label htmlFor="experience-date">ACTIVITY DATE</label>
-                      <div className="trav-dash-input-wrap">
+                      <div className={`trav-dash-input-wrap ${experienceErrors.date ? 'has-error' : ''}`}>
                         <svg className="trav-dash-field-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
@@ -852,9 +953,19 @@ export default function TravellerDashboard({
                           type="date"
                           min={todayStr}
                           value={experienceDate}
-                          onChange={(e) => setExperienceDate(e.target.value)}
+                          aria-invalid={Boolean(experienceErrors.date)}
+                          aria-describedby={experienceErrors.date ? 'experience-date-error' : undefined}
+                          onChange={(e) => {
+                            setExperienceDate(e.target.value);
+                            if (experienceErrors.date) setExperienceErrors((prev) => ({ ...prev, date: null }));
+                          }}
                         />
                       </div>
+                      {experienceErrors.date && (
+                        <span id="experience-date-error" className="trav-dash-field-error" role="alert">
+                          {experienceErrors.date}
+                        </span>
+                      )}
                     </div>
 
                     <div className="trav-dash-btn-wrap">

@@ -23,6 +23,7 @@ export default function TicketDetailsModal({
   isOpen,
   onClose,
   onResolve,
+  allowResolve = true,
 }) {
   const [isResolvingFormOpen, setIsResolvingFormOpen] = useState(false);
   const [resolutionText, setResolutionText] = useState('');
@@ -193,7 +194,7 @@ export default function TicketDetailsModal({
           )}
 
           {/* Inline Resolution Form for Open Tickets */}
-          {isResolvingFormOpen && (
+          {allowResolve && isResolvingFormOpen && (
             <div className="admin-ticket-modal-resolve-form">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label htmlFor="ticket-resolve-notes" style={{ fontSize: '13px', fontWeight: '600', color: '#0f172a' }}>
@@ -245,7 +246,7 @@ export default function TicketDetailsModal({
             Close
           </button>
 
-          {isTicketOpen && !isResolvingFormOpen && typeof onResolve === 'function' && (
+          {isTicketOpen && !isResolvingFormOpen && allowResolve && typeof onResolve === 'function' && (
             <button
               type="button"
               className="admin-ticket-modal-btn-primary"

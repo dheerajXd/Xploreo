@@ -99,17 +99,6 @@ export default function BrowseExperienceCard({ experience, onSelect, onBook }) {
                 View Details
               </button>
             )}
-            {onBook && (
-              <button
-                type="button"
-                className="trav-browse-btn trav-browse-btn-primary"
-                onClick={() => onBook(experience)}
-                disabled={spotsRemaining === 0}
-                aria-label={`Book slot for ${title}`}
-              >
-                {spotsRemaining > 0 ? 'Book Slot' : 'Waitlist'}
-              </button>
-            )}
           </div>
         </div>
       </div>

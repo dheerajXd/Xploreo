@@ -206,7 +206,7 @@ export default function TravellerSupportTicketsPage({
                 tickets={tickets}
                 isLoading={isLoading}
                 error={error}
-                // Travellers inspect tickets and resolution notes read-only; no onResolveTicket passed
+                allowResolve={false}
               />
             )}
           </section>

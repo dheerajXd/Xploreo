@@ -116,16 +116,6 @@ export default function BrowseHotelCard({ hotel, onSelect, onBook }) {
                 View Details
               </button>
             )}
-            {onBook && (
-              <button
-                type="button"
-                className="trav-browse-btn trav-browse-btn-primary"
-                onClick={() => onBook(hotel)}
-                aria-label={`Book stay at ${name}`}
-              >
-                Book Now
-              </button>
-            )}
           </div>
         </div>
       </div>

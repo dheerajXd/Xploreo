@@ -300,6 +300,20 @@
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
 
+.trav-dash-input-wrap.has-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
+}
+
+.trav-dash-field-error {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-top: 0.35rem;
+  line-height: 1.25;
+}
+
 .trav-dash-field-icon {
   position: absolute;
   left: 0.75rem;

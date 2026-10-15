@@ -6,15 +6,12 @@ import {
   filterHotels,
   filterExperiences,
   filterPlans,
-  filterGuides,
   DEFAULT_HOTEL_FIXTURES,
   DEFAULT_EXPERIENCE_FIXTURES,
   DEFAULT_PLAN_FIXTURES,
-  DEFAULT_GUIDE_FIXTURES,
   mapBackendHotel,
   mapBackendExperience,
   mapBackendPlan,
-  mapBackendGuide,
 } from '../../utils/browseUtils.js';
 import { apiRequest } from '../../services/api.js';
 import { useNavigate, useInRouterContext, useLocation } from 'react-router-dom';
@@ -22,14 +19,13 @@ import Navbar from '../../components/Navbar/navbar.jsx';
 import BrowseHotelCard from './BrowseHotelCard.jsx';
 import BrowseExperienceCard from './BrowseExperienceCard.jsx';
 import BrowsePlanCard from './BrowsePlanCard.jsx';
-import BrowseGuideCard from './BrowseGuideCard.jsx';
 import BrowseItemDetailModal from './BrowseItemDetailModal.jsx';
 import './travellerBrowse.css';
 
 /**
  * TravellerBrowsePage
  * Complete, accessible browse & search hub for travellers.
- * Fully integrated with live backend APIs (/hotels, /experiences, /plans, /guide).
+ * Fully integrated with live backend APIs (/hotels, /experiences, /plans).
  * Follows the approved Xploreo Traveller Dashboard visual design:
  * - White/slate backgrounds, teal-to-blue gradients
  * - Desktop-first layout optimized for 1440 × 900 screens (290px sticky sidebar + cards grid)
@@ -42,7 +38,6 @@ export default function TravellerBrowsePage({
   hotels: propHotels,
   experiences: propExperiences,
   plans: propPlans,
-  guides: propGuides,
   isLoading: propIsLoading,
   error: propError,
   onRetry: propOnRetry,
@@ -81,8 +76,6 @@ export default function TravellerBrowsePage({
         setActiveCategory(BROWSE_CATEGORIES.HOTELS);
       } else if (lower === 'experiences') {
         setActiveCategory(BROWSE_CATEGORIES.EXPERIENCES);
-      } else if (lower === 'guides') {
-        setActiveCategory(BROWSE_CATEGORIES.GUIDES);
       }
     }
     const search = params.get('search') || params.get('destination');
@@ -108,7 +101,6 @@ export default function TravellerBrowsePage({
   // Filter states
   const [minStars, setMinStars] = useState(0);
   const [expCategory, setExpCategory] = useState('all');
-  const [guideLanguage, setGuideLanguage] = useState('all');
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState([]);
 
@@ -122,19 +114,16 @@ export default function TravellerBrowsePage({
     [BROWSE_CATEGORIES.HOTELS]: propHotels ?? [],
     [BROWSE_CATEGORIES.EXPERIENCES]: propExperiences ?? [],
     [BROWSE_CATEGORIES.PLANS]: propPlans ?? [],
-    [BROWSE_CATEGORIES.GUIDES]: propGuides ?? [],
   });
   const [resourceLoading, setResourceLoading] = useState({
     [BROWSE_CATEGORIES.HOTELS]: false,
     [BROWSE_CATEGORIES.EXPERIENCES]: false,
     [BROWSE_CATEGORIES.PLANS]: false,
-    [BROWSE_CATEGORIES.GUIDES]: false,
   });
   const [resourceErrors, setResourceErrors] = useState({
     [BROWSE_CATEGORIES.HOTELS]: null,
     [BROWSE_CATEGORIES.EXPERIENCES]: null,
     [BROWSE_CATEGORIES.PLANS]: null,
-    [BROWSE_CATEGORIES.GUIDES]: null,
   });
 
   const fetchCategory = useCallback(async (category) => {
@@ -153,10 +142,6 @@ export default function TravellerBrowsePage({
         const res = await apiRequest('/plans');
         const items = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
         mapped = items.map(mapBackendPlan).filter(Boolean);
-      } else if (category === BROWSE_CATEGORIES.GUIDES) {
-        // Backend guide controller is mapped at singular /guide
-        const raw = await apiRequest('/guide');
-        mapped = Array.isArray(raw) ? raw.map(mapBackendGuide).filter(Boolean) : [];
       }
 
       setResourceData((prev) => ({ ...prev, [category]: mapped }));
@@ -179,8 +164,7 @@ export default function TravellerBrowsePage({
     if (propHotels === undefined) fetchCategory(BROWSE_CATEGORIES.HOTELS);
     if (propExperiences === undefined) fetchCategory(BROWSE_CATEGORIES.EXPERIENCES);
     if (propPlans === undefined) fetchCategory(BROWSE_CATEGORIES.PLANS);
-    if (propGuides === undefined) fetchCategory(BROWSE_CATEGORIES.GUIDES);
-  }, [useFixtures, propHotels, propExperiences, propPlans, propGuides, fetchCategory]);
+  }, [useFixtures, propHotels, propExperiences, propPlans, fetchCategory]);
 
   const hotels = useFixtures
     ? (propHotels ?? DEFAULT_HOTEL_FIXTURES)
@@ -193,10 +177,6 @@ export default function TravellerBrowsePage({
   const plans = useFixtures
     ? (propPlans ?? DEFAULT_PLAN_FIXTURES)
     : (propPlans ?? resourceData[BROWSE_CATEGORIES.PLANS]);
-
-  const guides = useFixtures
-    ? (propGuides ?? DEFAULT_GUIDE_FIXTURES)
-    : (propGuides ?? resourceData[BROWSE_CATEGORIES.GUIDES]);
 
   const activeLoading = propIsLoading !== undefined
     ? propIsLoading
@@ -234,7 +214,6 @@ export default function TravellerBrowsePage({
     setCheckOutDate('');
     setMinStars(0);
     setExpCategory('all');
-    setGuideLanguage('all');
     setMaxPrice('');
     setSelectedAmenities([]);
     setSortBy(SORT_OPTIONS.DEFAULT);
@@ -291,15 +270,6 @@ export default function TravellerBrowsePage({
     });
   }, [plans, searchQuery, locationQuery, maxPrice, sortBy]);
 
-  const filteredGuides = useMemo(() => {
-    return filterGuides(guides, {
-      query: searchQuery,
-      location: locationQuery,
-      language: guideLanguage,
-      sortBy,
-    });
-  }, [guides, searchQuery, locationQuery, guideLanguage, sortBy]);
-
   const currentCount = useMemo(() => {
     switch (activeCategory) {
       case BROWSE_CATEGORIES.HOTELS:
@@ -308,12 +278,10 @@ export default function TravellerBrowsePage({
         return filteredExperiences.length;
       case BROWSE_CATEGORIES.PLANS:
         return filteredPlans.length;
-      case BROWSE_CATEGORIES.GUIDES:
-        return filteredGuides.length;
       default:
         return 0;
     }
-  }, [activeCategory, filteredHotels, filteredExperiences, filteredPlans, filteredGuides]);
+  }, [activeCategory, filteredHotels, filteredExperiences, filteredPlans]);
 
   // Active filter count for sidebar header badge
   const activeFiltersCount = useMemo(() => {
@@ -322,16 +290,43 @@ export default function TravellerBrowsePage({
     if (locationQuery) count++;
     if (minStars > 0) count++;
     if (expCategory !== 'all') count++;
-    if (guideLanguage !== 'all') count++;
     if (maxPrice) count++;
     if (selectedAmenities.length > 0) count += selectedAmenities.length;
     return count;
-  }, [searchQuery, locationQuery, minStars, expCategory, guideLanguage, maxPrice, selectedAmenities]);
+  }, [searchQuery, locationQuery, minStars, expCategory, maxPrice, selectedAmenities]);
 
   const handleCardSelect = (item) => {
-    setSelectedDetailItem(item);
     if (onSelectItem) {
       onSelectItem(item, activeCategory);
+    }
+    const typeKey =
+      activeCategory === BROWSE_CATEGORIES.HOTELS
+        ? 'hotel'
+        : activeCategory === BROWSE_CATEGORIES.EXPERIENCES
+        ? 'experience'
+        : 'package';
+
+    const searchParams = new URLSearchParams();
+    if (checkInDate) searchParams.set('checkIn', checkInDate);
+    if (checkOutDate) searchParams.set('checkOut', checkOutDate);
+    if (guestCount) searchParams.set('guests', guestCount);
+    if (roomCount) searchParams.set('rooms', roomCount);
+    const searchStr = searchParams.toString();
+
+    if (navigate) {
+      navigate(
+        `/Traveller/details/${typeKey}/${item.id}${searchStr ? `?${searchStr}` : ''}`,
+        {
+          state: {
+            item,
+            category: activeCategory,
+            checkInDate,
+            checkOutDate,
+            guestCount,
+            roomCount,
+          },
+        }
+      );
     }
   };
 
@@ -423,15 +418,6 @@ export default function TravellerBrowsePage({
             onClick={() => setActiveCategory(BROWSE_CATEGORIES.PLANS)}
           >
             🗺 Tour Packages ({plans.length})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeCategory === BROWSE_CATEGORIES.GUIDES}
-            className={`trav-browse-tab ${activeCategory === BROWSE_CATEGORIES.GUIDES ? 'active' : ''}`}
-            onClick={() => setActiveCategory(BROWSE_CATEGORIES.GUIDES)}
-          >
-            🧑‍🌾 Local Guides ({guides.length})
           </button>
         </div>
       </nav>
@@ -533,9 +519,7 @@ export default function TravellerBrowsePage({
                 ? 'Search Stays'
                 : activeCategory === BROWSE_CATEGORIES.EXPERIENCES
                 ? 'Search Experiences'
-                : activeCategory === BROWSE_CATEGORIES.PLANS
-                ? 'Search Packages'
-                : 'Search Guides'}
+                : 'Search Packages'}
             </span>
           </button>
         </div>
@@ -665,24 +649,6 @@ export default function TravellerBrowsePage({
             </div>
           )}
 
-          {/* Category-Specific Filter: Guides */}
-          {activeCategory === BROWSE_CATEGORIES.GUIDES && (
-            <div className="trav-browse-filter-section" aria-label="Guide language filter">
-              <h4 className="trav-browse-filter-heading">Languages Spoken</h4>
-              <div className="trav-browse-chips-row">
-                {['all', 'english', 'hindi', 'marathi', 'malayalam'].map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    className={`trav-browse-filter-chip ${guideLanguage === lang ? 'active' : ''}`}
-                    onClick={() => setGuideLanguage(lang)}
-                  >
-                    {lang === 'all' ? 'All Languages' : lang.charAt(0).toUpperCase() + lang.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Category-Specific Filter: Plans */}
           {activeCategory === BROWSE_CATEGORIES.PLANS && (
@@ -815,19 +781,6 @@ export default function TravellerBrowsePage({
                   </button>
                 </span>
               )}
-              {guideLanguage !== 'all' && (
-                <span className="trav-browse-pill">
-                  Language: {guideLanguage}
-                  <button
-                    type="button"
-                    className="trav-browse-pill-remove"
-                    onClick={() => setGuideLanguage('all')}
-                    aria-label="Remove language filter"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
               {maxPrice && (
                 <span className="trav-browse-pill">
                   ≤ ₹{Number(maxPrice).toLocaleString()}
@@ -919,7 +872,6 @@ export default function TravellerBrowsePage({
                     key={hotel.id}
                     hotel={hotel}
                     onSelect={handleCardSelect}
-                    onBook={handleCardBook}
                   />
                 ))}
 
@@ -929,7 +881,6 @@ export default function TravellerBrowsePage({
                     key={exp.id}
                     experience={exp}
                     onSelect={handleCardSelect}
-                    onBook={handleCardBook}
                   />
                 ))}
 
@@ -939,33 +890,14 @@ export default function TravellerBrowsePage({
                     key={plan.id}
                     plan={plan}
                     onSelect={handleCardSelect}
-                    onBook={handleCardBook}
                   />
                 ))}
 
-              {activeCategory === BROWSE_CATEGORIES.GUIDES &&
-                filteredGuides.map((guide) => (
-                  <BrowseGuideCard
-                    key={guide.userId}
-                    guide={guide}
-                    onSelect={handleCardSelect}
-                    onRequest={handleCardBook}
-                  />
-                ))}
+
             </div>
           )}
         </main>
       </div>
-
-      {/* ── 5. Detail Drill-down Modal ── */}
-      {selectedDetailItem && (
-        <BrowseItemDetailModal
-          item={selectedDetailItem}
-          category={activeCategory}
-          onClose={() => setSelectedDetailItem(null)}
-          onBook={handleCardBook}
-        />
-      )}
       </div>
     </div>
   );

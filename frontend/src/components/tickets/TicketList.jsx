@@ -25,12 +25,15 @@ export default function TicketList({
   isLoading = false,
   error = null,
   onResolveTicket,
+  allowResolve = true,
   className = '',
 }) {
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const canResolve = allowResolve && typeof onResolveTicket === 'function';
 
   // Filter and search
   const filteredTickets = useMemo(() => {
@@ -317,7 +320,8 @@ export default function TicketList({
         ticket={selectedTicket}
         isOpen={isDetailsOpen}
         onClose={handleCloseDetails}
-        onResolve={handleResolveFromModal}
+        onResolve={canResolve ? handleResolveFromModal : undefined}
+        allowResolve={canResolve}
       />
     </div>
   );

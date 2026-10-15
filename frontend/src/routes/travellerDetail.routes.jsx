@@ -8,6 +8,7 @@
 // TODO (Phase 7): replace each placeholder element with the real page component.
 import { Navigate } from 'react-router-dom';
 
+import TravellerItemDetailPage from '@/pages/TravellerDetail/TravellerItemDetailPage.jsx';
 import HotelDetailPage from '@/pages/TravellerDetail/HotelDetailPage.jsx';
 import RoomDetailPage from '@/pages/TravellerDetail/RoomDetailPage.jsx';
 import ExperienceDetailPage from '@/pages/TravellerDetail/ExperienceDetailPage.jsx';
@@ -17,11 +18,13 @@ import BookingConfirmationPage from '@/pages/TravellerDetail/BookingConfirmation
 // NOTE: basePath is intentionally not '/hotel' to avoid clashing with the hotel portal.
 // Traveller-facing hotel detail lives at /hotels/:id (public route), not /hotel/*.
 export const travellerDetailRoutes = [
-  // These routes are registered at the top-level router (no nested layout).
-  // M1 imports them and adds them under the public/traveller guard.
-  { path: '/hotels/:id', element: <HotelDetailPage /> },
+  // Dedicated full details pages supporting hotels, experiences, and holiday packages
+  { path: '/hotels/:id', element: <TravellerItemDetailPage defaultType="hotel" /> },
   { path: '/hotels/:id/rooms/:roomId', element: <RoomDetailPage /> },
-  { path: '/experiences/:id', element: <ExperienceDetailPage /> },
+  { path: '/experiences/:id', element: <TravellerItemDetailPage defaultType="experience" /> },
+  { path: '/packages/:id', element: <TravellerItemDetailPage defaultType="package" /> },
+  { path: '/plans/:id', element: <TravellerItemDetailPage defaultType="package" /> },
+  { path: '/Traveller/details/:type/:id', element: <TravellerItemDetailPage /> },
   { path: '/reviews/new', element: <ReviewSubmitPage /> },
   { path: '/bookings/confirmation/:id', element: <BookingConfirmationPage /> },
   { path: '/bookings/:id', element: <BookingConfirmationPage /> },

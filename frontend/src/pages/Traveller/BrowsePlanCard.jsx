@@ -91,19 +91,9 @@ export default function BrowsePlanCard({ plan, onSelect, onBook }) {
                 type="button"
                 className="trav-browse-btn trav-browse-btn-outline"
                 onClick={() => onSelect(plan)}
-                aria-label={`View itinerary for ${title}`}
+                aria-label={`View details for ${title}`}
               >
-                View Itinerary
-              </button>
-            )}
-            {onBook && (
-              <button
-                type="button"
-                className="trav-browse-btn trav-browse-btn-primary"
-                onClick={() => onBook(plan)}
-                aria-label={`Select package ${title}`}
-              >
-                Select Package
+                View Details
               </button>
             )}
           </div>
