@@ -9,4 +9,5 @@ export class RoomType {
   availableRooms!: number;
   amenities!: string[];
   images!: string[];
+  status?: 'active' | 'inactive';
 }

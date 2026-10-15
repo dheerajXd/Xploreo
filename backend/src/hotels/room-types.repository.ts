@@ -5,7 +5,32 @@ import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class RoomTypesRepository {
-  private readonly roomTypes: RoomType[] = [];
+  private readonly roomTypes: RoomType[] = [
+    {
+      id: 'room-hp001-deluxe',
+      hotelId: 'hotel-hp001-1',
+      type: 'Deluxe Room',
+      description: 'Spacious room with a king bed and courtyard view.',
+      pricePerNight: 4500,
+      maxOccupancy: 3,
+      totalRooms: 10,
+      availableRooms: 10,
+      amenities: ['WiFi', 'Air Conditioning', 'TV'],
+      images: [],
+    },
+    {
+      id: 'room-hp001-suite',
+      hotelId: 'hotel-hp001-1',
+      type: 'Royal Suite',
+      description: 'Two-room suite with a private balcony.',
+      pricePerNight: 8500,
+      maxOccupancy: 4,
+      totalRooms: 5,
+      availableRooms: 5,
+      amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Balcony'],
+      images: [],
+    },
+  ];
 
   create(
     hotelId: string,
@@ -22,6 +47,7 @@ export class RoomTypesRepository {
       availableRooms: data.totalRooms,
       amenities: data.amenities ?? [],
       images: data.images ?? [],
+      status: data.status ?? 'active',
     };
     this.roomTypes.push(rt);
     return this.clone(rt);

@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsInt,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -49,4 +50,9 @@ export class CreateRoomTypeDto {
   @IsArray()
   @IsString({ each: true })
   images?: string[];
+
+  @ApiPropertyOptional({ enum: ['active', 'inactive'], example: 'active' })
+  @IsOptional()
+  @IsIn(['active', 'inactive'])
+  status?: 'active' | 'inactive';
 }

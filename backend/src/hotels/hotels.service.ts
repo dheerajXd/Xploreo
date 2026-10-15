@@ -120,6 +120,7 @@ export class HotelsService {
       totalRooms: dto.totalRooms,
       amenities: dto.amenities ?? [],
       images: dto.images ?? [],
+      status: dto.status,
     });
   }
 

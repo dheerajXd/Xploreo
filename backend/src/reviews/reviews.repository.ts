@@ -17,9 +17,20 @@ export type Review = {
 
 @Injectable()
 export class ReviewsRepository {
-  private reviews: Review[] = [];
+  private reviews: Review[] = [
+    {
+      id: 1,
+      userId: 'seed-guest',
+      authorName: 'Meera Nair',
+      targetType: ReviewTargetType.HOTEL,
+      targetId: 'hotel-hp001-1',
+      rating: 5,
+      comment: 'Lovely heritage feel and very helpful staff.',
+      createdAt: new Date(),
+    },
+  ];
 
-  private nextId = 1;
+  private nextId = 2;
 
   create(dto: CreateReviewDto): Review {
     const review: Review = {

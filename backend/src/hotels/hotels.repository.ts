@@ -5,7 +5,31 @@ import { stripUndefined } from '../common/utils/strip-undefined';
 
 @Injectable()
 export class HotelsRepository {
-  private readonly hotels: Hotel[] = [];
+  // Seed so the demo hotel partner (HP001) has a property to manage. Kept 'inactive' so it
+  // never shows up in traveller search results.
+  private readonly hotels: Hotel[] = [
+    {
+      id: 'hotel-hp001-1',
+      partnerId: 'HP001',
+      name: 'Xploreo Heritage Inn',
+      city: 'Jaipur',
+      location: 'Amer Road, Jaipur, Rajasthan',
+      description: 'A heritage-style stay close to the Amer Fort with modern comforts.',
+      stars: 4,
+      rating: 5,
+      reviewCount: 1,
+      pricePerNight: 4500,
+      taxesAndFees: 540,
+      totalRooms: 15,
+      availableRooms: 15,
+      image: '',
+      images: [],
+      amenities: ['WiFi', 'Breakfast', 'Parking', 'Air Conditioning'],
+      status: 'inactive',
+      isDeleted: false,
+      createdAt: new Date(),
+    },
+  ];
 
   create(
     partnerId: string,
