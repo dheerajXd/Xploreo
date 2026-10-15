@@ -15,6 +15,8 @@ import TravellerReviewsPage from './TravellerReviewsPage.jsx';
 import TravellerBrowsePage from './TravellerBrowsePage.jsx';
 // Checkout & Payment Demo
 import TravellerCheckoutPage from './TravellerCheckoutPage.jsx';
+// Support Tickets
+import TravellerSupportTicketsPage from './TravellerSupportTicketsPage.jsx';
 
 import './travellerDashboard.css';
 
@@ -37,6 +39,7 @@ const SECTION = {
   TRIPS: 'trips',
   REVIEWS: 'reviews',
   CHECKOUT: 'checkout',
+  TICKETS: 'tickets',
 };
 
 const DESTINATIONS = [
@@ -1127,6 +1130,29 @@ export default function TravellerDashboard({
         <TravellerCheckoutPage
           user={{ name: 'Traveller One', userId: currentTravellerId }}
           onComplete={() => log('Checkout: payment completed')}
+        />
+      </div>
+    );
+  }
+
+  // ── Section: Support Tickets ───────────────────────────────────────────────
+  if (activeSection === SECTION.TICKETS) {
+    return (
+      <div className="trav-dash-section-wrapper" data-testid="section-tickets">
+        <button
+          type="button"
+          className="trav-dash-back-btn"
+          onClick={handleBack}
+          aria-label="Back to Traveller Dashboard"
+        >
+          ← Dashboard
+        </button>
+        <TravellerSupportTicketsPage
+          showNavbar={false}
+          user={user}
+          currentTravellerId={currentTravellerId}
+          onSubmitTicket={onSubmitTicket}
+          useFixtures={useFixtures}
         />
       </div>
     );

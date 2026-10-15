@@ -1,0 +1,320 @@
+/* travellerSupportTickets.css - Xploreo Traveller Support Tickets Styling */
+/* Seamlessly bridges M5 Traveller Portal and M4 Tickets component suite */
+
+.trav-tickets-page-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.trav-tickets-page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2.25rem 2rem 4rem 2rem;
+  box-sizing: border-box;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.trav-tickets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.trav-tickets-header-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.trav-tickets-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d9488;
+  font-weight: 700;
+  margin: 0 0 0.35rem 0;
+}
+
+.trav-tickets-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0d9488;
+  display: inline-block;
+}
+
+.trav-tickets-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.trav-tickets-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Tabs / Actions ─────────────────────────────────────────────── */
+.trav-tickets-tabs {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.35rem;
+  gap: 0.35rem;
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.trav-tickets-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.trav-tickets-tab-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.trav-tickets-tab-btn.active {
+  background: #0d9488;
+  color: #ffffff;
+  box-shadow: 0 2px 8px -1px rgba(13, 148, 136, 0.3);
+}
+
+.trav-tickets-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #334155;
+  line-height: 1;
+}
+
+.trav-tickets-tab-btn.active .trav-tickets-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* ── Notification Banner ───────────────────────────────────────── */
+.trav-tickets-notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1.75rem;
+  font-size: 0.925rem;
+  font-weight: 500;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+.trav-tickets-notification.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.trav-tickets-notification.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.trav-tickets-notification-close {
+  background: transparent;
+  border: none;
+  font-size: 1.15rem;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0.2rem;
+  line-height: 1;
+}
+
+.trav-tickets-notification-close:hover {
+  opacity: 1;
+}
+
+/* ── Loading, Empty, and Error States ──────────────────────────── */
+.trav-tickets-loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  gap: 1rem;
+  text-align: center;
+}
+
+.trav-tickets-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.trav-tickets-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 2rem;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+
+.trav-tickets-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f0fdfa;
+  color: #0d9488;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #ccfbf1;
+}
+
+.trav-tickets-empty-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.trav-tickets-empty-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  max-width: 440px;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.trav-tickets-create-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0d9488;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px -2px rgba(13, 148, 136, 0.35);
+}
+
+.trav-tickets-create-cta-btn:hover {
+  background: #0f766e;
+  transform: translateY(-1px);
+}
+
+.trav-tickets-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 2rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  text-align: center;
+  color: #991b1b;
+  gap: 1rem;
+}
+
+.trav-tickets-retry-btn {
+  background: #ffffff;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trav-tickets-retry-btn:hover {
+  background: #fee2e2;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .trav-tickets-page {
+    padding: 1.5rem 1rem 3rem 1rem;
+  }
+
+  .trav-tickets-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .trav-tickets-tabs {
+    width: 100%;
+  }
+
+  .trav-tickets-tab-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

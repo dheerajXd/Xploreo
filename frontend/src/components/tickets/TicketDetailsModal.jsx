@@ -245,7 +245,7 @@ export default function TicketDetailsModal({
             Close
           </button>
 
-          {isTicketOpen && !isResolvingFormOpen && (
+          {isTicketOpen && !isResolvingFormOpen && typeof onResolve === 'function' && (
             <button
               type="button"
               className="admin-ticket-modal-btn-primary"
