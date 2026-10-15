@@ -339,6 +339,19 @@
   cursor: pointer;
 }
 
+.trav-dash-input-wrap select.trav-dash-select-with-icon {
+  padding-left: 2.25rem;
+}
+
+.trav-dash-input-wrap select.is-placeholder {
+  color: #64748b;
+}
+
+.trav-dash-input-wrap select option {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
 .trav-dash-btn-wrap {
   display: flex;
   align-items: flex-end;

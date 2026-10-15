@@ -75,6 +75,8 @@ const DESTINATIONS = [
   },
 ];
 
+export const DESTINATION_OPTIONS = ['Mumbai', 'Delhi', 'Goa', 'Jaipur', 'Kerala'];
+
 const HOW_IT_WORKS_STEPS = [
   {
     number: '01',
@@ -386,7 +388,7 @@ export default function TravellerDashboard({
   const validateHotelSearch = () => {
     const errors = {};
     if (!hotelDestination || !hotelDestination.trim()) {
-      errors.destination = 'Please enter a destination';
+      errors.destination = 'Please select a destination';
     }
     if (!hotelCheckIn) {
       errors.checkIn = 'Please select a check-in date';
@@ -402,7 +404,7 @@ export default function TravellerDashboard({
   const validatePackageSearch = () => {
     const errors = {};
     if (!packageDestination || !packageDestination.trim()) {
-      errors.destination = 'Please enter a destination';
+      errors.destination = 'Please select a destination';
     }
     if (!packageDeparture) {
       errors.departure = 'Please select a departure date';
@@ -413,7 +415,7 @@ export default function TravellerDashboard({
   const validateExperienceSearch = () => {
     const errors = {};
     if (!experienceDestination || !experienceDestination.trim()) {
-      errors.destination = 'Please enter a destination';
+      errors.destination = 'Please select a destination';
     }
     if (!experienceDate) {
       errors.date = 'Please select an activity date';
@@ -672,10 +674,9 @@ export default function TravellerDashboard({
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
                         </svg>
-                        <input
+                        <select
                           id="hotel-destination"
-                          type="text"
-                          placeholder="Where are you going?"
+                          className={`trav-dash-destination-select trav-dash-select-with-icon ${!hotelDestination ? 'is-placeholder' : ''}`}
                           value={hotelDestination}
                           aria-invalid={Boolean(hotelErrors.destination)}
                           aria-describedby={hotelErrors.destination ? 'hotel-destination-error' : undefined}
@@ -683,7 +684,14 @@ export default function TravellerDashboard({
                             setHotelDestination(e.target.value);
                             if (hotelErrors.destination) setHotelErrors((prev) => ({ ...prev, destination: null }));
                           }}
-                        />
+                        >
+                          <option value="">Select destination</option>
+                          {DESTINATION_OPTIONS.map((dest) => (
+                            <option key={dest} value={dest}>
+                              {dest}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       {hotelErrors.destination && (
                         <span id="hotel-destination-error" className="trav-dash-field-error" role="alert">
@@ -811,10 +819,9 @@ export default function TravellerDashboard({
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
                         </svg>
-                        <input
+                        <select
                           id="package-destination"
-                          type="text"
-                          placeholder="Where to?"
+                          className={`trav-dash-destination-select trav-dash-select-with-icon ${!packageDestination ? 'is-placeholder' : ''}`}
                           value={packageDestination}
                           aria-invalid={Boolean(packageErrors.destination)}
                           aria-describedby={packageErrors.destination ? 'package-destination-error' : undefined}
@@ -822,7 +829,14 @@ export default function TravellerDashboard({
                             setPackageDestination(e.target.value);
                             if (packageErrors.destination) setPackageErrors((prev) => ({ ...prev, destination: null }));
                           }}
-                        />
+                        >
+                          <option value="">Select destination</option>
+                          {DESTINATION_OPTIONS.map((dest) => (
+                            <option key={dest} value={dest}>
+                              {dest}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       {packageErrors.destination && (
                         <span id="package-destination-error" className="trav-dash-field-error" role="alert">
@@ -919,10 +933,9 @@ export default function TravellerDashboard({
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
                         </svg>
-                        <input
+                        <select
                           id="experience-destination"
-                          type="text"
-                          placeholder="Where do you want to explore?"
+                          className={`trav-dash-destination-select trav-dash-select-with-icon ${!experienceDestination ? 'is-placeholder' : ''}`}
                           value={experienceDestination}
                           aria-invalid={Boolean(experienceErrors.destination)}
                           aria-describedby={experienceErrors.destination ? 'experience-destination-error' : undefined}
@@ -930,7 +943,14 @@ export default function TravellerDashboard({
                             setExperienceDestination(e.target.value);
                             if (experienceErrors.destination) setExperienceErrors((prev) => ({ ...prev, destination: null }));
                           }}
-                        />
+                        >
+                          <option value="">Select destination</option>
+                          {DESTINATION_OPTIONS.map((dest) => (
+                            <option key={dest} value={dest}>
+                              {dest}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       {experienceErrors.destination && (
                         <span id="experience-destination-error" className="trav-dash-field-error" role="alert">
