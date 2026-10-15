@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation, useInRouterContext } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { useAuth } from "../../context/AuthContext.jsx";
 import "./navbar.css";
@@ -31,14 +31,25 @@ const portalDestinations = {
   traveller: "/Traveller/dashboard",
 };
 
-export default function Navbar({ user: propUser } = {}) {
+export default function Navbar({ user: propUser, isPublic = false } = {}) {
   const auth = useAuth();
   const navigate = useNavigate();
+  const inRouter = useInRouterContext();
+  const location = inRouter ? useLocation() : null;
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const user = propUser || auth?.user || { role: "default" };
   const role = (user?.role || "default").toLowerCase();
-  const signedIn = role && role !== "default";
+
+  const pathname = location?.pathname || "";
+  const isPublicRoute =
+    isPublic ||
+    pathname === "/" ||
+    pathname === "/Home/landing" ||
+    pathname.startsWith("/Home/") ||
+    pathname.startsWith("/Auth/");
+
+  const signedIn = !isPublicRoute && role && role !== "default";
 
   const displayName = user?.name ? user.name.split(" ")[0] : (user?.username || "Traveller");
   const initial = (user?.name || user?.username || "T").charAt(0).toUpperCase();
@@ -53,7 +64,7 @@ export default function Navbar({ user: propUser } = {}) {
     navigate("/Auth/login");
   };
 
-  if (role === "traveller") {
+  if (!isPublicRoute && role === "traveller") {
     return (
       <header className="site-header traveller-header">
         <nav className="navbar navbar-traveler" aria-label="Traveller navigation">
