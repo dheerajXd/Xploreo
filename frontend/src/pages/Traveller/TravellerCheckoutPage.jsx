@@ -25,8 +25,6 @@ const DEFAULT_DEMO_ITEM = {
   guestCount: 2,
   basePrice: 7500,
   taxesAndFees: 1200,
-  subtotal: 30000,
-  total: 31200,
   imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
 };
 
@@ -77,17 +75,72 @@ export default function TravellerCheckoutPage({
   const [errorMessage, setErrorMessage] = useState('');
   const hasPersistedRef = useRef(false);
 
-  // Pricing calculations
-  const basePrice = selectedItem.pricePerNight || selectedItem.price || selectedItem.basePrice || 5000;
-  const guestCount = selectedItem.guestCount || selectedItem.participants || selectedItem.guests || 2;
-  const taxesAndFees = selectedItem.taxesAndFees || 1200;
-  const totalAmount = selectedItem.total || selectedItem.totalAmount || (basePrice * guestCount + taxesAndFees);
+  // Guest count limits: min 1 (backend validation), max based on capacity/inventory (fallback 10)
+  const minGuests = 1;
+  const maxGuests = Math.min(
+    10,
+    Math.max(
+      1,
+      Number(
+        selectedItem.capacity ||
+        selectedItem.maxGuests ||
+        selectedItem.availableSeats ||
+        10
+      )
+    )
+  );
+
+  // Initialize selector from previous screen when available; fallback to 2
+  const initialGuestCount = Math.max(
+    minGuests,
+    Math.min(
+      maxGuests,
+      Number(
+        location.state?.guestCount ??
+        location.state?.guests ??
+        location.state?.participants ??
+        location.state?.item?.guestCount ??
+        location.state?.item?.guests ??
+        location.state?.item?.participants ??
+        initialItem?.guestCount ??
+        initialItem?.guests ??
+        initialItem?.participants ??
+        selectedItem.guestCount ??
+        selectedItem.participants ??
+        selectedItem.guests ??
+        2
+      ) || 2
+    )
+  );
+
+  const [guestCount, setGuestCount] = useState(initialGuestCount);
+
+  const handleGuestChange = (newCount) => {
+    const parsed = Number(newCount);
+    if (!isNaN(parsed)) {
+      setGuestCount(Math.max(minGuests, Math.min(maxGuests, parsed)));
+    }
+  };
+
+  // Pricing calculations: dynamic base fare and guest-dependent taxes/fees
+  const basePrice = Number(
+    selectedItem.pricePerNight ?? selectedItem.price ?? selectedItem.basePrice ?? 5000
+  );
+  const subtotal = basePrice * guestCount;
+
+  // Guest-dependent taxes or fees when specified, otherwise standard item taxes & fees (fallback 1200)
+  const taxPerGuest = selectedItem.taxPerGuest ?? selectedItem.taxesPerGuest ?? selectedItem.feePerGuest ?? null;
+  const taxesAndFees = taxPerGuest != null
+    ? Number(taxPerGuest) * guestCount
+    : Number(selectedItem.taxesAndFees ?? 1200);
+
+  const totalAmount = subtotal + taxesAndFees;
 
   const cardBooking = {
     title: selectedItem.title || selectedItem.name || 'Demo Reservation',
     type: selectedItem.type || selectedItem.bookingType || 'hotel',
     location: selectedItem.location || selectedItem.city || selectedItem.destination || 'India',
-    date: selectedItem.checkIn ? `${formatDate(selectedItem.checkIn)} → ${formatDate(selectedItem.checkOut)}` : selectedItem.date,
+    date: selectedItem.checkIn ? `${formatDate(selectedItem.checkIn)} → ${formatDate(selectedItem.checkOut)}` : (selectedItem.date || 'Flexible schedule'),
     guestCount: guestCount,
     imageUrl: selectedItem.imageUrl || selectedItem.image || null,
   };
@@ -96,7 +149,7 @@ export default function TravellerCheckoutPage({
     basePrice,
     guestCount,
     taxesAndFees,
-    subtotal: totalAmount - taxesAndFees,
+    subtotal,
     total: totalAmount,
   };
 
@@ -117,6 +170,7 @@ export default function TravellerCheckoutPage({
         bookingId: selectedItem.id || 'demo-booking-1',
         bookingType: selectedItem.type || 'hotel',
         amount: totalAmount,
+        guestCount: Number(guestCount),
         travellerDetails,
       });
 
@@ -162,7 +216,7 @@ export default function TravellerCheckoutPage({
                   email: guestEmail,
                   phone: guestPhone,
                   date: selectedItem.checkIn || selectedItem.date || new Date().toISOString().split('T')[0],
-                  participants: Number(guestCount) || 2,
+                  participants: Number(guestCount) || 1,
                 }),
               });
             } else {
@@ -179,7 +233,7 @@ export default function TravellerCheckoutPage({
                   phone: guestPhone,
                   checkIn,
                   checkOut,
-                  guests: Number(guestCount) || 2,
+                  guests: Number(guestCount) || 1,
                   roomType: selectedItem.roomType || 'Deluxe Room',
                   notes: travellerDetails.specialRequests || 'Booked via checkout',
                 }),
@@ -342,11 +396,48 @@ export default function TravellerCheckoutPage({
                         <span className="trav-review-schedule-label">Dates / Schedule</span>
                         <span className="trav-review-schedule-val">{cardBooking.date || 'Flexible schedule'}</span>
                       </div>
-                      <div className="trav-review-schedule-item">
-                        <span className="trav-review-schedule-label">Guests / Party</span>
-                        <span className="trav-review-schedule-val">
-                          {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
-                        </span>
+                      <div className="trav-review-schedule-item trav-review-guest-picker">
+                        <label htmlFor="checkout-guests-select" className="trav-review-schedule-label">
+                          Guests / Party
+                        </label>
+                        <div className="trav-guest-selector-wrap">
+                          <button
+                            type="button"
+                            className="trav-guest-step-btn"
+                            onClick={() => handleGuestChange(guestCount - 1)}
+                            disabled={guestCount <= minGuests}
+                            aria-label="Decrease guest count"
+                            data-testid="guest-decrement-btn"
+                          >
+                            −
+                          </button>
+                          <div className="trav-guest-select-container">
+                            <select
+                              id="checkout-guests-select"
+                              className="trav-guest-select"
+                              value={guestCount}
+                              onChange={(e) => handleGuestChange(Number(e.target.value))}
+                              aria-label="Select guest count"
+                              data-testid="checkout-guest-select"
+                            >
+                              {Array.from({ length: maxGuests - minGuests + 1 }, (_, i) => minGuests + i).map((num) => (
+                                <option key={num} value={num}>
+                                  {num} {num === 1 ? 'Guest' : 'Guests'}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <button
+                            type="button"
+                            className="trav-guest-step-btn"
+                            onClick={() => handleGuestChange(guestCount + 1)}
+                            disabled={guestCount >= maxGuests}
+                            aria-label="Increase guest count"
+                            data-testid="guest-increment-btn"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -606,6 +697,12 @@ export default function TravellerCheckoutPage({
                   <div className="trav-receipt-row">
                     <span>Reservation:</span>
                     <span>{cardBooking.title}</span>
+                  </div>
+                  <div className="trav-receipt-row">
+                    <span>Guests / Party:</span>
+                    <strong data-testid="receipt-guest-count">
+                      {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
+                    </strong>
                   </div>
                   <div className="trav-receipt-row">
                     <span>Simulated Amount:</span>

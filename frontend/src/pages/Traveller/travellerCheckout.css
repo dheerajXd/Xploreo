@@ -381,6 +381,75 @@
   color: #1e293b;
 }
 
+.trav-review-guest-picker {
+  justify-content: flex-start;
+}
+
+.trav-guest-selector-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.2rem 0.35rem;
+  width: fit-content;
+  margin-top: 0.2rem;
+}
+
+.trav-guest-step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  padding: 0;
+}
+
+.trav-guest-step-btn:hover:not(:disabled) {
+  background: #0d9488;
+  color: #ffffff;
+  border-color: #0d9488;
+}
+
+.trav-guest-step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #e2e8f0;
+}
+
+.trav-guest-select-container {
+  display: flex;
+  align-items: center;
+}
+
+.trav-guest-select {
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+}
+
+.trav-guest-select:focus {
+  border-radius: 4px;
+  outline: 2px solid #0d9488;
+}
+
 .trav-review-inclusions-card {
   border-top: 1px solid #e2e8f0;
   padding-top: 1.25rem;
