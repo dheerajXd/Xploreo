@@ -35,4 +35,8 @@ export async function fetchData(url, options = {}) {
   return json?.data !== undefined ? json.data : json;
 }
 
+export function getSavedUser(){
+  return localStorage.getItem('xploreoUser');
+}
+
 export { API_BASE_URL };
