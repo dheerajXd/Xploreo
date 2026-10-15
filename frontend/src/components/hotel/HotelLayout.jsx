@@ -17,6 +17,7 @@ export default function HotelLayout() {
         links={LINKS}
         userName={user?.businessName || user?.name || 'Hotel Partner'}
         profileTo="/hotel/profile"
+        supportTo="/hotel/support"
         onLogout={logout}
       />
       <main className="admin-portal-content">

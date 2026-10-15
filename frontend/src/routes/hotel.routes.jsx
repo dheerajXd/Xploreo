@@ -11,6 +11,7 @@ import HotelBookings  from '@/pages/Hotel/HotelBookings.jsx';
 import HotelEarnings  from '@/pages/Hotel/HotelEarnings.jsx';
 import HotelReviews   from '@/pages/Hotel/HotelReviews.jsx';
 import HotelProfile   from '@/pages/Hotel/HotelProfile.jsx';
+import HotelSupport   from '@/pages/Hotel/HotelSupport.jsx';
 
 export const hotelPortal = {
   basePath: '/hotel',
@@ -25,6 +26,7 @@ export const hotelPortal = {
     { path: 'earnings',  element: <HotelEarnings /> },
     { path: 'reviews',   element: <HotelReviews /> },
     { path: 'profile',   element: <HotelProfile /> },
+    { path: 'support',   element: <HotelSupport /> },
   ],
 };
 
