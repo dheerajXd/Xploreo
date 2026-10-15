@@ -1,9 +1,19 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+import { identityHeaders } from "./session.js";
+
+const API_BASE_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000/api";
 
 export async function apiRequest(path, options = {}) {
+  const headers = {
+    ...identityHeaders(),
+    ...options.headers,
+  };
+  if (!(options.body instanceof FormData) && !headers["Content-Type"] && !headers["content-type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers,
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -19,12 +29,17 @@ export const authApi = {
 };
 
 export async function fetchData(url, options = {}) {
+  const headers = {
+    ...identityHeaders(),
+    ...options.headers,
+  };
+  if (!(options.body instanceof FormData) && !headers["Content-Type"] && !headers["content-type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -35,8 +50,16 @@ export async function fetchData(url, options = {}) {
   return json?.data !== undefined ? json.data : json;
 }
 
-export function getSavedUser(){
-  return localStorage.getItem('xploreoUser');
+export function getSavedUser() {
+  try {
+    const raw = localStorage.getItem("xploreoUser") || localStorage.getItem("currentUser");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.user || parsed;
+  } catch {
+    return null;
+  }
 }
 
-export { API_BASE_URL };
+export { API_BASE_URL, identityHeaders };
+

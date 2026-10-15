@@ -5,8 +5,11 @@ export const GUEST = { username: 'Guest', role: 'default' };
 
 export function getUser() {
   try {
-    const stored = JSON.parse(localStorage.getItem(KEY));
-    return stored || GUEST;
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('currentUser');
+    if (!raw) return GUEST;
+    const stored = JSON.parse(raw);
+    const user = stored?.user || stored;
+    return user || GUEST;
   } catch {
     return GUEST;
   }
@@ -23,6 +26,7 @@ export function storeUser(user) {
 export function clearUser() {
   try {
     localStorage.removeItem(KEY);
+    localStorage.removeItem('currentUser');
   } catch {
     /* storage unavailable */
   }
@@ -32,11 +36,16 @@ export function clearUser() {
 // backend tracks a partner's region). Built only from the signed-in user, never from forms.
 export function identityHeaders() {
   const user = getUser();
-  if (!user || user.role === 'default') return {};
+  const role = user?.role || user?.userRole || user?.partnerType;
+  if (!user || !role || role === 'default') return {};
+  const userId = user.userId || user.id || user.username;
   const headers = {
-    'x-user-id': user.userId || user.id || user.username,
-    'x-user-role': user.role,
+    'x-user-role': role,
   };
-  if (user.region || user.location) headers['x-user-location'] = user.region || user.location;
+  if (userId) {
+    headers['x-user-id'] = String(userId);
+  }
+  const location = user.region || user.location;
+  if (location) headers['x-user-location'] = location;
   return headers;
 }

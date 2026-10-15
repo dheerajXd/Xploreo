@@ -48,15 +48,15 @@ export class AuthGuard implements CanActivate {
 function normalizeRole(value: unknown): Role | null {
   const rawRole = String(value || '').trim();
   const legacyRole = rawRole.toLowerCase();
-  if (legacyRole === Role.SUPERADMIN) return Role.SUPERADMIN;
+  if (legacyRole === Role.SUPERADMIN || legacyRole === 'admin') return Role.SUPERADMIN;
   if (legacyRole === Role.TRAVELLER || legacyRole === 'traveler') {
     return Role.TRAVELLER;
   }
   if (legacyRole === Role.GUIDE) return Role.GUIDE;
-  if (legacyRole === Role.TECHADMIN) return Role.TECHADMIN;
-  if (legacyRole === Role.NONTECHADMIN) return Role.NONTECHADMIN;
-  if (legacyRole === Role.HOTEL) return Role.HOTEL;
-  if (legacyRole === Role.EXPERIENCE) return Role.EXPERIENCE;
+  if (legacyRole === Role.TECHADMIN || legacyRole === 'tech_admin') return Role.TECHADMIN;
+  if (legacyRole === Role.NONTECHADMIN || legacyRole === 'nontech_admin') return Role.NONTECHADMIN;
+  if (legacyRole === Role.HOTEL || legacyRole === 'partner' || legacyRole === 'hotel_partner') return Role.HOTEL;
+  if (legacyRole === Role.EXPERIENCE || legacyRole === 'experience_partner') return Role.EXPERIENCE;
 
   return null;
 }
