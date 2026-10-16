@@ -5,10 +5,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import { AuthRepository } from './auth.repository';
 import { RegisterDto } from './dto/create-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+
+export const JWT_SECRET = process.env.JWT_SECRET || 'xploreo-dev-secret-key-2026';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +37,8 @@ export class AuthService {
     });
 
     const { password: _pw, ...safe } = user;
-    return { message: 'Registered successfully', user: safe };
+    const token = this.generateToken(safe);
+    return { message: 'Registered successfully', user: { ...safe, token }, token };
   }
 
   async login(dto: LoginDto) {
@@ -47,13 +51,31 @@ export class AuthService {
     }
 
     const { password: _pw, ...safe } = user;
+    const region = this.authRepository.findRegionForUser(user.userId);
+    const token = this.generateToken({ ...safe, region });
+
     return {
-      user: safe,
+      user: { ...safe, region, token },
+      token,
       headers: {
         'x-user-id': user.userId,
         'x-user-role': toApiHeaderRole(user.role),
+        Authorization: `Bearer ${token}`,
       },
     };
+  }
+
+  generateToken(user: { userId: string; username: string; role: string; region?: string }): string {
+    return jwt.sign(
+      {
+        userId: user.userId,
+        username: user.username,
+        role: user.role,
+        region: user.region,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' },
+    );
   }
 
   async findAll() {

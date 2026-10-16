@@ -56,6 +56,7 @@ export class AuthRepository {
       email: 'nontech.admin@xploreo.com',
       phone: '9000000003',
       status: 'active',
+      region: 'Jaipur',
     },
     {
       userId: 'HP001',
@@ -102,6 +103,11 @@ export class AuthRepository {
 
   findById(userId: string): Auth | undefined {
     return this.users.find((u) => u.userId === userId);
+  }
+
+  findRegionForUser(userId: string): string | undefined {
+    const user = this.findById(userId);
+    return user?.region || user?.location;
   }
 
   findByUsername(username: string): Auth | undefined {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PlansRepository } from './plans.repository';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
@@ -7,7 +7,16 @@ import { UpdatePlanDto } from './dto/update-plan.dto';
 export class PlansService {
   constructor(private readonly plansRepository: PlansRepository) {}
 
-  create(dto: CreatePlanDto) {
+  create(dto: CreatePlanDto, actor?: { userId?: string; role?: string; region?: string }) {
+    if (actor?.role === 'nontechadmin') {
+      const ntaRegion = (actor.region || '').trim().toLowerCase();
+      if (!ntaRegion || dto.destination.trim().toLowerCase() !== ntaRegion) {
+        throw new ForbiddenException(
+          `Cannot create package for destination '${dto.destination}': outside your assigned region '${actor.region}'`,
+        );
+      }
+    }
+
     const originCity = dto.originCity || dto.from;
     const durationNights = dto.durationNights ?? dto.duration;
     const pricePerPerson = dto.pricePerPerson ?? dto.price;
@@ -38,29 +47,64 @@ export class PlansService {
     });
   }
 
-  findAll(query: {
-    page?: number;
-    limit?: number;
-    from?: string;
-    to?: string;
-    destination?: string;
-  }) {
+  findAll(
+    query: {
+      page?: number;
+      limit?: number;
+      from?: string;
+      to?: string;
+      destination?: string;
+    },
+    actor?: { userId?: string; role?: string; region?: string },
+  ) {
+    let effectiveDestination = query.destination;
+    if (actor?.role === 'nontechadmin') {
+      effectiveDestination = actor.region || 'NONE';
+    }
+
     return this.plansRepository.findAll({
       page: query.page ? Number(query.page) : 1,
       limit: query.limit ? Number(query.limit) : 10,
       from: query.from,
       to: query.to,
-      destination: query.destination,
+      destination: effectiveDestination,
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, actor?: { userId?: string; role?: string; region?: string }) {
     const plan = await this.plansRepository.findById(id);
     if (!plan) throw new NotFoundException(`Plan ${id} not found`);
+
+    if (actor?.role === 'nontechadmin') {
+      const ntaRegion = (actor.region || '').trim().toLowerCase();
+      if (ntaRegion && plan.destination.trim().toLowerCase() !== ntaRegion) {
+        throw new ForbiddenException(
+          `Cannot access package in destination '${plan.destination}': outside your assigned region '${actor.region}'`,
+        );
+      }
+    }
+
     return plan;
   }
 
-  async update(id: string, dto: UpdatePlanDto) {
+  async update(id: string, dto: UpdatePlanDto, actor?: { userId?: string; role?: string; region?: string }) {
+    const existing = await this.plansRepository.findById(id);
+    if (!existing) throw new NotFoundException(`Plan ${id} not found`);
+
+    if (actor?.role === 'nontechadmin') {
+      const ntaRegion = (actor.region || '').trim().toLowerCase();
+      if (ntaRegion && existing.destination.trim().toLowerCase() !== ntaRegion) {
+        throw new ForbiddenException(
+          `Cannot modify package in destination '${existing.destination}': outside your assigned region '${actor.region}'`,
+        );
+      }
+      if (dto.destination && dto.destination.trim().toLowerCase() !== ntaRegion) {
+        throw new ForbiddenException(
+          `Cannot change package destination to '${dto.destination}': outside your assigned region '${actor.region}'`,
+        );
+      }
+    }
+
     const updated = await this.plansRepository.update(id, dto);
     if (!updated) throw new NotFoundException(`Plan ${id} not found`);
     return updated;

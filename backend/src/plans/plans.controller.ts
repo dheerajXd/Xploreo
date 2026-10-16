@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -52,8 +53,8 @@ export class PlansController {
     status: 403,
     description: 'Missing or unauthorized role header',
   })
-  create(@Body() dto: CreatePlanDto) {
-    return this.plansService.create(dto);
+  create(@Body() dto: CreatePlanDto, @Req() req: any) {
+    return this.plansService.create(dto, req.user);
   }
 
   @Get()
@@ -69,20 +70,21 @@ export class PlansController {
   @ApiQuery({ name: 'to', required: false })
   @ApiQuery({ name: 'availability', required: false })
   findAll(
+    @Req() req: any,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('destination') destination?: string,
   ) {
-    return this.plansService.findAll({ page, limit, from, to, destination });
+    return this.plansService.findAll({ page, limit, from, to, destination }, req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get plan by ID' })
   @ApiReadEndpoint()
-  findOne(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.plansService.findOne(id);
+  findOne(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.plansService.findOne(id, req.user);
   }
 
   @Roles(Role.SUPERADMIN, Role.NONTECHADMIN)
@@ -93,8 +95,9 @@ export class PlansController {
   update(
     @Param('id', NonEmptyStringPipe) id: string,
     @Body() dto: UpdatePlanDto,
+    @Req() req: any,
   ) {
-    return this.plansService.update(id, dto);
+    return this.plansService.update(id, dto, req.user);
   }
 
   @Roles(Role.SUPERADMIN)

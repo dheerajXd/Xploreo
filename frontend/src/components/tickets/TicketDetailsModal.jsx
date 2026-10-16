@@ -143,18 +143,42 @@ export default function TicketDetailsModal({
             </div>
           </div>
 
-          {/* Traveller Info Section */}
+          {/* Submitter Info Section */}
           <div className="admin-ticket-modal-section">
-            <h3 className="admin-ticket-modal-section-title">Traveller Information</h3>
+            <h3 className="admin-ticket-modal-section-title">Submitter Information</h3>
             <div className="admin-ticket-modal-traveller-box">
               <div className="admin-ticket-modal-avatar" aria-hidden="true">
-                {(ticket.travellerName || ticket.travellerId || 'T').substring(0, 2).toUpperCase()}
+                {(ticket.travellerName || ticket.travellerId || 'U').substring(0, 2).toUpperCase()}
               </div>
-              <div>
-                <div style={{ fontWeight: '600', color: '#0f172a' }}>
-                  {ticket.travellerName || ticket.travellerId || 'Traveller'}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: '600', color: '#0f172a' }}>
+                    {ticket.travellerName || ticket.travellerId || 'Submitter'}
+                  </span>
+                  {(() => {
+                    const rawRole = String(ticket.role || ticket.submitterRole || '').toLowerCase();
+                    const id = String(ticket.travellerId || '').toUpperCase();
+                    const name = String(ticket.travellerName || '').toLowerCase();
+                    let role = 'Traveller';
+                    let roleClass = 'admin-ticket-role-traveller';
+                    if (rawRole === 'hotel' || id.startsWith('HP') || name.includes('hotel') || name.includes('resort')) {
+                      role = 'Hotel Partner';
+                      roleClass = 'admin-ticket-role-hotel';
+                    } else if (rawRole === 'guide' || id.startsWith('G') || name.includes('guide')) {
+                      role = 'Guide';
+                      roleClass = 'admin-ticket-role-guide';
+                    } else if (rawRole === 'experience' || id.startsWith('XP') || name.includes('experience') || name.includes('safari') || name.includes('kayak')) {
+                      role = 'Experience Partner';
+                      roleClass = 'admin-ticket-role-experience';
+                    }
+                    return (
+                      <span className={`admin-ticket-role-badge ${roleClass}`} style={{ marginTop: 0 }}>
+                        {role}
+                      </span>
+                    );
+                  })()}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
                   User ID: {ticket.travellerId || '—'}
                 </div>
               </div>

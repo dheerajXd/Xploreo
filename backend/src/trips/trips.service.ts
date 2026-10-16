@@ -23,7 +23,7 @@ export class TripsService {
     private readonly guideApplicationsRepository: GuideApplicationsRepository,
   ) {}
 
-  create(dto: CreateTripDto) {
+  create(dto: CreateTripDto, actor?: { userId?: string; role?: string; region?: string }) {
     let plan = this.plansRepository.findById(dto.planId);
     if (!plan) {
       const allPlans = this.plansRepository.findAll().data;
@@ -36,11 +36,23 @@ export class TripsService {
     }
     if (!plan) throw new NotFoundException(`Plan ${dto.planId} not found`);
 
+    if (actor?.role === 'nontechadmin') {
+      const ntaRegion = (actor.region || '').trim().toLowerCase();
+      if (ntaRegion && plan.destination.trim().toLowerCase() !== ntaRegion) {
+        throw new ForbiddenException(
+          `Cannot create trip for destination '${plan.destination}': outside your assigned region '${actor.region}'`,
+        );
+      }
+    }
+
+    const effectiveTravellerId =
+      actor?.role === 'traveller' && actor.userId ? actor.userId : dto.travellerId;
+
     const itinerary = dto.itinerary || plan.itinerary;
 
     const trip = this.tripsRepository.create({
       id: dto.id,
-      travellerId: dto.travellerId,
+      travellerId: effectiveTravellerId,
       planId: plan.id,
       status: TripStatus.CONFIRMED,
       itinerary,
@@ -119,26 +131,63 @@ export class TripsService {
       );
   }
 
-  findAll() {
-    return this.tripsRepository.findAll();
+  findAll(actor?: { userId?: string; role?: string; region?: string }) {
+    const allTrips = this.tripsRepository.findAll();
+    if (actor?.role === 'nontechadmin') {
+      const ntaRegion = (actor.region || '').trim().toLowerCase();
+      if (!ntaRegion) return [];
+      return allTrips.filter((t) => {
+        const plan = this.plansRepository.findById(t.planId);
+        const destination = plan?.destination || t.currentLocation || '';
+        return destination.trim().toLowerCase() === ntaRegion;
+      });
+    }
+    return allTrips;
   }
 
-  findOne(id: string) {
+  findOne(id: string, actor?: { userId?: string; role?: string; region?: string }) {
     const trip = this.tripsRepository.findById(id);
     if (!trip) throw new NotFoundException(`Trip ${id} not found`);
+
+    if (actor) {
+      const isSuperAdmin = actor.role === 'superadmin';
+      const isOwnerTraveller = actor.role === 'traveller' && trip.travellerId === actor.userId;
+      const isAssignedGuide = actor.role === 'guide' && trip.guideId === actor.userId;
+      const isRegionalNTA = actor.role === 'nontechadmin';
+
+      if (isRegionalNTA) {
+        const plan = this.plansRepository.findById(trip.planId);
+        const destination = plan?.destination || trip.currentLocation || '';
+        const ntaRegion = (actor.region || '').trim().toLowerCase();
+        if (ntaRegion && destination.trim().toLowerCase() !== ntaRegion) {
+          throw new ForbiddenException(
+            `Cannot access trip in destination '${destination}': outside your assigned region '${actor.region}'`,
+          );
+        }
+      } else if (!isSuperAdmin && !isOwnerTraveller && !isAssignedGuide) {
+        throw new ForbiddenException('You are not authorized to view this trip.');
+      }
+    }
+
     return trip;
   }
 
-  findByTraveller(travellerId: string) {
+  findByTraveller(travellerId: string, actor?: { userId?: string; role?: string }) {
+    if (actor?.role === 'traveller' && actor.userId !== travellerId) {
+      throw new ForbiddenException('You can only view your own trips.');
+    }
     return this.tripsRepository.findByTraveller(travellerId);
   }
 
-  findByGuide(guideId: string) {
+  findByGuide(guideId: string, actor?: { userId?: string; role?: string }) {
+    if (actor?.role === 'guide' && actor.userId !== guideId) {
+      throw new ForbiddenException('You can only view your own guide trips.');
+    }
     return this.tripsRepository.findByGuide(guideId);
   }
 
-  update(id: string, dto: UpdateTripDto, actor?: { userId?: string; role?: string }) {
-    const trip = this.findOne(id);
+  update(id: string, dto: UpdateTripDto, actor?: { userId?: string; role?: string; region?: string }) {
+    const trip = this.findOne(id, actor);
     const plan = this.plansRepository.findById(trip.planId);
     if (!plan) throw new NotFoundException(`Plan ${trip.planId} not found`);
 

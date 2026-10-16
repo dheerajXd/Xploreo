@@ -48,16 +48,16 @@ export class TripsController {
     description: 'Missing or unauthorized role header',
   })
   @ApiResponse({ status: 404, description: 'Plan not found' })
-  create(@Body() dto: CreateTripDto) {
-    return this.tripsService.create(dto);
+  create(@Body() dto: CreateTripDto, @Req() req: any) {
+    return this.tripsService.create(dto, req.user);
   }
 
   @Roles(Role.SUPERADMIN, Role.NONTECHADMIN)
   @Get()
   @ApiOperation({ summary: 'Get all trips (admin)' })
   @ApiReadEndpoint()
-  findAll() {
-    return this.tripsService.findAll();
+  findAll(@Req() req: any) {
+    return this.tripsService.findAll(req.user);
   }
 
   @Get('traveller/:travellerId')
@@ -65,22 +65,26 @@ export class TripsController {
   @ApiReadEndpoint()
   findByTraveller(
     @Param('travellerId', NonEmptyStringPipe) travellerId: string,
+    @Req() req: any,
   ) {
-    return this.tripsService.findByTraveller(travellerId);
+    return this.tripsService.findByTraveller(travellerId, req.user);
   }
 
   @Get('guide/:guideId')
   @ApiOperation({ summary: 'Get trips for a guide' })
   @ApiReadEndpoint()
-  findByGuide(@Param('guideId', NonEmptyStringPipe) guideId: string) {
-    return this.tripsService.findByGuide(guideId);
+  findByGuide(
+    @Param('guideId', NonEmptyStringPipe) guideId: string,
+    @Req() req: any,
+  ) {
+    return this.tripsService.findByGuide(guideId, req.user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get trip by ID' })
   @ApiReadEndpoint()
-  findOne(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.tripsService.findOne(id);
+  findOne(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.tripsService.findOne(id, req.user);
   }
 
   @Roles(Role.GUIDE, Role.SUPERADMIN, Role.NONTECHADMIN)

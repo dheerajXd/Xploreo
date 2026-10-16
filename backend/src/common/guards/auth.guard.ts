@@ -3,10 +3,13 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import * as jwt from 'jsonwebtoken';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Role } from '../../auth/entities/auth.entity';
+import { JWT_SECRET } from '../../auth/auth.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,28 +23,51 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
-    const rawRole =
-      request.headers['x-user-role'] ??
-      request.headers['role'] ??
-      request.headers['user-role'];
-    const rawUserId =
-      request.headers['x-user-id'] ??
-      request.headers['user-id'] ??
-      request.headers['userid'];
+    const authHeader =
+      request.headers['authorization'] ??
+      request.headers['Authorization'] ??
+      request.headers['x-access-token'];
 
-    const role = normalizeRole(Array.isArray(rawRole) ? rawRole[0] : rawRole);
-    const userId = Array.isArray(rawUserId) ? rawUserId[0] : rawUserId;
-
-    if (!role) {
-      throw new ForbiddenException('x-user-role header is required');
+    // 1. Verify signed token if provided
+    let token: string | undefined;
+    if (typeof authHeader === 'string') {
+      token = authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7).trim()
+        : authHeader.trim();
     }
 
-    request.user = {
-      userId: userId ? String(userId) : undefined,
-      role,
-    };
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as {
+          userId: string;
+          username: string;
+          role: string;
+          region?: string;
+        };
+        const role = normalizeRole(decoded.role);
+        if (!role) {
+          throw new UnauthorizedException('Invalid role claim in token');
+        }
+        request.user = {
+          userId: decoded.userId ? String(decoded.userId) : undefined,
+          username: decoded.username,
+          role,
+          region: decoded.region,
+        };
+        return true;
+      } catch (err) {
+        throw new UnauthorizedException(
+          err instanceof Error && err.name === 'TokenExpiredError'
+            ? 'Session token expired. Please log in again.'
+            : 'Invalid or forged authentication token.',
+        );
+      }
+    }
 
-    return true;
+    // 2. Reject unauthenticated access. Never trust client-supplied raw headers.
+    throw new UnauthorizedException(
+      'Authentication token required. Please log in to continue.',
+    );
   }
 }
 
