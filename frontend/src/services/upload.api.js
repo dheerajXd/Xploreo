@@ -7,6 +7,13 @@ import { identityHeaders } from './session.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// The backend serves uploads from its own origin (outside /api), so a relative
+// "/uploads/..." URL must be made absolute or the browser resolves it against the frontend.
+function absoluteUrl(url) {
+  if (!url || /^(https?:|data:|blob:)/i.test(url)) return url;
+  return `${API_BASE_URL.replace(/\/api\/?$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 function isMockMode() {
   const flag = (import.meta.env.VITE_MOCKS || '').trim();
   return flag === 'all' || flag.split(',').map((d) => d.trim()).includes('upload');
@@ -68,7 +75,7 @@ export async function uploadSingle(file, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const json = JSON.parse(xhr.responseText);
-          resolve({ url: json?.data?.url ?? json?.data?.path ?? '' });
+          resolve({ url: absoluteUrl(json?.data?.url ?? json?.data?.path ?? '') });
         } catch (_) {
           resolve({ url: '' });
         }
@@ -138,5 +145,5 @@ export async function uploadMultiple(files, onProgress) {
 
   const json = await response.json();
   if (onProgress) onProgress(100);
-  return (json?.data ?? []).map((d) => ({ url: d.url ?? d.path ?? '' }));
+  return (json?.data ?? []).map((d) => ({ url: absoluteUrl(d.url ?? d.path ?? '') }));
 }
