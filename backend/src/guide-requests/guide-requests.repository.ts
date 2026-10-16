@@ -5,18 +5,11 @@ import {
   GuideRequest,
   GuideRequestStatus,
 } from './entities/guide-request.entity';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class GuideRequestsRepository {
-  private requests: GuideRequest[] = [
-    {
-      id: 'guide-request-1',
-      travellerId: '20004',
-      tripId: 'trip-guide-request-1',
-      experienceId: 'trip-guide-request-1-legacy-experience-1',
-      status: GuideRequestStatus.PENDING,
-    },
-  ];
+  private requests: GuideRequest[] = loadSeedData<GuideRequest>('guide_requests.json');
 
   create(data: Partial<GuideRequest>): GuideRequest {
     const request: GuideRequest = {

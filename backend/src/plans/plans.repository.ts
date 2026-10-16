@@ -3,10 +3,11 @@ import { Plan } from './entities/plan.entity';
 import { createId } from '../common/utils/id';
 import { normalizeStructuredItinerary } from '../common/utils/itinerary-mapper';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class PlansRepository {
-  private plans: Plan[] = [
+  private plans: Plan[] = loadSeedData<Plan>('plans.json', [
     {
       id: 'plan-1',
       title: 'Kerala Backwaters Escape',
@@ -59,7 +60,7 @@ export class PlansRepository {
         hotelStars: 5,
       }),
     },
-  ];
+  ]);
 
   create(data: Partial<Omit<Plan, 'itinerary'>> & { itinerary?: unknown }): Plan {
     const id = data.id || createId();

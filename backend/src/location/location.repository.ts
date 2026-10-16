@@ -2,16 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Location } from './entities/location.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class LocationRepository {
-  private locations: Location[] = [
-    { locationId: 'loc-mumbai-1', locationName: 'Juhu Beach', cityId: 'city-mumbai-1' },
-    { locationId: 'loc-delhi-1', locationName: 'India Gate', cityId: 'city-delhi-1' },
-    { locationId: 'loc-jaipur-1', locationName: 'Hawa Mahal', cityId: 'city-jaipur-1' },
-    { locationId: 'loc-goa-beach-1', locationName: 'Calangute Beach', cityId: 'city-goa-1' },
-    { locationId: 'loc-darjeeling-1', locationName: 'Tiger Hill', cityId: 'city-kerala-1' },
-  ];
+  private locations: Location[] = loadSeedData<Location>('locations.json');
 
   create(data: Omit<Location, 'locationId'>): Location {
     const loc: Location = { locationId: createId(), ...data };

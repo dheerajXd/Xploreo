@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Auth, Role } from './entities/auth.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class AuthRepository {
-  private users: Auth[] = [
+  private users: Auth[] = loadSeedData<Auth>('users.json', [
     {
       userId: 'T001',
       username: 'T001',
@@ -16,7 +17,6 @@ export class AuthRepository {
       phone: '9123456780',
       status: 'active',
     },
-
     {
       userId: 'G001',
       username: 'G001',
@@ -33,9 +33,9 @@ export class AuthRepository {
       username: 'SA001',
       password: 'SA@123',
       role: Role.SUPERADMIN,
-      name: 'Rahul Varma',
-      email: 'rahul@xploreo.com',
-      phone: '9876543210',
+      name: 'Raj Sharma',
+      email: 'raj@xploreo.com',
+      phone: '9988776655',
       status: 'active',
     },
     {
@@ -43,8 +43,8 @@ export class AuthRepository {
       username: 'TA001',
       password: 'TA@123',
       role: Role.TECHADMIN,
-      name: 'Rahul Varma',
-      email: 'rahul@xploreo.com',
+      name: 'Dev Mehta',
+      email: 'dev@xploreo.com',
       phone: '9876543210',
       status: 'active',
     },
@@ -81,7 +81,7 @@ export class AuthRepository {
       status: 'active',
       region: 'Kerala',
     },
-  ];
+  ]);
 
   create(data: Partial<Auth>): Auth {
     const user: Auth = {

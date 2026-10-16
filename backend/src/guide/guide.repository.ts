@@ -1,27 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Guide } from './entities/guide.entity';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class GuideRepository {
-  private guides: Guide[] = [
-    {
-      userId: 'G001',
-      fname: 'Sreekar',
-      lname: '',
-      email: 'sreekar@gmail.com',
-      phone: 9876543210,
-      location: 'Mumbai',
-      prof_title: 'Senior Trek Guide',
-      years_exp: 7,
-      bio: 'Expert mountain guide with 7+ years experience in Western Ghats',
-      lang_spoken: ['English', 'Hindi', 'Marathi'],
-      certifications: ['First Aid', 'Mountain Rescue'],
-      bank_name: 'HDFC Bank',
-      bank_acc_num_end: 1234,
-      iban: 'IN123456789012345678',
-    },
-  ];
+  private guides: Guide[] = loadSeedData<Guide>('guides.json');
 
   create(guide: Guide): Guide {
     this.guides.push(guide);

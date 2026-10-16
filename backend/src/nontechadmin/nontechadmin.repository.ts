@@ -2,15 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Nontechadmin } from './entities/nontechadmin.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedRecord } from '../common/utils/seed-loader';
 
 @Injectable()
 export class NontechadminRepository {
-  private admins: Nontechadmin[] = [
-    {
-      adminId: 'NTA001',
-      location: 'Mumbai',
-    },
-  ];
+  private admins: Nontechadmin[] =
+    loadSeedRecord<{ nonTechAdmins: Nontechadmin[] }>('admins.json', { nonTechAdmins: [] }).nonTechAdmins || [];
 
   create(data: Omit<Nontechadmin, 'adminId'>): Nontechadmin {
     const admin: Nontechadmin = { adminId: createId(), ...data };

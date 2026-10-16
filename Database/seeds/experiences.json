@@ -1,0 +1,59 @@
+[
+  {
+    "id": "exp-1",
+    "partnerId": "XP001",
+    "title": "Western Ghats Guided Rainforest Trek",
+    "description": "A guided trek through lush Western Ghats forest trails with stream crossings and bird watching.",
+    "destination": "Coorg",
+    "category": "adventure",
+    "availability": "available",
+    "price": 1800,
+    "durationHours": 6,
+    "capacity": 15,
+    "booked": 9,
+    "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+    "nextSlot": "2026-10-16 07:00",
+    "slots": [
+      { "id": "slot-1", "date": "2026-10-16", "time": "07:00", "booked": 9, "capacity": 15, "available": true },
+      { "id": "slot-2", "date": "2026-10-22", "time": "07:00", "booked": 3, "capacity": 15, "available": true },
+      { "id": "slot-3", "date": "2026-09-28", "time": "07:00", "booked": 12, "capacity": 15, "available": true }
+    ]
+  },
+  {
+    "id": "exp-2",
+    "partnerId": "XP001",
+    "title": "Alleppey Sunrise Kayaking & Canal Walk",
+    "description": "Paddle through serene narrow backwater canals before the heat of the day, guided by local boatmen.",
+    "destination": "Alleppey",
+    "category": "adventure",
+    "availability": "available",
+    "price": 1450,
+    "durationHours": 3,
+    "capacity": 10,
+    "booked": 10,
+    "image": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80",
+    "nextSlot": "2026-10-16 06:00",
+    "slots": [
+      { "id": "slot-4", "date": "2026-10-16", "time": "06:00", "booked": 10, "capacity": 10, "available": false },
+      { "id": "slot-5", "date": "2026-10-19", "time": "06:00", "booked": 2, "capacity": 10, "available": true }
+    ]
+  },
+  {
+    "id": "exp-3",
+    "partnerId": "XP001",
+    "title": "Amber Fort Twilight Heritage Walk & Bazaar Food Trail",
+    "description": "Experience Amber Fort under evening illumination followed by authentic Rajasthani street delicacies.",
+    "destination": "Jaipur",
+    "category": "culture",
+    "availability": "available",
+    "price": 2200,
+    "durationHours": 4,
+    "capacity": 12,
+    "booked": 2,
+    "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80",
+    "nextSlot": "2026-10-24 16:30",
+    "slots": [
+      { "id": "slot-6", "date": "2026-10-24", "time": "16:30", "booked": 2, "capacity": 12, "available": true }
+    ]
+  }
+]

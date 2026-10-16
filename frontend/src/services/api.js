@@ -1,14 +1,29 @@
 import { identityHeaders } from "./session.js";
+import { dispatchMock } from "@/lib/mockKit/registry.js";
 
 const API_BASE_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000/api";
 
 export async function apiRequest(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
   const headers = {
     ...identityHeaders(),
     ...options.headers,
   };
   if (!(options.body instanceof FormData) && !headers["Content-Type"] && !headers["content-type"]) {
     headers["Content-Type"] = "application/json";
+  }
+
+  let body;
+  try {
+    body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+  } catch {
+    body = options.body;
+  }
+
+  // If MockKit has registered mock interceptors (VITE_MOCKS enabled), route locally
+  const mocked = await dispatchMock(method, path, { body, headers });
+  if (mocked.handled) {
+    return mocked.data;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {

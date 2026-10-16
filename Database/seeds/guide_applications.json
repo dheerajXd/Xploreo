@@ -1,0 +1,32 @@
+[
+  {
+    "id": "guide-app-1",
+    "guideId": "G001",
+    "planId": "plan-1",
+    "guidePricePerPerson": 1800,
+    "status": "accepted",
+    "autoDecisionReason": "Auto-accepted: Guide location 'Kerala' matches plan destination 'Kerala'.",
+    "createdAt": "2026-04-01T00:00:00.000Z",
+    "updatedAt": "2026-04-01T00:00:00.000Z"
+  },
+  {
+    "id": "guide-app-2",
+    "guideId": "G001",
+    "planId": "plan-jaipur-heritage-01",
+    "guidePricePerPerson": 2200,
+    "status": "accepted",
+    "autoDecisionReason": "Auto-accepted: Guide location 'Jaipur' matches plan destination 'Jaipur'.",
+    "createdAt": "2026-04-05T00:00:00.000Z",
+    "updatedAt": "2026-04-05T00:00:00.000Z"
+  },
+  {
+    "id": "guide-app-3",
+    "guideId": "G001",
+    "planId": "plan-2",
+    "guidePricePerPerson": 1500,
+    "status": "pending",
+    "autoDecisionReason": null,
+    "createdAt": "2026-10-10T00:00:00.000Z",
+    "updatedAt": "2026-10-10T00:00:00.000Z"
+  }
+]

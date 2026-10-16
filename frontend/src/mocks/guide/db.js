@@ -42,6 +42,10 @@ export const applications = [
   { id: 'app-2', guideId: 'guide-jpr-1', planId: 'plan-jpr-2', guidePricePerPerson: 2200, status: 'accepted', autoDecisionReason: "Auto-accepted: Guide location 'Jaipur' matches plan destination 'Jaipur'", createdAt: iso(-33), updatedAt: iso(-33) },
   { id: 'app-3', guideId: 'guide-jpr-1', planId: 'plan-jpr-3', guidePricePerPerson: 1200, status: 'pending', createdAt: iso(-2), updatedAt: iso(-2) },
   { id: 'app-9', guideId: 'guide-del-1', planId: 'plan-del-1', guidePricePerPerson: 1400, status: 'accepted', autoDecisionReason: "Auto-accepted: Guide location 'Delhi' matches plan destination 'Delhi'", createdAt: iso(-12), updatedAt: iso(-12) },
+  // Canonical G001 applications
+  { id: 'guide-app-1', guideId: 'G001', planId: 'plan-1', guidePricePerPerson: 1800, status: 'accepted', autoDecisionReason: "Auto-accepted: Guide location 'Kerala' matches plan destination 'Kerala'", createdAt: iso(-40), updatedAt: iso(-40) },
+  { id: 'guide-app-2', guideId: 'G001', planId: 'plan-jaipur-heritage-01', guidePricePerPerson: 2200, status: 'accepted', autoDecisionReason: "Auto-accepted: Guide location 'Jaipur' matches plan destination 'Jaipur'", createdAt: iso(-33), updatedAt: iso(-33) },
+  { id: 'guide-app-3', guideId: 'G001', planId: 'plan-2', guidePricePerPerson: 1500, status: 'pending', createdAt: iso(-2), updatedAt: iso(-2) },
 ];
 export const newApplicationId = () => `app-${applicationSeq++}`;
 
@@ -128,6 +132,17 @@ export const trips = [
     itinerary: itineraryFor([[['Chandni Chowk Food Walk', 'Chandni Chowk']]], 5), totalAmount: 31000, currentDay: 1,
     currentStop: '', currentLocation: '', trackingStatus: 'not_started', progressPercentage: 0, lastUpdatedAt: iso(-3),
   },
+  // Canonical G001 trips
+  {
+    id: 'trip-kerala-1', travellerId: 'T001', planId: 'plan-1', guideId: 'G001', status: 'confirmed',
+    itinerary: itineraryFor([[['Backwater Cruise', 'Alleppey']]], 1), totalAmount: 47000, currentDay: 1,
+    currentStop: 'Not started', currentLocation: 'Bangalore', trackingStatus: 'not_started', progressPercentage: 0, lastUpdatedAt: iso(0, 9),
+  },
+  {
+    id: 'trip-jaipur-1', travellerId: '20002', planId: 'plan-2', guideId: 'G001', status: 'started',
+    itinerary: itineraryFor(HERITAGE, -1), totalAmount: 38500, currentDay: 1,
+    currentStop: 'Jaipur Arrival', currentLocation: 'Jaipur', trackingStatus: 'ongoing', progressPercentage: 25, lastUpdatedAt: iso(0, 9),
+  },
 ];
 export const findTrip = (id) => trips.find((t) => t.id === id);
 
@@ -137,6 +152,7 @@ const traveller = (userId, fname, lname, phno, gender, dobYear) => ({
   gender, dob: `${dobYear}-04-12`, status: 'active', isDeleted: false,
 });
 export const travellers = [
+  traveller('T001', 'Anjali', 'Sharma', 9123456780, 'Female', 1995),
   traveller('trav-201', 'Ananya', 'Rao', 9876500201, 'Female', 1994),
   traveller('trav-202', 'Rohit', 'Menon', 9876500202, 'Male', 1988),
   traveller('trav-203', 'Sneha', 'Kulkarni', 9876500203, 'Female', 1991),

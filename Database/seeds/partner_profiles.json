@@ -1,0 +1,24 @@
+[
+  {
+    "userId": "HP001",
+    "businessName": "Heritage Stays Pvt Ltd",
+    "contactPerson": "Ramesh Kumar",
+    "email": "hotel.partner@xploreo.com",
+    "phone": "9000000001",
+    "location": "Jaipur",
+    "taxId": "GSTIN08AABCH1234F1Z5",
+    "bankAccount": "HDFC0001234-987654321",
+    "verificationStatus": "verified"
+  },
+  {
+    "userId": "XP001",
+    "businessName": "Pink City Days & Coastal Trails",
+    "contactPerson": "Sunita Verma",
+    "email": "experience.partner@xploreo.com",
+    "phone": "9000000002",
+    "location": "Kerala",
+    "taxId": "GSTIN32AABCP5678K1Z2",
+    "bankAccount": "ICIC0005678-123456789",
+    "verificationStatus": "verified"
+  }
+]

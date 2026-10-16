@@ -4,6 +4,7 @@ import {
   ExperienceBooking,
   ExperienceBookingStatus,
 } from './entities/experience-booking.entity';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 type CreateExperienceBookingRecord = Omit<
   ExperienceBooking,
@@ -12,7 +13,7 @@ type CreateExperienceBookingRecord = Omit<
 
 @Injectable()
 export class ExperienceBookingsRepository {
-  private readonly bookings: ExperienceBooking[] = [
+  private readonly bookings: ExperienceBooking[] = loadSeedData<any>('experience_bookings.json', [
     {
       id: 'exp-booking-1',
       experienceId: 'exp-1',
@@ -104,7 +105,11 @@ export class ExperienceBookingsRepository {
       status: ExperienceBookingStatus.CONFIRMED,
       createdAt: new Date('2026-10-14'),
     },
-  ];
+  ]).map((b) => ({
+    ...b,
+    createdAt: new Date(b.createdAt || Date.now()),
+    status: b.status as ExperienceBookingStatus,
+  }));
 
   create(data: CreateExperienceBookingRecord & { id?: string }): ExperienceBooking {
     if (data.id) {

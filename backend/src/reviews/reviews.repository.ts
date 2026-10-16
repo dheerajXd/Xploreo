@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateReviewDto, ReviewTargetType } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 export type Review = {
   id: number;
@@ -17,94 +18,12 @@ export type Review = {
 
 @Injectable()
 export class ReviewsRepository {
-  private reviews: Review[] = [
-    {
-      id: 1,
-      userId: 'seed-guest',
-      authorName: 'Meera Nair',
-      targetType: ReviewTargetType.HOTEL,
-      targetId: 'hotel-hp001-1',
-      rating: 5,
-      comment: 'Lovely heritage feel and very helpful staff.',
-      createdAt: new Date(),
-    },
-    {
-      id: 2,
-      userId: 'T001',
-      authorName: 'Anjali Sharma',
-      targetType: ReviewTargetType.GUIDE,
-      targetId: 'G001',
-      tripId: 'trip-kerala-completed',
-      rating: 5,
-      comment: 'Sreekar made our Kerala backwaters trip unforgettable. Punctual, knowledgeable and very friendly.',
-      createdAt: new Date('2026-04-18'),
-    },
-    {
-      id: 3,
-      userId: '20002',
-      authorName: 'Rohit Malhotra',
-      targetType: ReviewTargetType.GUIDE,
-      targetId: 'G001',
-      tripId: 'trip-goa-completed',
-      rating: 4,
-      comment: 'Great local tips around North Goa, though we started a bit late on day one.',
-      createdAt: new Date('2026-03-07'),
-    },
-    {
-      id: 4,
-      userId: '20004',
-      authorName: 'Priya Nair',
-      targetType: ReviewTargetType.GUIDE,
-      targetId: 'G001',
-      tripId: 'trip-manali-refunded',
-      rating: 5,
-      comment: 'Excellent guide, handled our refund situation professionally and kept us informed throughout.',
-      createdAt: new Date('2026-02-15'),
-    },
-    {
-      id: 5,
-      userId: 'T001',
-      authorName: 'Anjali Sharma',
-      targetType: ReviewTargetType.HOTEL,
-      targetId: 'hotel-hp001-2',
-      tripId: 'trip-kerala-completed',
-      rating: 5,
-      comment: 'Woke up to the backwaters right outside our window. The houseboat transfer made check-in effortless.',
-      createdAt: new Date('2026-04-18'),
-    },
-    {
-      id: 6,
-      userId: '20004',
-      authorName: 'Priya Nair',
-      targetType: ReviewTargetType.EXPERIENCE,
-      targetId: 'exp-1',
-      rating: 5,
-      comment: 'The Western Ghats trek was stunning and our host knew every trail. Highly recommend the early slot.',
-      createdAt: new Date('2026-09-29'),
-    },
-    {
-      id: 7,
-      userId: 'T001',
-      authorName: 'Anjali Sharma',
-      targetType: ReviewTargetType.EXPERIENCE,
-      targetId: 'exp-2',
-      rating: 4,
-      comment: 'Loved the cooking workshop, the food was fantastic. Workshop ran a little over time though.',
-      createdAt: new Date('2026-10-11'),
-    },
-    {
-      id: 8,
-      userId: '20002',
-      authorName: 'Rohit Malhotra',
-      targetType: ReviewTargetType.EXPERIENCE,
-      targetId: 'exp-3',
-      rating: 5,
-      comment: 'Perfect golden hour light and the guide knew exactly where to stand for the best shots.',
-      createdAt: new Date('2026-09-06'),
-    },
-  ];
+  private reviews: Review[] = loadSeedData<Review>('reviews.json').map((r) => ({
+    ...r,
+    createdAt: new Date(r.createdAt),
+  }));
 
-  private nextId = 9;
+  private nextId = Math.max(...this.reviews.map((r) => r.id), 0) + 1;
 
   create(dto: CreateReviewDto): Review {
     const review: Review = {

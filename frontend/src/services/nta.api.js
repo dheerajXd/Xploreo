@@ -167,8 +167,8 @@ export async function getNtaDashboardMetrics(session = {}) {
       recentBookingsTrend: { value: 18.2, direction: 'up', label: 'past 30 days' },
     };
   } catch (err) {
-    console.warn('[NTA API] Live dashboard telemetry fetch failed, using fallback:', err.message);
-    return JSON.parse(JSON.stringify(DEMO_NTA_DASHBOARD_METRICS));
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to load NTA dashboard telemetry.', status);
   }
 }
 
@@ -193,7 +193,13 @@ export async function getNtaRegionalSummary(session = {}) {
       : [];
 
     if (plansList.length === 0) {
-      return JSON.parse(JSON.stringify(DEMO_NTA_REGIONAL_SUMMARY));
+      return {
+        destinationsCount: 0,
+        destinationsList: [],
+        averagePrice: 0,
+        categoriesCount: 0,
+        categoriesList: [],
+      };
     }
 
     const destinations = [...new Set(plansList.map((p) => p.destination).filter(Boolean))];
@@ -213,8 +219,8 @@ export async function getNtaRegionalSummary(session = {}) {
       categoriesList: categories,
     };
   } catch (err) {
-    console.warn('[NTA API] Live regional summary fetch failed, using fallback:', err.message);
-    return JSON.parse(JSON.stringify(DEMO_NTA_REGIONAL_SUMMARY));
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to load NTA regional summary.', status);
   }
 }
 
@@ -503,8 +509,8 @@ export async function getGuideApplications(filters = {}, session = {}) {
 
     return items;
   } catch (err) {
-    console.warn('[NTA API] Live guide requests fetch failed, using fallback:', err.message);
-    return JSON.parse(JSON.stringify(ntaMockStore.applications));
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to load guide applications.', status);
   }
 }
 

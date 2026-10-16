@@ -2,55 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Hotel } from './entities/hotel.entity';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class HotelsRepository {
-  // Seed so the demo hotel partner (HP001) has a property to manage. Kept 'inactive' so it
-  // never shows up in traveller search results.
-  private readonly hotels: Hotel[] = [
-    {
-      id: 'hotel-hp001-1',
-      partnerId: 'HP001',
-      name: 'Xploreo Heritage Inn',
-      city: 'Jaipur',
-      location: 'Amer Road, Jaipur, Rajasthan',
-      description: 'A heritage-style stay close to the Amer Fort with modern comforts.',
-      stars: 4,
-      rating: 5,
-      reviewCount: 1,
-      pricePerNight: 4500,
-      taxesAndFees: 540,
-      totalRooms: 15,
-      availableRooms: 15,
-      image: '',
-      images: [],
-      amenities: ['WiFi', 'Breakfast', 'Parking', 'Air Conditioning'],
-      status: 'inactive',
-      isDeleted: false,
-      createdAt: new Date(),
-    },
-    {
-      id: 'hotel-hp001-2',
-      partnerId: 'HP001',
-      name: 'Xploreo Backwater Resort',
-      city: 'Alleppey',
-      location: 'Punnamada, Alleppey, Kerala',
-      description: 'A waterfront resort on the Alleppey backwaters with private houseboat transfers.',
-      stars: 4,
-      rating: 5,
-      reviewCount: 1,
-      pricePerNight: 6200,
-      taxesAndFees: 744,
-      totalRooms: 20,
-      availableRooms: 14,
-      image: '',
-      images: [],
-      amenities: ['WiFi', 'Breakfast', 'Pool', 'Houseboat Transfer', 'Air Conditioning'],
-      status: 'active',
-      isDeleted: false,
-      createdAt: new Date('2026-01-10'),
-    },
-  ];
+  private readonly hotels: Hotel[] = loadSeedData<Hotel>('hotels.json').map((h) => ({
+    ...h,
+    createdAt: new Date(h.createdAt || Date.now()),
+  }));
 
   create(
     partnerId: string,

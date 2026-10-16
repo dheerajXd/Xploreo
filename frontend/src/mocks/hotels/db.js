@@ -43,6 +43,7 @@ export const hotelUsers = [
   { userId: 'hotel-partner-del',   username: 'capital.inns.del',    name: 'Capital Inns Delhi',       email: 'book@capitalinns.example',   phone: '+91 98765 60004', role: 'hotel', location: 'Delhi',   businessName: 'Capital Inns Delhi' },
   { userId: 'hotel-partner-mum',   username: 'skyline.hotels.mum',  name: 'Skyline Hotels Mumbai',    email: 'res@skylinehotels.example',  phone: '+91 98765 60005', role: 'hotel', location: 'Mumbai',  businessName: 'Skyline Hotels Ltd' },
   { userId: 'hotel-partner-ker',   username: 'backwater.stays.ker', name: 'Backwater Stays Kerala',   email: 'hq@backwaterstays.example',  phone: '+91 98765 60006', role: 'hotel', location: 'Kerala',  businessName: 'Backwater Stays' },
+  { userId: 'HP001',               username: 'hotel.partner@xploreo.com', name: 'Heritage Stays Jaipur', email: 'hotel.partner@xploreo.com', phone: '+91 90000 00001', role: 'hotel', location: 'Jaipur',  businessName: 'Heritage Stays Pvt Ltd' },
 ];
 
 export function findHotelUser(id) {
@@ -95,6 +96,22 @@ export const hotels = [
     2, 1200, 180, 30,
     'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80&w=800',
     'budget',
+  ),
+  hotel(
+    'hotel-hp001-1', 'HP001',
+    'The Heritage Haveli & Spa, Jaipur', 'Jaipur', 'Civil Lines, Jaipur',
+    'A magnificent 18th-century royal haveli restored into a luxury heritage haven in Jaipur.',
+    5, 4500, 500, 20,
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800',
+    'luxury',
+  ),
+  hotel(
+    'hotel-hp001-2', 'HP001',
+    'Xploreo Backwater Resort', 'Kerala', 'Alleppey, Kerala',
+    'Serene waterfront retreat overlooking tranquil backwaters with luxury villas.',
+    4, 5200, 600, 15,
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=800',
+    'luxury',
   ),
 
   // ── Goa: partner A owns hotel-goa-1; partner B owns hotel-goa-2 (for 403 isolation) ──

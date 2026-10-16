@@ -100,29 +100,14 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
         let loaded = null;
 
         if (effectiveType === 'hotel') {
-          try {
-            const raw = await getHotel(id);
-            if (raw) loaded = mapBackendHotel(raw);
-          } catch {
-            const fixture = DEFAULT_HOTEL_FIXTURES.find((h) => String(h.id) === String(id));
-            if (fixture) loaded = fixture;
-          }
+          const raw = await getHotel(id);
+          if (raw) loaded = mapBackendHotel(raw);
         } else if (effectiveType === 'experience') {
-          try {
-            const raw = await getExperience(id);
-            if (raw) loaded = mapBackendExperience(raw);
-          } catch {
-            const fixture = DEFAULT_EXPERIENCE_FIXTURES.find((e) => String(e.id) === String(id));
-            if (fixture) loaded = fixture;
-          }
+          const raw = await getExperience(id);
+          if (raw) loaded = mapBackendExperience(raw);
         } else if (effectiveType === 'package') {
-          try {
-            const raw = await getPlanById(id);
-            if (raw) loaded = mapBackendPlan(raw);
-          } catch {
-            const fixture = DEFAULT_PLAN_FIXTURES.find((p) => String(p.id) === String(id));
-            if (fixture) loaded = fixture;
-          }
+          const raw = await getPlanById(id);
+          if (raw) loaded = mapBackendPlan(raw);
         }
 
         if (!isCancelled) {

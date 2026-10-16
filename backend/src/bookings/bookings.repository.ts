@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Booking, BookingStatus } from './entities/booking.entity';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 type CreateBookingRecord = Omit<
   Booking,
@@ -9,8 +10,6 @@ type CreateBookingRecord = Omit<
 
 @Injectable()
 export class BookingsRepository {
-  // Seed history for the demo hotel partner's hotel (hotel-hp001-1). Uses a non-traveller
-  // guest id so it never appears in a real traveller's booking list.
   private readonly bookings: Booking[] = seedBookings();
 
   create(data: CreateBookingRecord & { id?: string }): Booking {
@@ -74,6 +73,16 @@ export class BookingsRepository {
 }
 
 function seedBookings(): Booking[] {
+  const loaded = loadSeedData<any>('hotel_bookings.json', []);
+  if (loaded && loaded.length > 0) {
+    return loaded.map((b) => ({
+      ...b,
+      createdAt: new Date(b.createdAt || Date.now()),
+      updatedAt: new Date(b.updatedAt || Date.now()),
+      status: b.status as BookingStatus,
+    }));
+  }
+
   const day = (offset: number) => {
     const d = new Date();
     d.setDate(d.getDate() + offset);

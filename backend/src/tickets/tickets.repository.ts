@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Ticket, TicketPriority, TicketStatus } from './entities/ticket.entity';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 type CreateTicketRecord = {
   travellerId: string;
@@ -13,7 +14,11 @@ type CreateTicketRecord = {
 
 @Injectable()
 export class TicketsRepository {
-  private readonly tickets: Ticket[] = [];
+  private readonly tickets: Ticket[] = loadSeedData<any>('tickets.json').map((t) => ({
+    ...t,
+    createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+    resolvedAt: t.resolvedAt ? new Date(t.resolvedAt) : undefined,
+  }));
 
   create(data: CreateTicketRecord): Ticket {
     const ticket: Ticket = {

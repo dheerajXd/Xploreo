@@ -1,21 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Traveller, Interest } from './entities/traveller.entity';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class TravellerRepository {
-  private travellers: Traveller[] = [
-    {
-      userId: '20001',
-      fname: 'Anjali',
-      lname: 'Sharma',
-      email: 'anjali@xploreo.com',
-      phno: 9123456780,
-      plang: ['English', 'Gujarati'],
-      bio: 'Loves exploring local cultures and street food',
-      interests: [Interest.FOOD, Interest.CULTURE],
-    },
-  ];
+  private travellers: Traveller[] = loadSeedData<Traveller>('travellers.json');
 
   create(traveller: Traveller): Traveller {
     this.travellers.push(traveller);
@@ -27,7 +17,7 @@ export class TravellerRepository {
   }
 
   findById(userId: string): Traveller | undefined {
-    return this.travellers.find((t) => t.userId === userId);
+    return this.travellers.find((t) => t.userId === userId || (t as any).legacyId === userId);
   }
 
   update(userId: string, data: Partial<Traveller>): Traveller | undefined {

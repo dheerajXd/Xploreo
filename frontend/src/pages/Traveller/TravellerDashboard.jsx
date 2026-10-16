@@ -117,7 +117,7 @@ export default function TravellerDashboard({
   bookings = [],
   trips = [],
   reviews = [],
-  currentTravellerId = 'trav-usr-20001',
+  currentTravellerId = 'T001',
   onSubmitReview,
   onSubmitTicket,
   onRetry,

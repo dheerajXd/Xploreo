@@ -116,19 +116,19 @@ export async function getDashboardMetrics(session = {}) {
     const activeTripsCount = trips.filter((t) => t.status === 'started' || t.status === 'confirmed').length;
 
     return {
-      totalUsers: usersCount || DEMO_DASHBOARD_METRICS.totalUsers,
-      totalUsersChangePct: DEMO_DASHBOARD_METRICS.totalUsersChangePct,
-      grossRevenue: totalRevenue || DEMO_DASHBOARD_METRICS.grossRevenue,
-      grossRevenueChangePct: DEMO_DASHBOARD_METRICS.grossRevenueChangePct,
-      totalBookings: trips.length || DEMO_DASHBOARD_METRICS.totalBookings,
-      totalBookingsChangePct: DEMO_DASHBOARD_METRICS.totalBookingsChangePct,
-      activeTrips: activeTripsCount || DEMO_DASHBOARD_METRICS.activeTrips,
-      activeTripsChangePct: DEMO_DASHBOARD_METRICS.activeTripsChangePct,
-      periodLabel: DEMO_DASHBOARD_METRICS.periodLabel,
+      totalUsers: usersCount,
+      totalUsersChangePct: 0,
+      grossRevenue: totalRevenue,
+      grossRevenueChangePct: 0,
+      totalBookings: trips.length,
+      totalBookingsChangePct: 0,
+      activeTrips: activeTripsCount,
+      activeTripsChangePct: 0,
+      periodLabel: 'Live Performance',
     };
   } catch (err) {
-    console.warn('[superadmin.api] Falling back to demo metrics due to:', err.message);
-    return { ...DEMO_DASHBOARD_METRICS, totalUsers: mockStore.users.length };
+    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    throw new ApiError(err.message || 'Failed to load executive dashboard metrics.', status);
   }
 }
 

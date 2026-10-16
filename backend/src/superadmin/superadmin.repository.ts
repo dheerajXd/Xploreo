@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Superadmin } from './entities/superadmin.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedRecord } from '../common/utils/seed-loader';
 
 @Injectable()
 export class SuperadminRepository {
-  private admins: Superadmin[] = [
-    { adminId: 'seed-superadmin-1', fname: 'Raj', lname: 'Sharma', email: 'raj@xploreo.com', phone_number: 9988776655 },
-  ];
+  private admins: Superadmin[] =
+    loadSeedRecord<{ superAdmins: Superadmin[] }>('admins.json', { superAdmins: [] }).superAdmins || [];
 
   create(data: Omit<Superadmin, 'adminId'>): Superadmin {
     const admin: Superadmin = { adminId: createId(), ...data };
@@ -18,7 +18,7 @@ export class SuperadminRepository {
   findAll(): Superadmin[] { return this.admins; }
 
   findById(id: string): Superadmin | undefined {
-    return this.admins.find((a) => a.adminId === id);
+    return this.admins.find((a) => a.adminId === id || (a as any).legacyId === id);
   }
 
   update(id: string, data: Partial<Superadmin>): Superadmin | undefined {

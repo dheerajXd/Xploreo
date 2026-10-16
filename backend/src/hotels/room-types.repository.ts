@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { RoomType } from './entities/room-type.entity';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class RoomTypesRepository {
-  private readonly roomTypes: RoomType[] = [
+  private readonly roomTypes: RoomType[] = loadSeedData<RoomType>('room_types.json', [
     {
       id: 'room-hp001-deluxe',
       hotelId: 'hotel-hp001-1',
@@ -30,7 +31,7 @@ export class RoomTypesRepository {
       amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Balcony'],
       images: [],
     },
-  ];
+  ]);
 
   create(
     hotelId: string,

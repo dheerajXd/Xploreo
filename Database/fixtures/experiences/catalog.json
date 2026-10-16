@@ -1,0 +1,100 @@
+[
+  {
+    "id": "exp-jai-01",
+    "experienceId": "EXP-JAI-101",
+    "canonicalExperienceId": "exp-3",
+    "title": "Amer Fort Sunrise Guided Walk",
+    "destination": "Jaipur",
+    "category": "Heritage & History",
+    "pricePerPerson": 1200,
+    "durationHours": 3.5,
+    "defaultStartTime": "07:00",
+    "defaultEndTime": "10:30",
+    "description": "Expert historian-led walk across the Sheesh Mahal, ramparts, and Maota Lake at dawn."
+  },
+  {
+    "id": "exp-jai-02",
+    "experienceId": "EXP-JAI-102",
+    "title": "Old Bazaar Spice & Textile Trail",
+    "destination": "Jaipur",
+    "category": "Cultural & Shopping",
+    "pricePerPerson": 850,
+    "durationHours": 2.5,
+    "defaultStartTime": "16:00",
+    "defaultEndTime": "18:30",
+    "description": "Navigate Johari and Bapu Bazaars with a local insider, discovering natural dye textiles and street teas."
+  },
+  {
+    "id": "exp-jai-03",
+    "experienceId": "EXP-JAI-103",
+    "title": "Blue Pottery Artisan Workshop",
+    "destination": "Jaipur",
+    "category": "Art & Craftsmanship",
+    "pricePerPerson": 1500,
+    "durationHours": 2,
+    "defaultStartTime": "15:00",
+    "defaultEndTime": "17:00",
+    "description": "Hands-on molding and painting workshop in a master artisan studio in Sanganer."
+  },
+  {
+    "id": "exp-goa-01",
+    "experienceId": "EXP-GOA-201",
+    "title": "Fontainhas Latin Quarter Heritage Walk",
+    "destination": "Goa",
+    "category": "Heritage & Architecture",
+    "pricePerPerson": 900,
+    "durationHours": 2.5,
+    "defaultStartTime": "09:00",
+    "defaultEndTime": "11:30",
+    "description": "Wander past vibrant Portuguese colonial villas, art galleries, and traditional bakeries."
+  },
+  {
+    "id": "exp-goa-02",
+    "experienceId": "EXP-GOA-202",
+    "title": "Organic Spice Plantation & Goan Feast",
+    "destination": "Goa",
+    "category": "Nature & Culinary",
+    "pricePerPerson": 1400,
+    "durationHours": 4,
+    "defaultStartTime": "10:00",
+    "defaultEndTime": "14:00",
+    "description": "Guided tour of medicinal herbs, cardamom, and vanilla plantations followed by a buffet lunch."
+  },
+  {
+    "id": "exp-del-01",
+    "experienceId": "EXP-DEL-301",
+    "title": "Old Delhi Culinary & Street Food Safari",
+    "destination": "Delhi",
+    "category": "Food & Culinary",
+    "pricePerPerson": 1100,
+    "durationHours": 3,
+    "defaultStartTime": "17:00",
+    "defaultEndTime": "20:00",
+    "description": "Sample legendary paranthas, kebabs, jalebis, and spiced lassis through hidden gullies."
+  },
+  {
+    "id": "exp-bom-01",
+    "experienceId": "EXP-BOM-401",
+    "title": "South Mumbai Art Deco & Heritage Promenade",
+    "destination": "Mumbai",
+    "category": "Architecture & Heritage",
+    "pricePerPerson": 950,
+    "durationHours": 2.5,
+    "defaultStartTime": "08:30",
+    "defaultEndTime": "11:00",
+    "description": "Explore the second largest concentration of Art Deco buildings in the world along Oval Maidan."
+  },
+  {
+    "id": "exp-ker-01",
+    "experienceId": "EXP-KER-501",
+    "canonicalExperienceId": "exp-2",
+    "title": "Alleppey Sunrise Kayaking & Canal Walk",
+    "destination": "Kerala",
+    "category": "Adventure & Nature",
+    "pricePerPerson": 1450,
+    "durationHours": 3,
+    "defaultStartTime": "06:00",
+    "defaultEndTime": "09:00",
+    "description": "Paddle through serene narrow backwater canals before the heat of the day, guided by local boatmen."
+  }
+]

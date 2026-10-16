@@ -1,0 +1,38 @@
+[
+  {
+    "id": "room-hp001-deluxe",
+    "hotelId": "hotel-hp001-1",
+    "type": "Heritage Deluxe Room",
+    "description": "King bed with courtyard views and Rajasthani decor.",
+    "pricePerNight": 4500,
+    "maxOccupancy": 2,
+    "totalRooms": 10,
+    "availableRooms": 10,
+    "amenities": ["WiFi", "Breakfast", "Air Conditioning"],
+    "images": []
+  },
+  {
+    "id": "room-hp001-suite",
+    "hotelId": "hotel-hp001-1",
+    "type": "Royal Heritage Suite",
+    "description": "Living area, marble bath and rooftop access.",
+    "pricePerNight": 7500,
+    "maxOccupancy": 4,
+    "totalRooms": 5,
+    "availableRooms": 5,
+    "amenities": ["WiFi", "Breakfast", "Balcony", "Mini Bar", "Air Conditioning"],
+    "images": []
+  },
+  {
+    "id": "room-hp002-villa",
+    "hotelId": "hotel-hp001-2",
+    "type": "Backwater Villa",
+    "description": "Private villa with plunge pool and panoramic canal view.",
+    "pricePerNight": 6200,
+    "maxOccupancy": 3,
+    "totalRooms": 12,
+    "availableRooms": 8,
+    "amenities": ["WiFi", "Breakfast", "Plunge Pool", "Balcony"],
+    "images": []
+  }
+]

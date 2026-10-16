@@ -1,0 +1,152 @@
+[
+  {
+    "id": "plan-1",
+    "title": "Kerala Backwaters & Hill Station Escape",
+    "description": "Relax in serene Alleppey backwaters with houseboat stays and tea garden excursions in Munnar.",
+    "originCity": "Bangalore",
+    "destination": "Kerala",
+    "status": "available",
+    "durationNights": 5,
+    "pricePerPerson": 22000,
+    "hotelStars": 4,
+    "includesFlight": true,
+    "image": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Backwaters", "Houseboat", "Tea Gardens", "South India"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "transport": {
+          "id": "plan-1-day-1-trans",
+          "provider": "Self-Arranged",
+          "vehicleType": "Sedan",
+          "pickupLocation": "Bangalore",
+          "dropoffLocation": "Kochi",
+          "pickupAt": "2026-07-01T09:00:00.000Z",
+          "status": "planned"
+        },
+        "hotel": {
+          "id": "plan-1-day-1-htl",
+          "hotelId": "hotel-hp001-2",
+          "name": "Xploreo Backwater Resort",
+          "checkInDate": "2026-07-01",
+          "checkOutDate": "2026-07-06",
+          "roomType": "Backwater Villa",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "plan-1-day-2-exp-1",
+              "experienceId": "exp-2",
+              "title": "Alleppey Sunrise Kayaking & Canal Walk",
+              "location": "Alleppey",
+              "startsAt": "2026-07-02T06:00:00.000Z",
+              "endsAt": "2026-07-02T09:00:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-2",
+    "title": "Rajasthan Royal Heritage Trail",
+    "description": "Explore majestic forts, royal palaces, desert culture, and bustling bazaars in Jaipur & Udaipur.",
+    "originCity": "Delhi",
+    "destination": "Jaipur",
+    "status": "available",
+    "durationNights": 7,
+    "pricePerPerson": 35000,
+    "hotelStars": 5,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Heritage", "Forts", "Palaces", "Culture"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "transport": {
+          "id": "plan-2-day-1-trans",
+          "provider": "Self-Arranged",
+          "vehicleType": "SUV",
+          "pickupLocation": "Delhi",
+          "dropoffLocation": "Jaipur",
+          "pickupAt": "2026-08-01T08:00:00.000Z",
+          "status": "planned"
+        },
+        "hotel": {
+          "id": "plan-2-day-1-htl",
+          "hotelId": "hotel-hp001-1",
+          "name": "Xploreo Heritage Inn",
+          "checkInDate": "2026-08-01",
+          "checkOutDate": "2026-08-08",
+          "roomType": "Heritage Deluxe Room",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "plan-2-day-2-exp-1",
+              "experienceId": "exp-3",
+              "title": "Amber Fort Twilight Heritage Walk & Bazaar Food Trail",
+              "location": "Jaipur",
+              "startsAt": "2026-08-02T16:30:00.000Z",
+              "endsAt": "2026-08-02T20:30:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-jaipur-heritage-01",
+    "title": "Royal Jaipur Heritage & Palaces",
+    "description": "Immerse yourself in Rajasthan royal history with guided tours through Amer Fort, City Palace, and traditional artisan workshops in the Pink City.",
+    "originCity": "Delhi",
+    "destination": "Jaipur",
+    "status": "available",
+    "durationNights": 4,
+    "pricePerPerson": 24500,
+    "hotelStars": 4,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Heritage", "Culture", "Architecture", "Artisans"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-jaipur-palace-01",
+          "hotelId": "hotel-hp001-1",
+          "name": "Xploreo Heritage Inn",
+          "checkInDate": "2026-11-01",
+          "checkOutDate": "2026-11-05",
+          "roomType": "Heritage Deluxe Room",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-jai-amer-01",
+              "experienceId": "exp-3",
+              "title": "Amer Fort Twilight Heritage Walk & Bazaar Food Trail",
+              "location": "Amer, Jaipur",
+              "startsAt": "2026-11-02T16:30:00.000Z",
+              "endsAt": "2026-11-02T20:30:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

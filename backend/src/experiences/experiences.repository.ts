@@ -6,10 +6,11 @@ import {
 } from './entities/experience.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class ExperiencesRepository {
-  private experiences: Experience[] = [
+  private experiences: Experience[] = loadSeedData<Experience>('experiences.json', [
     {
       id: 'exp-1',
       partnerId: 'XP001',
@@ -68,7 +69,7 @@ export class ExperiencesRepository {
         { id: 'slot-7', date: '2026-09-05', time: '17:00', booked: 8, capacity: 12, available: true },
       ],
     },
-  ];
+  ]);
 
   create(partnerId: string, data: Partial<Experience>): Experience {
     const exp: Experience = {

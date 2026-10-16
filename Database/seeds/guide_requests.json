@@ -1,0 +1,10 @@
+[
+  {
+    "id": "guide-request-1",
+    "travellerId": "20004",
+    "tripId": "trip-guide-request-1",
+    "experienceId": "exp-2",
+    "guideId": "G001",
+    "status": "pending"
+  }
+]

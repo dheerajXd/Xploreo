@@ -63,6 +63,14 @@ export const users = [
   { userId: 'hotel-partner-del', username: 'capital.inns', name: 'Capital Inns Delhi', email: 'book@capitalinns.example', phone: '+91 98765 60004', role: 'hotel', location: 'Delhi', businessName: 'Capital Inns Delhi' },
   { userId: 'hotel-partner-mum', username: 'skyline.hotels', name: 'Skyline Hotels Mumbai', email: 'res@skylinehotels.example', phone: '+91 98765 60005', role: 'hotel', location: 'Mumbai', businessName: 'Skyline Hotels Ltd' },
   { userId: 'hotel-partner-ker', username: 'backwater.stays', name: 'Backwater Stays Kerala', email: 'hq@backwaterstays.example', phone: '+91 98765 60006', role: 'hotel', location: 'Kerala', businessName: 'Backwater Stays' },
+  // Canonical M5 role users
+  { userId: 'T001', username: 'anjali@xploreo.com', name: 'Anjali Sharma', email: 'anjali@xploreo.com', phone: '9123456780', role: 'traveller', location: 'Jaipur', businessName: '' },
+  { userId: 'G001', username: 'sreekar@gmail.com', name: 'Sreekar Sharma', email: 'sreekar@gmail.com', phone: '9876543210', role: 'guide', location: 'Mumbai', businessName: '' },
+  { userId: 'HP001', username: 'hotel.partner@xploreo.com', name: 'The Heritage Haveli & Spa, Jaipur', email: 'hotel.partner@xploreo.com', phone: '9000000001', role: 'hotel', location: 'Jaipur', businessName: 'Heritage Stays Pvt Ltd' },
+  { userId: 'XP001', username: 'experience.partner@xploreo.com', name: 'Jaipur Royal Walking Tours', email: 'experience.partner@xploreo.com', phone: '9000000002', role: 'experience', location: 'Jaipur', businessName: 'Pink City Days' },
+  { userId: 'TA001', username: 'tech.admin@xploreo.com', name: 'Dev Mehta', email: 'dev@xploreo.com', phone: '9876543210', role: 'techadmin', location: 'Bangalore', businessName: '' },
+  { userId: 'SA001', username: 'super.admin@xploreo.com', name: 'Raj Sharma', email: 'raj@xploreo.com', phone: '9988776655', role: 'superadmin', location: 'Bangalore', businessName: '' },
+  { userId: 'NTA001', username: 'nontech.admin@xploreo.com', name: 'Neha Mehra', email: 'nontech.admin@xploreo.com', phone: '9876543211', role: 'nontechadmin', location: 'Jaipur', businessName: '' },
 ];
 
 // Guide professional details (backend: /guide/:id, GuideEntity). Only the fields the profile page edits.
@@ -103,6 +111,11 @@ const TEMPLATES = {
     { title: 'Old Delhi Heritage Walk', category: 'culture', price: 1100, durationHours: 3, capacity: 10, description: 'Chandni Chowk, Jama Masjid and the lanes in between.', scenario: 'single' },
   ],
   'exp-ker-1': [],
+  'XP001': [
+    { title: 'Western Ghats Guided Rainforest Trek', category: 'adventure', price: 1800, durationHours: 6, capacity: 15, description: 'A guided trek through lush Western Ghats forest trails with stream crossings and bird watching.' },
+    { title: 'Traditional Kerala Cooking Masterclass', category: 'cultural', price: 2200, durationHours: 3, capacity: 10, description: 'Hands-on culinary session learning authentic spice blends, seafood curries, and appam making.' },
+    { title: 'Amber Fort Twilight Heritage Walk & Bazaar Food Trail', category: 'sightseeing', price: 1500, durationHours: 2.5, capacity: 20, description: 'Exclusive evening walking tour exploring Rajput architecture, hidden tunnels, and fort ramparts.' },
+  ],
 };
 
 const OFFSETS = [-4, -1, 0, 1, 2, 3, 6, 9];

@@ -22,7 +22,7 @@ export function isPlansMockMode() {
       ? import.meta.env.VITE_MOCKS
       : null;
   if (!envMocks) {
-    return true;
+    return false;
   }
   return envMocks === 'all' || envMocks.split(',').map((s) => s.trim()).includes('plans');
 }

@@ -2,16 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { City } from './entities/city.entity';
 import { createId } from '../common/utils/id';
 import { stripUndefined } from '../common/utils/strip-undefined';
+import { loadSeedData } from '../common/utils/seed-loader';
 
 @Injectable()
 export class CitiesRepository {
-  private cities: City[] = [
-    { id: 'city-mumbai-1', name: 'Mumbai' },
-    { id: 'city-delhi-1', name: 'Delhi' },
-    { id: 'city-jaipur-1', name: 'Jaipur' },
-    { id: 'city-goa-1', name: 'Goa' },
-    { id: 'city-kerala-1', name: 'Kerala' },
-  ];
+  private cities: City[] = loadSeedData<City>('cities.json');
 
   create(data: Omit<City, 'id'>): City {
     const city: City = { id: createId(), ...data };

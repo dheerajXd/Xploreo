@@ -37,7 +37,7 @@ const EXPECTED_CATEGORIES = ['Booking', 'Payment', 'Hotel', 'Guide Inquiry', 'Ge
  */
 export default function TechAdminDashboard({ user = null, onNavigateToTickets = null }) {
   const session = useMemo(() => {
-    return user || { userId: 'techadmin-01', role: 'techadmin' };
+    return user || { userId: 'TA001', role: 'techadmin' };
   }, [user]);
 
   // Tickets Data State

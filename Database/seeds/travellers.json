@@ -1,0 +1,43 @@
+[
+  {
+    "userId": "T001",
+    "legacyId": "20001",
+    "fname": "Anjali",
+    "lname": "Sharma",
+    "email": "anjali@xploreo.com",
+    "phno": 9123456780,
+    "plang": ["English", "Hindi", "Gujarati"],
+    "bio": "Loves exploring local cultures and street food",
+    "interests": ["food", "culture"]
+  },
+  {
+    "userId": "20002",
+    "fname": "Rohit",
+    "lname": "Malhotra",
+    "email": "rohit.m@example.com",
+    "phno": 9812345671,
+    "plang": ["English", "Hindi"],
+    "bio": "Frequent business traveller and heritage enthusiast",
+    "interests": ["heritage", "sightseeing"]
+  },
+  {
+    "userId": "20004",
+    "fname": "Priya",
+    "lname": "Nair",
+    "email": "priya.nair@example.com",
+    "phno": 9812345672,
+    "plang": ["English", "Malayalam"],
+    "bio": "Nature lover exploring South India backwaters",
+    "interests": ["nature", "wildlife"]
+  },
+  {
+    "userId": "seed-guest",
+    "fname": "Meera",
+    "lname": "Nair",
+    "email": "meera.nair@example.com",
+    "phno": 9812345679,
+    "plang": ["English", "Malayalam"],
+    "bio": "Heritage enthusiast and leisure traveller",
+    "interests": ["heritage", "culture"]
+  }
+]

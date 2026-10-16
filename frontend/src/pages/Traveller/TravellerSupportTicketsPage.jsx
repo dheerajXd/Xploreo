@@ -35,7 +35,7 @@ export default function TravellerSupportTicketsPage({
         name: 'Anjali Sharma',
         username: 'Anjali Sharma',
         role: 'traveller',
-        userId: currentTravellerId || '20001',
+        userId: currentTravellerId || 'T001',
       }
     );
   }, [user, currentTravellerId]);

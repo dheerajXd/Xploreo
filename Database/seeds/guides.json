@@ -1,0 +1,50 @@
+[
+  {
+    "userId": "G001",
+    "fname": "Sreekar",
+    "lname": "Sharma",
+    "email": "sreekar@gmail.com",
+    "phone": 9876543210,
+    "location": "Mumbai",
+    "prof_title": "Senior Western Ghats Trek Leader & Heritage Guide",
+    "years_exp": 7,
+    "bio": "Expert mountain guide with 7+ years experience in Western Ghats and cultural trails.",
+    "lang_spoken": ["English", "Hindi", "Marathi", "Rajasthani"],
+    "certifications": ["First Aid", "Mountain Rescue", "Govt Tourism License"],
+    "bank_name": "HDFC Bank",
+    "bank_acc_num_end": 1234,
+    "iban": "IN123456789012345678"
+  },
+  {
+    "userId": "G002",
+    "fname": "Arjun",
+    "lname": "Nair",
+    "email": "arjun.nair@example.com",
+    "phone": 9822334455,
+    "location": "Kochi",
+    "prof_title": "Kerala Backwaters & Wildlife Naturalist",
+    "years_exp": 9,
+    "bio": "Lifelong resident naturalist specializing in avian biodiversity, mangrove ecology, and local spice culture.",
+    "lang_spoken": ["English", "Malayalam", "Hindi", "Tamil"],
+    "certifications": ["Naturalist Guide Level 2", "CPR Certified"],
+    "bank_name": "State Bank of India",
+    "bank_acc_num_end": 5678,
+    "iban": "IN987654321098765432"
+  },
+  {
+    "userId": "G003",
+    "fname": "Priya",
+    "lname": "Rathore",
+    "email": "priya.rathore@example.com",
+    "phone": 9811223344,
+    "location": "Jaipur",
+    "prof_title": "Architectural Historian & City Storyteller",
+    "years_exp": 5,
+    "bio": "Passionate about Rajput architecture, royal cuisine histories, and hidden gem alleyways in the Pink City.",
+    "lang_spoken": ["English", "Hindi", "Rajasthani"],
+    "certifications": ["Archaeological Heritage Expert", "Official City Tour Guide"],
+    "bank_name": "ICICI Bank",
+    "bank_acc_num_end": 9012,
+    "iban": "IN456789012345678901"
+  }
+]

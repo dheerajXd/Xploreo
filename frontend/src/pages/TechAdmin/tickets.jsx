@@ -40,14 +40,7 @@ export default function TechAdminTicketsPage({ previewMockData = false }) {
       const data = await getTickets(session);
       setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
-      // In standalone dev/preview environments without backend running, fallback gracefully
-      if (err?.message?.includes('NetworkError') || err?.message?.includes('Failed to fetch')) {
-        console.warn('TechAdmin Tickets: Backend unavailable, displaying mock preview fixtures.');
-        setTickets(MOCK_TICKETS);
-        setErrorMessage(null);
-      } else {
-        setErrorMessage(err.message || 'Failed to load support tickets.');
-      }
+      setErrorMessage(err.message || 'Failed to load support tickets.');
     } finally {
       setIsLoading(false);
     }
