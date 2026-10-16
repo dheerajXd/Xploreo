@@ -2,10 +2,10 @@
 // add / edit / delete. All data comes from /hotels/:id/rooms on the backend.
 import { useCallback, useMemo, useState } from 'react';
 import { createRoomType, deleteRoomType, listHotels, listRooms, updateRoomType } from '@/services/hotels.api.js';
+import ImageUploader from '@/components/common/ImageUploader.jsx';
 import HotelPage, { EmptyState, HotelModal, LoadState, PageHeader } from '@/components/hotel/HotelPage.jsx';
 import { inr, useHotelData, useToast } from '@/components/hotel/hotelKit.jsx';
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=900';
 const EMPTY_FORM = { hotelId: '', type: '', pricePerNight: '', maxOccupancy: '', totalRooms: '', status: 'active', image: '' };
 
 export default function HotelRooms() {
@@ -128,7 +128,7 @@ export default function HotelRooms() {
                   return (
                     <article key={room.id} className="hotel-service-card">
                       <div className="hotel-service-header">
-                        <img src={room.images?.[0] || FALLBACK_IMAGE} className="hotel-service-img" alt={room.type} />
+                        {room.images?.[0] ? <img src={room.images[0]} className="hotel-service-img" alt={room.type} /> : null}
                         <div style={{ flex: 1 }}>
                           <h2>{room.type}</h2>
                           <p className="hotel-sub-text">{room.hotelName}</p>
@@ -198,10 +198,11 @@ export default function HotelRooms() {
           </div>
 
           <h3>Image</h3>
-          <input id="serviceImage" type="url" placeholder="https://… image URL" value={form.image} onChange={set('image')} />
-          {form.image ? (
-            <div className="hotel-image-preview"><img src={form.image} alt="Preview" /></div>
-          ) : null}
+          <ImageUploader
+            id="serviceImage"
+            value={form.image}
+            onChange={(url) => setForm((f) => ({ ...f, image: url }))}
+          />
           {formError ? <p className="hotel-form-error" role="alert" style={{ color: '#dc2626', marginTop: 10 }}>{formError}</p> : null}
         </HotelModal>
       ) : null}
