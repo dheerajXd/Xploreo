@@ -121,6 +121,44 @@ const HOTEL_DROPDOWN_LINKS = [
   { to: "/hotel/profile", label: "My Profile" },
 ];
 
+const EXPERIENCE_NAV_LINKS = [
+  {
+    to: "/experience/home",
+    label: "Home",
+    icon: <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
+    icon2: <polyline points="9 22 9 12 15 12 15 22" />,
+  },
+  {
+    to: "/experience/bookings",
+    label: "Bookings",
+    icon: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />,
+    icon2: (
+      <>
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </>
+    ),
+  },
+  {
+    to: "/experience/catalog",
+    label: "Experiences",
+    icon: <circle cx="12" cy="12" r="10" />,
+    icon2: <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />,
+  },
+  {
+    to: "/experience/earnings",
+    label: "Earnings",
+    icon: <line x1="12" y1="1" x2="12" y2="23" />,
+    icon2: <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
+  },
+];
+
+const EXPERIENCE_DROPDOWN_LINKS = [
+  { to: "/experience/support", label: "Support" },
+  { to: "/experience/profile", label: "My Profile" },
+];
+
 // Shared visual shell for Traveller and Guide: identical markup/classes, only the nav
 // destinations and dropdown links differ per role.
 function TravellerStyleNavbar({ displayName, initial, user, dropdownOpen, setDropdownOpen, onLogout, navLinks, dropdownLinks }) {
@@ -252,6 +290,23 @@ export default function Navbar({ user: propUser, isPublic = false } = {}) {
         onLogout={handleLogout}
         navLinks={HOTEL_NAV_LINKS}
         dropdownLinks={HOTEL_DROPDOWN_LINKS}
+      />
+    );
+  }
+
+  // Experience partners use the exact same visual system as Traveller/Guide (same markup,
+  // same .navbar-traveler theme) — only the nav destinations and dropdown links differ.
+  if (!isPublicRoute && role === "experience") {
+    return (
+      <TravellerStyleNavbar
+        displayName={displayName}
+        initial={initial}
+        user={user}
+        dropdownOpen={dropdownOpen}
+        setDropdownOpen={setDropdownOpen}
+        onLogout={handleLogout}
+        navLinks={EXPERIENCE_NAV_LINKS}
+        dropdownLinks={EXPERIENCE_DROPDOWN_LINKS}
       />
     );
   }

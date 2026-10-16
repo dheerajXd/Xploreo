@@ -61,9 +61,39 @@ export class ReviewsRepository {
       comment: 'Excellent guide, handled our refund situation professionally and kept us informed throughout.',
       createdAt: new Date('2026-02-15'),
     },
+    {
+      id: 5,
+      userId: '20004',
+      authorName: 'Priya Nair',
+      targetType: ReviewTargetType.EXPERIENCE,
+      targetId: 'exp-1',
+      rating: 5,
+      comment: 'The Western Ghats trek was stunning and our host knew every trail. Highly recommend the early slot.',
+      createdAt: new Date('2026-09-29'),
+    },
+    {
+      id: 6,
+      userId: 'T001',
+      authorName: 'Anjali Sharma',
+      targetType: ReviewTargetType.EXPERIENCE,
+      targetId: 'exp-2',
+      rating: 4,
+      comment: 'Loved the cooking workshop, the food was fantastic. Workshop ran a little over time though.',
+      createdAt: new Date('2026-10-11'),
+    },
+    {
+      id: 7,
+      userId: '20002',
+      authorName: 'Rohit Malhotra',
+      targetType: ReviewTargetType.EXPERIENCE,
+      targetId: 'exp-3',
+      rating: 5,
+      comment: 'Perfect golden hour light and the guide knew exactly where to stand for the best shots.',
+      createdAt: new Date('2026-09-06'),
+    },
   ];
 
-  private nextId = 5;
+  private nextId = 8;
 
   create(dto: CreateReviewDto): Review {
     const review: Review = {

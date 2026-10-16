@@ -4,12 +4,12 @@ import { useAuth } from '@/foundation';
 import { useAsyncData } from '@/hooks/useAsyncData.js';
 import { deleteExperience, listMyExperiences } from '@/services/partners.api.js';
 import { compareSlots, formatCurrency, todayIso } from '@/lib/datetime.js';
-import { fontPx, px } from '@/lib/density.js';
 import ExperiencePage from '@/components/experience/ExperiencePage.jsx';
 import ModalFrame, { CloseButton } from '@/components/experience/ModalFrame.jsx';
 import { ErrorNotice, LoadingBlock } from '@/components/experience/Feedback.jsx';
 import ExperienceFormModal from '@/components/experience/ExperienceFormModal.jsx';
 import SlotManager from '@/components/experience/SlotManager.jsx';
+import './experienceShared.css';
 
 function nextSession(exp, today) {
   const sorted = [...exp.slots].sort(compareSlots);
@@ -59,92 +59,76 @@ export default function ExperienceCatalog() {
       {managed ? (
         <SlotManager key={managed.id} experience={managed} onUpdated={replace} />
       ) : (
-        <>
-          <section className="page-header experience-toolbar" id="catalogHeader">
-            <div>
-              <p className="experience-eyebrow">Catalog Management</p>
-              <h1>Experiences</h1>
-              <p>
-                Assigned Region:{' '}
-                <span style={{ display: 'inline-block', padding: `${px(2)}px ${px(10)}px`, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: 9999, fontWeight: 600, fontSize: fontPx(12) }}>
-                  {region}
-                </span>{' '}
-                · Manage your experience offerings
-              </p>
-            </div>
+        <div className="gd-page-wrapper">
+          <main className="gd-page">
+            <header className="gd-header" id="catalogHeader">
+              <div className="gd-header-text">
+                <span className="gd-eyebrow">Experience Portal</span>
+                <h1 className="gd-title">Experiences</h1>
+                <p className="gd-subtitle">
+                  Assigned Region: <span className="gd-header-badge">{region}</span> · Manage your experience offerings
+                </p>
+              </div>
+              <button className="gd-btn gd-btn-primary" id="openAddExperienceBtn" type="button" onClick={() => setForm({})}>
+                + Add Experience
+              </button>
+            </header>
 
-            <button className="primary-btn" id="openAddExperienceBtn" type="button" onClick={() => setForm({})}>
-              + Add Experience
-            </button>
-          </section>
+            {!data && loading ? <LoadingBlock label="Loading your catalog…" /> : null}
+            {!data && error ? <ErrorNotice error={error} onRetry={reload} /> : null}
+            {data ? <ErrorNotice error={error} onRetry={reload} /> : null}
+            {manageId && data && !managed ? (
+              <ErrorNotice error={{ status: 404, message: 'That experience is not in your catalog.' }} />
+            ) : null}
 
-          {!data && loading ? <LoadingBlock label="Loading your catalog…" /> : null}
-          {!data && error ? <ErrorNotice error={error} onRetry={reload} /> : null}
-          {data ? <ErrorNotice error={error} onRetry={reload} /> : null}
-          {manageId && data && !managed ? (
-            <ErrorNotice error={{ status: 404, message: 'That experience is not in your catalog.' }} />
-          ) : null}
+            {data && experiences.length === 0 ? (
+              <div className="gd-empty">
+                <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.3rem' }}>No experiences right now</strong>
+                You haven&apos;t added any experiences yet.
+              </div>
+            ) : null}
 
-          {data && experiences.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: `${px(60)}px ${px(20)}px`, color: '#617084', background: '#ffffff', borderRadius: px(12), border: '1px dashed #d9e0ea' }}>
-              <h3 style={{ margin: `0 0 ${px(8)}px`, fontSize: px(18), color: '#273248' }}>No experiences right now</h3>
-              <p style={{ margin: 0, fontSize: px(14) }}>You haven&apos;t added any experiences yet.</p>
-            </div>
-          ) : null}
-
-          <section id="experienceList" className="experience-cards-stack">
-            {experiences.map((exp) => {
-              const next = nextSession(exp, today);
-              return (
-                <article key={exp.id} className="card experience-catalog-card" aria-label={exp.title}>
-                  <div className="experience-card-row">
+            <section id="experienceList" className="ep-catalog-stack">
+              {experiences.map((exp) => {
+                const next = nextSession(exp, today);
+                return (
+                  <article key={exp.id} className="ep-catalog-card" aria-label={exp.title}>
                     {exp.image ? (
-                      <img src={exp.image} className="exp-img" alt={exp.title} />
+                      <img src={exp.image} className="ep-catalog-img" alt={exp.title} />
                     ) : (
-                      <div className="exp-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', color: '#999', borderRadius: 8, fontSize: 12 }}>
+                      <div className="ep-catalog-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', color: '#94a3b8', fontSize: 12, fontWeight: 700 }}>
                         No Image
                       </div>
                     )}
-                    <div className="exp-content">
-                      <div className="experience-card-header-line catalog-card-header">
-                        <div className="catalog-title-block">
-                          <h2>{exp.title}</h2>
-                          <span className={`status ${exp.status === 'active' ? 'confirmed' : 'cancelled'}`}>{exp.status}</span>
+                    <div className="ep-catalog-body">
+                      <div className="ep-catalog-head">
+                        <h2>{exp.title}</h2>
+                        <span className="gd-chip" style={exp.status === 'active' ? { background: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' } : { background: '#fee2e2', color: '#991b1b', borderColor: '#fecaca' }}>
+                          {exp.status}
+                        </span>
+                      </div>
+                      <div className="ep-catalog-details">
+                        <div className="ep-catalog-detail"><label>Price per person</label><span>{formatCurrency(exp.price)}</span></div>
+                        <div className="ep-catalog-detail"><label>Duration</label><span>◷ {exp.durationHours} hours</span></div>
+                        <div className="ep-catalog-detail">
+                          <label>Capacity per session</label>
+                          <span>◌ {next.slot ? `${next.slot.capacity} guests` : exp.capacity ? `${exp.capacity} guests` : 'Set in slots'}</span>
                         </div>
                       </div>
-                      <div className="exp-details">
-                        <div className="exp-detail-item">
-                          <p>Price per person</p>
-                          <h3>{formatCurrency(exp.price)}</h3>
-                        </div>
-                        <div className="exp-detail-item">
-                          <p>Duration</p>
-                          <h3><span className="detail-icon">◷</span>{exp.durationHours} hours</h3>
-                        </div>
-                        <div className="exp-detail-item">
-                          <p>Capacity per session</p>
-                          <h3>
-                            <span className="detail-icon">◌</span>
-                            {next.slot ? `${next.slot.capacity} guests` : exp.capacity ? `${exp.capacity} guests` : 'Set in slots'}
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="slot-bar">
-                        <span>{next.text}</span>
-                      </div>
-                      <div className="actions catalog-actions">
-                        <button className="primary-btn" type="button" onClick={() => navigate(`/experience/catalog?manage=${encodeURIComponent(exp.id)}`)}>Manage Slots</button>
-                        <button type="button" onClick={() => setForm({ experience: exp })}>Edit</button>
-                        <button type="button" className="danger-ghost-btn" onClick={() => { setRemoveError(null); setRemoving(exp); }}>Delete</button>
-                        <button type="button" onClick={() => navigate(`/experience/bookings?experience=${encodeURIComponent(exp.id)}`)}>View Bookings</button>
+                      <div className="ep-catalog-next">{next.text}</div>
+                      <div className="ep-catalog-actions">
+                        <button className="gd-btn gd-btn-primary gd-btn-sm" type="button" onClick={() => navigate(`/experience/catalog?manage=${encodeURIComponent(exp.id)}`)}>Manage Slots</button>
+                        <button className="gd-btn gd-btn-secondary gd-btn-sm" type="button" onClick={() => setForm({ experience: exp })}>Edit</button>
+                        <button className="gd-btn gd-btn-danger gd-btn-sm" type="button" onClick={() => { setRemoveError(null); setRemoving(exp); }}>Delete</button>
+                        <button className="gd-btn gd-btn-secondary gd-btn-sm" type="button" onClick={() => navigate(`/experience/bookings?experience=${encodeURIComponent(exp.id)}`)}>View Bookings</button>
                       </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
-        </>
+                  </article>
+                );
+              })}
+            </section>
+          </main>
+        </div>
       )}
 
       {form ? (

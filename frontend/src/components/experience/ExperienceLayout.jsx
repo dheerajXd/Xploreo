@@ -1,19 +1,12 @@
 import { Outlet } from 'react-router-dom';
-import { Navbar, useAuth } from '@/foundation';
+import Navbar from '@/components/Navbar/navbar.jsx';
 
-// Same links, order and icons as the old navbar for the "experience" role (navlinks.js).
-const LINKS = [
-  { to: '/experience/home', label: 'Home', icon: 'dashboard.svg' },
-  { to: '/experience/bookings', label: 'Bookings', icon: 'operations.png' },
-  { to: '/experience/catalog', label: 'Experiences', icon: 'tours.svg' },
-  { to: '/experience/earnings', label: 'Earnings', icon: 'earnings.svg' },
-];
-
+// Experience now shares the exact Traveller/Guide navbar (same component, same CSS) — see
+// components/Navbar/navbar.jsx's EXPERIENCE_NAV_LINKS/EXPERIENCE_DROPDOWN_LINKS for its links.
 export default function ExperienceLayout() {
-  const { user, logout } = useAuth();
   return (
     <>
-      <Navbar links={LINKS} userName={user.name} profileTo="/experience/profile" onLogout={logout} />
+      <Navbar />
       <Outlet />
     </>
   );

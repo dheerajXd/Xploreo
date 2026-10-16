@@ -411,9 +411,8 @@ function DetailsModal({ assignment, onClose }) {
   }, [assignment.travellerId]);
 
   const name = traveller ? `${traveller.fname || ''} ${traveller.lname || ''}`.trim() : '';
+  const count = assignment.travelerCount || assignment.numberOfTravelers || 1;
   const email = traveller?.email;
-  const checkIn = assignment.itinerary?.day1?.hotel?.checkInDate;
-  const checkOut = assignment.itinerary?.day1?.hotel?.checkOutDate;
   return (
     <Overlay labelledBy="gc-details-title" onClose={onClose} className="gc-details">
       <div className="gc-details-head">
@@ -432,14 +431,14 @@ function DetailsModal({ assignment, onClose }) {
           {traveller === undefined ? <small>Loading traveller details…</small> : null}
           {note ? <small>{note}</small> : null}
         </div>
-        <div className="gc-details-line"><strong>Status:</strong> {assignment.status}</div>
+        <div className="gc-details-line"><strong>Travelers Count:</strong> {count}</div>
         <hr />
-        <div className="gc-details-line"><strong>🛫 Check-in:</strong> <b className="blue">{longDate(checkIn)}</b></div>
-        <div className="gc-details-line"><strong>🛬 Check-out:</strong> <b className="blue">{longDate(checkOut)}</b></div>
+        <div className="gc-details-line"><strong>📅 Booking Made On:</strong> {longDate(assignment.createdAt)}</div>
+        <div className="gc-details-line"><strong>🛫 Travel Start Date:</strong> <b className="blue">{longDate(assignment.startDate || assignment.createdAt)}</b></div>
+        <div className="gc-details-line"><strong>🛬 Travel End Date:</strong> <b className="blue">{longDate(assignment.endDate)}</b></div>
         <hr />
-        <div className="gc-details-total">
-          {assignment.status === 'rejected_by_guide' ? 'Refunded' : 'Trip Amount'}: ₹{((assignment.status === 'rejected_by_guide' ? assignment.refundAmount : assignment.totalAmount) || 0).toLocaleString('en-IN')}
-        </div>
+        <div><strong>💰 Guide Fee:</strong> ₹{assignment.guidePricePerPerson}/person</div>
+        <div className="gc-details-total">Total Expected: ₹{(assignment.guidePricePerPerson * count).toLocaleString('en-IN')}</div>
       </div>
       <div className="gc-details-foot"><button type="button" onClick={onClose}>Close</button></div>
     </Overlay>

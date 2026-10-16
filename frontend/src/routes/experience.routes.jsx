@@ -5,6 +5,7 @@ import ExperienceHome from '@/pages/Experience/ExperienceHome.jsx';
 import ExperienceCatalog from '@/pages/Experience/ExperienceCatalog.jsx';
 import ExperienceBookings from '@/pages/Experience/ExperienceBookings.jsx';
 import ExperienceEarnings from '@/pages/Experience/ExperienceEarnings.jsx';
+import ExperienceSupport from '@/pages/Experience/ExperienceSupport.jsx';
 import PartnerProfile from '@/pages/Partner/PartnerProfile.jsx';
 
 export const experiencePortal = {
@@ -18,6 +19,7 @@ export const experiencePortal = {
     { path: 'catalog', element: <ExperienceCatalog /> },
     { path: 'bookings', element: <ExperienceBookings /> },
     { path: 'earnings', element: <ExperienceEarnings /> },
+    { path: 'support', element: <ExperienceSupport /> },
     { path: 'profile', element: <PartnerProfile /> },
   ],
 };

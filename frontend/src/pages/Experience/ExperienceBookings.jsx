@@ -7,8 +7,18 @@ import { STATUS_FILTERS, bookingStatusMeta } from '@/lib/bookingStatus.js';
 import ExperiencePage from '@/components/experience/ExperiencePage.jsx';
 import ModalFrame, { CloseButton } from '@/components/experience/ModalFrame.jsx';
 import { ErrorNotice, LoadingBlock } from '@/components/experience/Feedback.jsx';
+import './experienceShared.css';
 
 const longDate = (iso) => formatDate(iso, { month: 'long', day: 'numeric', year: 'numeric' });
+
+const STATUS_COLORS = {
+  confirmed: { background: '#dbeafe', color: '#1e40af' },
+  checked: { background: '#dcfce7', color: '#166534' },
+  pending: { background: '#fef3c7', color: '#92400e' },
+  completed: { background: '#dcfce7', color: '#166534' },
+  cancelled: { background: '#fee2e2', color: '#991b1b' },
+};
+const statusStyle = (className) => STATUS_COLORS[className] ?? STATUS_COLORS.cancelled;
 
 export default function ExperienceBookings() {
   const [params] = useSearchParams();
@@ -59,169 +69,144 @@ export default function ExperienceBookings() {
 
   return (
     <ExperiencePage pageClass="experience-bookings-page" title="Bookings">
-      <section className="page-header experience-toolbar">
-        <div>
-          <p className="experience-eyebrow">Guest Operations</p>
-          <h1 className="page-title">Bookings</h1>
-          <p className="page-subtitle">Manage all your experience bookings with quick filters and status actions.</p>
-        </div>
-      </section>
+      <div className="gd-page-wrapper">
+        <main className="gd-page">
+          <header className="gd-header">
+            <div className="gd-header-text">
+              <span className="gd-eyebrow">Experience Portal</span>
+              <h1 className="gd-title">Bookings</h1>
+              <p className="gd-subtitle">Manage all your experience bookings with quick filters and status actions.</p>
+            </div>
+          </header>
 
-      <section className="content-card experience-card filter-panel">
-        <div className="filter-bar bookings-filter-bar">
-          <label className="experience-select-shell" htmlFor="experienceFilter">
-            <span>Experience</span>
-            <select id="experienceFilter" value={experienceId} onChange={(event) => setExperienceId(event.target.value)}>
-              <option value="all">All Experiences</option>
-              {experienceOptions.map((option) => (
-                <option key={option.id} value={option.id}>{option.title}</option>
-              ))}
-            </select>
-          </label>
+          <section className="gd-card">
+            <div className="ep-filter-bar">
+              <label className="ep-select-shell" htmlFor="experienceFilter">
+                Experience
+                <select id="experienceFilter" className="gd-select" value={experienceId} onChange={(event) => setExperienceId(event.target.value)}>
+                  <option value="all">All Experiences</option>
+                  {experienceOptions.map((option) => <option key={option.id} value={option.id}>{option.title}</option>)}
+                </select>
+              </label>
+              <label className="ep-select-shell" htmlFor="statusFilter">
+                Status
+                <select id="statusFilter" className="gd-select" value={status} onChange={(event) => setStatus(event.target.value)}>
+                  {STATUS_FILTERS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            </div>
+          </section>
 
-          <label className="experience-select-shell" htmlFor="statusFilter">
-            <span>Status</span>
-            <select id="statusFilter" value={status} onChange={(event) => setStatus(event.target.value)}>
-              {STATUS_FILTERS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
+          {!data && loading ? <LoadingBlock label="Loading bookings…" /> : null}
+          <ErrorNotice error={error} onRetry={reload} />
+          <ErrorNotice error={actionError} />
 
-      {!data && loading ? <LoadingBlock label="Loading bookings…" /> : null}
-      <ErrorNotice error={error} onRetry={reload} />
-      <ErrorNotice error={actionError} />
-
-      {data ? (
-        <section id="bookingList" className="experience-bookings-stack">
-          {groups.length ? (
-            groups.map((group) => {
-              const guests = group.items.reduce((sum, b) => sum + (b.status === 'CANCELLED' ? 0 : b.participants), 0);
-              return (
-                <article key={group.key} className="card booking-card" aria-label={`${group.title} on ${group.date} at ${group.time}`}>
-                  <header className="booking-card-header">
-                    <div>
-                      <h2>{group.title}</h2>
-                      <p>{longDate(group.date)} • {group.time}</p>
-                    </div>
-                    <div className="booking-card-summary">
-                      <span className="section-chip">{group.items.length} bookings</span>
-                      <strong>Total Guests: {guests}</strong>
-                    </div>
-                  </header>
-                  <div className="booking-table-head">
-                    <span>Guest</span>
-                    <span>Party Size</span>
-                    <span>Status</span>
-                    <span>Actions</span>
-                  </div>
-                  {group.items.map((b) => {
-                    const meta = bookingStatusMeta(b.status);
-                    const busy = busyId === b.id;
-                    return (
-                      <div key={b.id} className="booking-user-row">
+          {data ? (
+            <section className="ep-booking-stack">
+              {groups.length ? (
+                groups.map((group) => {
+                  const guests = group.items.reduce((sum, b) => sum + (b.status === 'CANCELLED' ? 0 : b.participants), 0);
+                  return (
+                    <article key={group.key} className="ep-booking-card" aria-label={`${group.title} on ${group.date} at ${group.time}`}>
+                      <header className="ep-booking-card-header">
                         <div>
-                          <strong>{b.guestName}</strong>
-                          <br />
-                          <span className="booking-subtext">{b.id}</span>
+                          <h2>{group.title}</h2>
+                          <p>{longDate(group.date)} • {group.time}</p>
                         </div>
-                        <div>{b.participants} guests</div>
-                        <div>
-                          <span className={`status ${meta.className}`}>{meta.label}</span>
+                        <div className="ep-booking-summary">
+                          <span className="gd-header-badge">{group.items.length} bookings</span>
+                          <strong style={{ color: '#0f172a' }}>Total Guests: {guests}</strong>
                         </div>
-                        <div className="booking-actions">
-                          <button type="button" onClick={() => setDetails(b)}>View Details</button>
-                          {b.status === 'CONFIRMED' ? (
-                            <button type="button" className="primary-btn" disabled={busy} onClick={() => changeStatus(b, 'CHECKED_IN')}>
-                              {busy ? 'Saving…' : 'Mark Check-in'}
-                            </button>
-                          ) : null}
-                          {b.status === 'CHECKED_IN' ? (
-                            <button type="button" className="btn-outline-blue" disabled={busy} onClick={() => changeStatus(b, 'END_REQUESTED')}>
-                              {busy ? 'Saving…' : 'Request End'}
-                            </button>
-                          ) : null}
-                        </div>
+                      </header>
+                      <div className="ep-booking-table-head">
+                        <span>Guest</span><span>Party Size</span><span>Status</span><span>Actions</span>
                       </div>
-                    );
-                  })}
-                </article>
-              );
-            })
-          ) : (
-            <div className="empty-state">
-              <h3>No bookings found</h3>
-              <p>{bookings.length ? 'Try changing your filters.' : 'Once travellers book one of your sessions, they will appear here.'}</p>
-            </div>
-          )}
-        </section>
-      ) : null}
+                      {group.items.map((b) => {
+                        const meta = bookingStatusMeta(b.status);
+                        const busy = busyId === b.id;
+                        return (
+                          <div key={b.id} className="ep-booking-user-row">
+                            <div>
+                              <strong style={{ color: '#0f172a' }}>{b.guestName}</strong><br />
+                              <small>{b.id}</small>
+                            </div>
+                            <div>{b.participants} guests</div>
+                            <div><span className="gd-chip" style={{ ...statusStyle(meta.className), borderColor: 'transparent' }}>{meta.label}</span></div>
+                            <div className="ep-row-actions">
+                              <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" onClick={() => setDetails(b)}>View Details</button>
+                              {b.status === 'CONFIRMED' ? (
+                                <button type="button" className="gd-btn gd-btn-primary gd-btn-sm" disabled={busy} onClick={() => changeStatus(b, 'CHECKED_IN')}>
+                                  {busy ? 'Saving…' : 'Mark Check-in'}
+                                </button>
+                              ) : null}
+                              {b.status === 'CHECKED_IN' ? (
+                                <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" disabled={busy} onClick={() => changeStatus(b, 'END_REQUESTED')}>
+                                  {busy ? 'Saving…' : 'Request End'}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </article>
+                  );
+                })
+              ) : (
+                <div className="gd-empty">
+                  <strong style={{ display: 'block', color: '#0f172a', marginBottom: '0.3rem' }}>No bookings found</strong>
+                  {bookings.length ? 'Try changing your filters.' : 'Once travellers book one of your sessions, they will appear here.'}
+                </div>
+              )}
+            </section>
+          ) : null}
 
-      {details ? (
-        <ModalFrame id="bookingModal" boxClass="booking-modal-box" labelledBy="modalName" onClose={() => setDetails(null)}>
-          <div className="modal-header">
-            <div>
-              <h2 id="modalName">{details.guestName}</h2>
-              <div className="modal-sub">
-                <span id="modalId">{details.id}</span>
-                <span id="modalStatus" className={`status-badge ${detailsMeta.className}`}>{detailsMeta.label}</span>
+          {details ? (
+            <ModalFrame id="bookingModal" boxClass="booking-modal-box" labelledBy="modalName" onClose={() => setDetails(null)}>
+              <div className="modal-header">
+                <div>
+                  <h2 id="modalName">{details.guestName}</h2>
+                  <div className="modal-sub">
+                    <span id="modalId">{details.id}</span>
+                    <span id="modalStatus" className={`status-badge ${detailsMeta.className}`}>{detailsMeta.label}</span>
+                  </div>
+                </div>
+                <CloseButton label="Close booking details" glyph="✕" onClick={() => setDetails(null)} />
               </div>
-            </div>
-            <CloseButton label="Close booking details" glyph="✕" onClick={() => setDetails(null)} />
-          </div>
 
-          <hr />
+              <hr />
 
-          <div className="section">
-            <h3>Experience Details</h3>
-            <p className="label">Experience</p>
-            <p id="modalExperience">{details.experience?.title ?? 'Experience'}</p>
-            <div className="grid-3">
-              <div>
-                <p className="label">Date</p>
-                <p id="modalDate">{longDate(details.date)}</p>
+              <div className="section">
+                <h3>Experience Details</h3>
+                <p className="label">Experience</p>
+                <p id="modalExperience">{details.experience?.title ?? 'Experience'}</p>
+                <div className="grid-3">
+                  <div><p className="label">Date</p><p id="modalDate">{longDate(details.date)}</p></div>
+                  <div><p className="label">Time</p><p id="modalTime">{details.time}</p></div>
+                  <div><p className="label">Guests</p><p id="modalGuests">{details.participants} guests</p></div>
+                </div>
               </div>
-              <div>
-                <p className="label">Time</p>
-                <p id="modalTime">{details.time}</p>
-              </div>
-              <div>
-                <p className="label">Guests</p>
-                <p id="modalGuests">{details.participants} guests</p>
-              </div>
-            </div>
-          </div>
 
-          <div className="section">
-            <h3>Customer Information</h3>
-            <p className="label">Name</p>
-            <p id="modalCustomer">{details.guestName}</p>
-            <div className="grid-2">
-              <div>
-                <p className="label">Phone</p>
-                <p id="modalPhone">{details.phone}</p>
+              <div className="section">
+                <h3>Customer Information</h3>
+                <p className="label">Name</p>
+                <p id="modalCustomer">{details.guestName}</p>
+                <div className="grid-2">
+                  <div><p className="label">Phone</p><p id="modalPhone">{details.phone}</p></div>
+                  <div><p className="label">Email</p><p id="modalEmail">{details.email}</p></div>
+                </div>
               </div>
-              <div>
-                <p className="label">Email</p>
-                <p id="modalEmail">{details.email}</p>
-              </div>
-            </div>
-          </div>
 
-          <div className="section">
-            <h3>Payment</h3>
-            <div className="payment-box">
-              <div>
-                <p className="label">Total Amount</p>
-                <h2 id="modalAmount">{formatCurrency(details.totalAmount)}</h2>
+              <div className="section">
+                <h3>Payment</h3>
+                <div className="payment-box">
+                  <div><p className="label">Total Amount</p><h2 id="modalAmount">{formatCurrency(details.totalAmount)}</h2></div>
+                  <span id="modalPaymentStatus" className="paid-badge">{details.status === 'CANCELLED' ? 'Refunded' : 'Paid'}</span>
+                </div>
               </div>
-              <span id="modalPaymentStatus" className="paid-badge">{details.status === 'CANCELLED' ? 'Refunded' : 'Paid'}</span>
-            </div>
-          </div>
-        </ModalFrame>
-      ) : null}
+            </ModalFrame>
+          ) : null}
+        </main>
+      </div>
     </ExperiencePage>
   );
 }
