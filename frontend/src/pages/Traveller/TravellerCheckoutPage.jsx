@@ -69,11 +69,11 @@ export default function TravellerCheckoutPage({
   const [selectedMethod, setSelectedMethod] = useState('upi');
   const [simulatedOutcome, setSimulatedOutcome] = useState('SUCCESS'); // 'SUCCESS' | 'FAILURE' | 'CANCEL'
 
-  // Processing & Receipt state
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const hasPersistedRef = useRef(false);
+  const persistenceIdRef = useRef(null);
 
   // Guest count limits: min 1 (backend validation), max based on capacity/inventory (fallback 10)
   const minGuests = 1;
@@ -159,16 +159,64 @@ export default function TravellerCheckoutPage({
     setCurrentStepIndex(2); // Advance to Payment step
   };
 
-  // Step 2: Trigger payment processing via Payment Adapter
+  // Step 2: Trigger payment processing via Payment Adapter and persist to backend
   const handleProcessPayment = async () => {
     setIsProcessing(true);
     setErrorMessage('');
+
+    // Verify authenticated traveller session
+    const savedUser = typeof getSavedUser === 'function' ? getSavedUser() : null;
+    const activeUser = user || savedUser || null;
+    const activeUserId = activeUser?.userId || activeUser?.id || activeUser?.username;
+
+    if (!activeUserId) {
+      setErrorMessage('Authentication required. Please sign in to your traveller account before completing checkout.');
+      setIsProcessing(false);
+      return;
+    }
+
+    const bookingType = (selectedItem.type || '').toLowerCase();
+
+    // Verify that hotel exists and is active in the backend
+    if (bookingType === 'hotel' || !bookingType) {
+      if (!selectedItem.id) {
+        setErrorMessage('No hotel selected. Please choose a valid property to book.');
+        setIsProcessing(false);
+        return;
+      }
+
+      try {
+        const hotelRecord = await apiRequest(`/hotels/${encodeURIComponent(selectedItem.id)}`);
+        if (!hotelRecord || hotelRecord.status !== 'active') {
+          setErrorMessage(
+            `The selected hotel (${selectedItem.title || selectedItem.name || selectedItem.id}) is currently unavailable for booking. Please select an active property.`
+          );
+          setIsProcessing(false);
+          return;
+        }
+      } catch (checkErr) {
+        const notFound = checkErr?.status === 404 || String(checkErr?.message || '').toLowerCase().includes('not found');
+        setErrorMessage(
+          notFound
+            ? `The selected hotel (${selectedItem.title || selectedItem.name || selectedItem.id}) is not integrated with the reservation backend. Please select an available property.`
+            : (checkErr?.message || 'Unable to verify hotel availability.')
+        );
+        setIsProcessing(false);
+        return;
+      }
+    } else if (bookingType === 'experience') {
+      if (!selectedItem.id) {
+        setErrorMessage('No experience selected. Please choose a valid experience to book.');
+        setIsProcessing(false);
+        return;
+      }
+    }
 
     try {
       // 1. Create simulated order
       const order = await paymentAdapter.createOrder({
         bookingId: selectedItem.id || 'demo-booking-1',
-        bookingType: selectedItem.type || 'hotel',
+        bookingType: bookingType || 'hotel',
         amount: totalAmount,
         guestCount: Number(guestCount),
         travellerDetails,
@@ -181,76 +229,80 @@ export default function TravellerCheckoutPage({
         simulatedOutcome,
       });
 
-      setPaymentResult(result);
-      setCurrentStepIndex(3); // Advance to Confirmation step
-
       if (!result.success) {
+        setPaymentResult(result);
         setErrorMessage(result.errorMessage || 'Simulated payment was not successful.');
-      } else {
-        if (!hasPersistedRef.current) {
-          hasPersistedRef.current = true;
-          const bookingType = (selectedItem.type || '').toLowerCase();
-          const activeUserId = user?.userId || getSavedUser()?.userId || '20001';
-          const guestFullName = [travellerDetails.firstName, travellerDetails.lastName].filter(Boolean).join(' ') || 'Anjali Sharma';
-          const guestEmail = travellerDetails.email || 'anjali@example.com';
-          const guestPhone = travellerDetails.phone || '+91 9876543210';
+        setCurrentStepIndex(3); // Advance to Confirmation failure view
+        return;
+      }
 
-          try {
-            if (bookingType === 'plan' || bookingType === 'package' || bookingType === 'trip') {
-              await apiRequest('/trips', {
-                method: 'POST',
-                body: JSON.stringify({
-                  id: result.paymentId ? `trip-${result.paymentId}` : undefined,
-                  travellerId: activeUserId,
-                  planId: selectedItem.id || selectedItem.planId || 'plan-1',
-                  itinerary: selectedItem.itinerary,
-                }),
-              });
-            } else if (bookingType === 'experience') {
-              await apiRequest('/experience-bookings', {
-                method: 'POST',
-                body: JSON.stringify({
-                  id: result.paymentId ? `eb-${result.paymentId}` : undefined,
-                  experienceId: selectedItem.id || 'exp-sunset-walk',
-                  guestName: guestFullName,
-                  email: guestEmail,
-                  phone: guestPhone,
-                  date: selectedItem.checkIn || selectedItem.date || new Date().toISOString().split('T')[0],
-                  participants: Number(guestCount) || 1,
-                }),
-              });
-            } else {
-              const today = new Date();
-              const checkIn = selectedItem.checkIn || today.toISOString().split('T')[0];
-              const checkOut = selectedItem.checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
-              await apiRequest('/bookings', {
-                method: 'POST',
-                body: JSON.stringify({
-                  id: result.paymentId ? `b-${result.paymentId}` : undefined,
-                  hotelId: selectedItem.id || 'hotel-goa-001',
-                  guestName: guestFullName,
-                  email: guestEmail,
-                  phone: guestPhone,
-                  checkIn,
-                  checkOut,
-                  guests: Number(guestCount) || 1,
-                  roomType: selectedItem.roomType || 'Deluxe Room',
-                  notes: travellerDetails.specialRequests || 'Booked via checkout',
-                }),
-              });
-            }
-          } catch (persistErr) {
-            console.warn('Booking persistence warning:', persistErr);
-          }
+      // 3. Persist to real backend (only if payment succeeded)
+      if (!hasPersistedRef.current) {
+        if (!persistenceIdRef.current) {
+          persistenceIdRef.current = result.paymentId || `pay-${Date.now()}`;
+        }
+        const stablePaymentId = persistenceIdRef.current;
+
+        const guestFullName = [travellerDetails.firstName, travellerDetails.lastName].filter(Boolean).join(' ') || 'Anjali Sharma';
+        const guestEmail = travellerDetails.email || 'anjali@xploreo.com';
+        const guestPhone = travellerDetails.phone || '+91 9876543210';
+
+        if (bookingType === 'plan' || bookingType === 'package' || bookingType === 'trip') {
+          await apiRequest('/trips', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: `trip-${stablePaymentId}`,
+              travellerId: activeUserId,
+              planId: selectedItem.id || selectedItem.planId || 'plan-1',
+              itinerary: selectedItem.itinerary,
+            }),
+          });
+        } else if (bookingType === 'experience') {
+          await apiRequest('/experience-bookings', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: `eb-${stablePaymentId}`,
+              experienceId: selectedItem.id,
+              guestName: guestFullName,
+              email: guestEmail,
+              phone: guestPhone,
+              date: selectedItem.checkIn || selectedItem.date || new Date().toISOString().split('T')[0],
+              participants: Number(guestCount) || 1,
+            }),
+          });
+        } else {
+          const today = new Date();
+          const checkIn = selectedItem.checkIn || today.toISOString().split('T')[0];
+          const checkOut = selectedItem.checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
+          await apiRequest('/bookings', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: `b-${stablePaymentId}`,
+              hotelId: selectedItem.id,
+              guestName: guestFullName,
+              email: guestEmail,
+              phone: guestPhone,
+              checkIn,
+              checkOut,
+              guests: Number(guestCount) || 1,
+              roomType: selectedItem.roomType || 'Deluxe Room',
+              notes: travellerDetails.specialRequests || 'Booked via checkout',
+            }),
+          });
         }
 
-        if (onComplete) {
-          onComplete(result);
-        }
+        hasPersistedRef.current = true;
+      }
+
+      setPaymentResult(result);
+      setCurrentStepIndex(3); // Advance to Confirmation step only on verified success
+
+      if (onComplete) {
+        onComplete(result);
       }
     } catch (err) {
       setErrorMessage(err?.message || 'Payment processing failed.');
-      setCurrentStepIndex(3);
+      // Keep user on payment step (currentStepIndex = 2) so they can correct details and retry safely
     } finally {
       setIsProcessing(false);
     }
@@ -529,6 +581,28 @@ export default function TravellerCheckoutPage({
                       Choose your simulated payment channel and test out adapter processing scenarios.
                     </p>
                   </div>
+
+                  {errorMessage && (
+                    <div
+                      className="trav-checkout-error-banner"
+                      style={{
+                        background: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        color: '#991b1b',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        marginBottom: '1rem',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                      role="alert"
+                    >
+                      <span aria-hidden="true">⚠️</span>
+                      <span>{errorMessage}</span>
+                    </div>
+                  )}
 
                   <PaymentMethodSelector
                     selectedMethod={selectedMethod}

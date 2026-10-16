@@ -50,7 +50,7 @@ export function isNtaMockMode() {
       ? import.meta.env.VITE_MOCKS
       : null;
   if (!envMocks) {
-    return true;
+    return false;
   }
   return envMocks === 'all' || envMocks.split(',').map((s) => s.trim()).includes('nta');
 }
@@ -229,32 +229,27 @@ export async function getNtaRecentActivity(session = {}) {
     return JSON.parse(JSON.stringify(ntaMockStore.recentActivity));
   }
 
-  try {
-    const headers = buildNtaHeaders(session);
-    const tripsRes = await fetchData(`${BASE_URL}/trips`, { headers });
-    const tripsList = Array.isArray(tripsRes) ? tripsRes : [];
+  const headers = buildNtaHeaders(session);
+  const tripsRes = await fetchData(`${BASE_URL}/trips`, { headers });
+  const tripsList = Array.isArray(tripsRes) ? tripsRes : [];
 
-    if (tripsList.length === 0) {
-      return JSON.parse(JSON.stringify(ntaMockStore.recentActivity));
-    }
-
-    // Map live trips to recent booking records
-    return tripsList.slice(0, 10).map((trip) => ({
-      id: trip.id,
-      type: 'booking',
-      action: 'Package Trip Booked',
-      detail: `Traveller ${trip.travellerId} created trip for plan ${trip.planId || 'N/A'}`,
-      destination: trip.itinerary?.day1?.hotel?.name || 'Assigned Destination',
-      amount: trip.price || 24500,
-      timestamp: trip.createdAt || new Date().toISOString(),
-      status: trip.status || 'confirmed',
-      customerName: trip.travellerId || 'Traveller',
-      packageTitle: trip.planId ? `Package #${trip.planId}` : 'Regional Travel Package',
-    }));
-  } catch (err) {
-    console.warn('[NTA API] Live trips activity fetch failed, using fallback:', err.message);
-    return JSON.parse(JSON.stringify(ntaMockStore.recentActivity));
+  if (tripsList.length === 0) {
+    return [];
   }
+
+  // Map live trips to recent booking records
+  return tripsList.slice(0, 10).map((trip) => ({
+    id: trip.id,
+    type: 'booking',
+    action: 'Package Trip Booked',
+    detail: `Traveller ${trip.travellerId} created trip for plan ${trip.planId || 'N/A'}`,
+    destination: trip.itinerary?.day1?.hotel?.name || 'Assigned Destination',
+    amount: trip.price || 24500,
+    timestamp: trip.createdAt || new Date().toISOString(),
+    status: trip.status || 'confirmed',
+    customerName: trip.travellerId || 'Traveller',
+    packageTitle: trip.planId ? `Package #${trip.planId}` : 'Regional Travel Package',
+  }));
 }
 
 /**
@@ -288,40 +283,35 @@ export async function getNtaRecentBookings(session = {}) {
     });
   }
 
-  try {
-    const headers = buildNtaHeaders(session);
-    const tripsRes = await fetchData(`${BASE_URL}/trips`, { headers });
-    const tripsList = Array.isArray(tripsRes) ? tripsRes : [];
+  const headers = buildNtaHeaders(session);
+  const tripsRes = await fetchData(`${BASE_URL}/trips`, { headers });
+  const tripsList = Array.isArray(tripsRes) ? tripsRes : [];
 
-    if (tripsList.length === 0) {
-      return [];
-    }
-
-    // Map live trips accurately with isDirectTripActivity indicator
-    let mapped = tripsList.map((trip) => ({
-      bookingId: trip.id,
-      travellerName: trip.travellerId || 'Traveller',
-      travellerEmail: `${trip.travellerId || 'traveller'}@xploreo.com`,
-      packageTitle: trip.planId ? `Package #${trip.planId}` : 'Regional Itinerary',
-      destination: trip.itinerary?.day1?.hotel?.name || trip.destination || 'Assigned City',
-      bookingDate: trip.createdAt || new Date().toISOString(),
-      travelDate: trip.itinerary?.day1?.hotel?.checkInDate || null,
-      status: trip.status || 'confirmed',
-      price: trip.price || null,
-      currency: 'INR',
-      guests: trip.guests || 1,
-      isDirectTripActivity: true, // Accurately flags that this record represents raw trip activity from /trips
-    }));
-
-    if (targetRegion) {
-      mapped = mapped.filter((t) => t.destination?.toLowerCase().includes(targetRegion.toLowerCase()));
-    }
-
-    return mapped.slice(0, 15);
-  } catch (err) {
-    console.warn('[NTA API] Live trips bookings fetch failed, using fallback:', err.message);
+  if (tripsList.length === 0) {
     return [];
   }
+
+  // Map live trips accurately with isDirectTripActivity indicator
+  let mapped = tripsList.map((trip) => ({
+    bookingId: trip.id,
+    travellerName: trip.travellerId || 'Traveller',
+    travellerEmail: `${trip.travellerId || 'traveller'}@xploreo.com`,
+    packageTitle: trip.planId ? `Package #${trip.planId}` : 'Regional Itinerary',
+    destination: trip.itinerary?.day1?.hotel?.name || trip.destination || 'Assigned City',
+    bookingDate: trip.createdAt || new Date().toISOString(),
+    travelDate: trip.itinerary?.day1?.hotel?.checkInDate || null,
+    status: trip.status || 'confirmed',
+    price: trip.price || null,
+    currency: 'INR',
+    guests: trip.guests || 1,
+    isDirectTripActivity: true, // Accurately flags that this record represents raw trip activity from /trips
+  }));
+
+  if (targetRegion) {
+    mapped = mapped.filter((t) => t.destination?.toLowerCase().includes(targetRegion.toLowerCase()));
+  }
+
+  return mapped.slice(0, 15);
 }
 
 /**

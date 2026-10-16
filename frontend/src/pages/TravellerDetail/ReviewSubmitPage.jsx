@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { createReview } from '@/services/reviews.api.js';
+import { createReview, listReviews } from '@/services/reviews.api.js';
 import { getHotel } from '@/services/hotels.api.js';
 import { getExperience } from '@/services/partners.api.js';
+import { apiRequest, getSavedUser } from '@/services/api.js';
+import { getUser } from '@/services/session.js';
 import TravellerHeader from './TravellerHeader.jsx';
 import './travellerDetail.css';
 
@@ -43,6 +45,11 @@ export default function ReviewSubmitPage() {
 
   const [targetNotFound, setTargetNotFound] = useState(false);
 
+  // Trips & eligibility validation
+  const [eligibleTrips, setEligibleTrips] = useState([]);
+  const [loadingTrips, setLoadingTrips] = useState(true);
+  const [selectedTripId, setSelectedTripId] = useState(searchParams.get('tripId') || '');
+
   // Fetch target preview if targetId is given
   useEffect(() => {
     if (!targetId) return;
@@ -76,12 +83,80 @@ export default function ReviewSubmitPage() {
     }
   }, [targetId, targetType]);
 
+  // Load traveller's completed trips to validate eligibility
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadEligibility() {
+      setLoadingTrips(true);
+      try {
+        const user = getUser() || getSavedUser() || {};
+        const userId = user?.userId || user?.id || user?.username;
+        if (!userId) {
+          setEligibleTrips([]);
+          return;
+        }
+
+        const [tripsData, reviewsData] = await Promise.allSettled([
+          apiRequest(`/trips/traveller/${encodeURIComponent(userId)}`),
+          listReviews(),
+        ]);
+
+        const rawTrips = tripsData.status === 'fulfilled' && Array.isArray(tripsData.value)
+          ? tripsData.value
+          : [];
+        const rawReviews = reviewsData.status === 'fulfilled' && Array.isArray(reviewsData.value)
+          ? reviewsData.value
+          : [];
+
+        if (isCancelled) return;
+
+        // Trips that are completed
+        const completed = rawTrips.filter(
+          (t) => (t.status || '').toLowerCase() === 'completed' || (t.trackingStatus || '').toLowerCase() === 'completed'
+        );
+
+        // Trips already reviewed
+        const reviewedIds = new Set(rawReviews.map((r) => r.tripId).filter(Boolean));
+        const available = completed.filter((t) => !reviewedIds.has(t.id));
+
+        setEligibleTrips(available);
+
+        // Validate query tripId if present
+        const paramTripId = searchParams.get('tripId');
+        if (paramTripId) {
+          const match = completed.find((t) => t.id === paramTripId);
+          if (!match) {
+            setSubmitError(`Trip #${paramTripId} is not a completed trip. Reviews can only be submitted for completed trips.`);
+          } else if (reviewedIds.has(paramTripId)) {
+            setSubmitError(`A review has already been submitted for Trip #${paramTripId}. Duplicate reviews are not allowed.`);
+          } else {
+            setSelectedTripId(paramTripId);
+          }
+        } else if (available.length > 0) {
+          setSelectedTripId((prev) => prev || available[0].id);
+        }
+      } catch (err) {
+        console.warn('Error checking review eligibility:', err);
+      } finally {
+        if (!isCancelled) setLoadingTrips(false);
+      }
+    }
+
+    loadEligibility();
+    return () => {
+      isCancelled = true;
+    };
+  }, [searchParams]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
 
     // 400 Validation rules
     const errors = {};
+    if (!selectedTripId) {
+      errors.tripId = 'An eligible completed trip is required to submit a verified review.';
+    }
     if (!targetId || targetId.trim() === '') {
       errors.targetId = 'Please specify a target hotel or experience ID to review.';
     }
@@ -108,15 +183,14 @@ export default function ReviewSubmitPage() {
     setSubmitting(true);
 
     try {
+      // Conforms strictly to CreateReviewDto: { rating, comment, authorName, targetType, targetId, tripId }
       const payload = {
         rating: Number(rating),
-        title: title.trim() || undefined,
         comment: comment.trim(),
-        authorName: authorName.trim(),
+        authorName: authorName.trim() || undefined,
         targetType,
         targetId: targetId.trim(),
-        hotelId: targetType === 'hotel' ? targetId.trim() : undefined,
-        experienceId: targetType === 'experience' ? targetId.trim() : undefined,
+        tripId: selectedTripId,
       };
 
       const result = await createReview(payload);
@@ -332,6 +406,51 @@ export default function ReviewSubmitPage() {
 
           {/* Review Form Card */}
           <form onSubmit={handleSubmit} className="trav-card" style={{ padding: '32px' }}>
+            {/* Completed Trip Eligibility Selector */}
+            <div className="trav-form-group" style={{ marginBottom: '20px' }}>
+              <label className="trav-form-label" htmlFor="trav-review-trip">
+                Eligible Completed Trip *
+              </label>
+              {loadingTrips ? (
+                <div style={{ fontSize: '0.88rem', color: 'var(--trav-text-muted)' }}>
+                  Verifying completed trip eligibility...
+                </div>
+              ) : eligibleTrips.length === 0 && !selectedTripId ? (
+                <div
+                  style={{
+                    background: '#fffbeb',
+                    border: '1px solid #fef3c7',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    fontSize: '0.9rem',
+                    color: '#92400e',
+                  }}
+                  data-testid="no-eligible-trips-notice"
+                >
+                  <strong>No Eligible Completed Trips Found: </strong>
+                  Reviews can only be submitted for completed trips that have not already been reviewed.
+                </div>
+              ) : (
+                <select
+                  id="trav-review-trip"
+                  className={`trav-select ${fieldErrors.tripId ? 'has-error' : ''}`}
+                  value={selectedTripId}
+                  onChange={(e) => setSelectedTripId(e.target.value)}
+                  disabled={Boolean(searchParams.get('tripId'))}
+                >
+                  {eligibleTrips.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.id} — {t.itinerary?.day1?.hotel?.name || t.destination || t.planId || 'Completed Itinerary'} ({t.currentLocation || 'Completed'})
+                    </option>
+                  ))}
+                  {selectedTripId && !eligibleTrips.some((t) => t.id === selectedTripId) && (
+                    <option value={selectedTripId}>Trip #{selectedTripId}</option>
+                  )}
+                </select>
+              )}
+              {fieldErrors.tripId && <span className="trav-field-error">{fieldErrors.tripId}</span>}
+            </div>
+
             {/* Target Selectors if not passed in URL */}
             {!targetIdParam && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
@@ -463,7 +582,7 @@ export default function ReviewSubmitPage() {
             <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || (!loadingTrips && eligibleTrips.length === 0 && !selectedTripId)}
                 className="trav-btn trav-btn-primary"
                 style={{ padding: '14px 28px', fontSize: '1rem' }}
               >

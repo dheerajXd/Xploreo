@@ -44,8 +44,9 @@ export default function ExperienceBookings() {
     bookings
       .filter((b) => (experienceId === 'all' || b.experienceId === experienceId) && (status === 'all' || bookingStatusMeta(b.status).group === status))
       .forEach((b) => {
-        const key = `${b.experienceId}|${b.date}|${b.time}`;
-        if (!byKey.has(key)) byKey.set(key, { key, title: b.experience?.title ?? 'Experience', date: b.date, time: b.time, items: [] });
+        const timeVal = b.time || null;
+        const key = `${b.experienceId}|${b.date}|${timeVal || 'standard'}`;
+        if (!byKey.has(key)) byKey.set(key, { key, title: b.experience?.title ?? 'Experience', date: b.date, time: timeVal, items: [] });
         byKey.get(key).items.push(b);
       });
     const list = [...byKey.values()].sort(compareSlots);
@@ -107,11 +108,11 @@ export default function ExperienceBookings() {
                 groups.map((group) => {
                   const guests = group.items.reduce((sum, b) => sum + (b.status === 'CANCELLED' ? 0 : b.participants), 0);
                   return (
-                    <article key={group.key} className="ep-booking-card" aria-label={`${group.title} on ${group.date} at ${group.time}`}>
+                    <article key={group.key} className="ep-booking-card" aria-label={`${group.title} on ${group.date}${group.time ? ` at ${group.time}` : ''}`}>
                       <header className="ep-booking-card-header">
                         <div>
                           <h2>{group.title}</h2>
-                          <p>{longDate(group.date)} • {group.time}</p>
+                          <p>{longDate(group.date)}{group.time ? ` • ${group.time}` : ''}</p>
                         </div>
                         <div className="ep-booking-summary">
                           <span className="gd-header-badge">{group.items.length} bookings</span>

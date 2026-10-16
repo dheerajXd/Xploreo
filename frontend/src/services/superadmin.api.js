@@ -56,7 +56,7 @@ export function isSuperAdminMockMode() {
       ? import.meta.env.VITE_MOCKS
       : null;
   if (!envMocks) {
-    return true;
+    return false;
   }
   return envMocks === 'all' || envMocks.split(',').map((s) => s.trim()).includes('superadmin');
 }
@@ -156,28 +156,24 @@ export async function getRecentBookings(limit = 10, session = {}) {
     return mockStore.recentBookings.slice(0, limit);
   }
 
-  try {
-    const headers = buildAdminHeaders(session);
-    const trips = await fetchData(`${BASE_URL}/trips`, { headers });
-    if (Array.isArray(trips) && trips.length > 0) {
-      return trips.slice(0, limit).map((t, idx) => ({
-        id: t.id || `BK-${idx + 1}`,
-        customerName: `Traveller #${t.travellerId || 'Guest'}`,
-        customerEmail: `user-${t.travellerId || 'guest'}@xploreo.com`,
-        role: 'traveller',
-        serviceTitle: t.itinerary?.day1?.hotel?.name || 'Custom Travel Itinerary',
-        serviceType: 'package',
-        amount: Number(t.totalAmount) || 25000,
-        currency: 'INR',
-        bookingDate: t.lastUpdatedAt || new Date().toISOString(),
-        status: t.status || 'confirmed',
-      }));
-    }
-  } catch (err) {
-    console.warn('[superadmin.api] Live trips fetch failed, falling back to demo store:', err.message);
+  const headers = buildAdminHeaders(session);
+  const trips = await fetchData(`${BASE_URL}/trips`, { headers });
+  if (Array.isArray(trips)) {
+    return trips.slice(0, limit).map((t, idx) => ({
+      id: t.id || `BK-${idx + 1}`,
+      customerName: `Traveller #${t.travellerId || 'Guest'}`,
+      customerEmail: `user-${t.travellerId || 'guest'}@xploreo.com`,
+      role: 'traveller',
+      serviceTitle: t.itinerary?.day1?.hotel?.name || 'Custom Travel Itinerary',
+      serviceType: 'package',
+      amount: Number(t.totalAmount) || 25000,
+      currency: 'INR',
+      bookingDate: t.lastUpdatedAt || new Date().toISOString(),
+      status: t.status || 'confirmed',
+    }));
   }
 
-  return mockStore.recentBookings.slice(0, limit);
+  return [];
 }
 
 // ============================================================================
