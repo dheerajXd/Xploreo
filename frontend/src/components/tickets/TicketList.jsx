@@ -29,11 +29,31 @@ export default function TicketList({
   className = '',
 }) {
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterPriority, setFilterPriority] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const canResolve = allowResolve && typeof onResolveTicket === 'function';
+
+  // Submitter actor-role inference helper
+  const getSubmitterRole = (ticket) => {
+    if (!ticket) return { role: 'Traveller', roleClass: 'admin-ticket-role-traveller' };
+    const rawRole = String(ticket.role || ticket.submitterRole || '').toLowerCase();
+    const id = String(ticket.travellerId || '').toUpperCase();
+    const name = String(ticket.travellerName || '').toLowerCase();
+
+    if (rawRole === 'hotel' || id.startsWith('HP') || name.includes('hotel') || name.includes('resort')) {
+      return { role: 'Hotel Partner', roleClass: 'admin-ticket-role-hotel' };
+    }
+    if (rawRole === 'guide' || id.startsWith('G') || name.includes('guide')) {
+      return { role: 'Guide', roleClass: 'admin-ticket-role-guide' };
+    }
+    if (rawRole === 'experience' || id.startsWith('XP') || name.includes('experience') || name.includes('safari') || name.includes('kayak')) {
+      return { role: 'Experience Partner', roleClass: 'admin-ticket-role-experience' };
+    }
+    return { role: 'Traveller', roleClass: 'admin-ticket-role-traveller' };
+  };
 
   // Filter and search
   const filteredTickets = useMemo(() => {
@@ -45,7 +65,14 @@ export default function TicketList({
         }
       }
 
-      // 2. Search query filter
+      // 2. Priority filter
+      if (filterPriority !== 'ALL') {
+        if (String(t.priority || '').toUpperCase() !== filterPriority) {
+          return false;
+        }
+      }
+
+      // 3. Search query filter
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase().trim();
       const matchId = String(t.id || '').toLowerCase().includes(q);
@@ -55,7 +82,7 @@ export default function TicketList({
 
       return matchId || matchSubject || matchTraveller || matchCategory;
     });
-  }, [tickets, filterStatus, searchQuery]);
+  }, [tickets, filterStatus, filterPriority, searchQuery]);
 
   const handleOpenDetails = (ticket) => {
     setSelectedTicket(ticket);
@@ -128,27 +155,53 @@ export default function TicketList({
         </div>
 
         <div className="admin-ticket-filters">
-          <button
-            type="button"
-            className={`admin-ticket-filter-btn ${filterStatus === 'ALL' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('ALL')}
-          >
-            All ({tickets.length})
-          </button>
-          <button
-            type="button"
-            className={`admin-ticket-filter-btn ${filterStatus === 'OPEN' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('OPEN')}
-          >
-            Open ({openCount})
-          </button>
-          <button
-            type="button"
-            className={`admin-ticket-filter-btn ${filterStatus === 'RESOLVED' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('RESOLVED')}
-          >
-            Resolved ({resolvedCount})
-          </button>
+          <div style={{ display: 'inline-flex', gap: '4px', marginRight: '6px' }}>
+            <button
+              type="button"
+              className={`admin-ticket-filter-btn ${filterStatus === 'ALL' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('ALL')}
+            >
+              All ({tickets.length})
+            </button>
+            <button
+              type="button"
+              className={`admin-ticket-filter-btn ${filterStatus === 'OPEN' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('OPEN')}
+            >
+              Open ({openCount})
+            </button>
+            <button
+              type="button"
+              className={`admin-ticket-filter-btn ${filterStatus === 'RESOLVED' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('RESOLVED')}
+            >
+              Resolved ({resolvedCount})
+            </button>
+          </div>
+
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', borderLeft: '1px solid #e2e8f0', paddingLeft: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#64748b' }}>Priority:</span>
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              aria-label="Filter by priority"
+              style={{
+                fontSize: '12px',
+                fontWeight: '600',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="ALL">All Priorities</option>
+              <option value="HIGH">High Priority</option>
+              <option value="MEDIUM">Medium Priority</option>
+              <option value="LOW">Low Priority</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -173,7 +226,7 @@ export default function TicketList({
           <p>
             {searchQuery
               ? `No tickets match "${searchQuery}". Try adjusting your search or filters.`
-              : `No tickets found in the "${filterStatus.toLowerCase()}" queue.`}
+              : `No tickets found matching the selected filters.`}
           </p>
         </div>
       )}
@@ -185,7 +238,7 @@ export default function TicketList({
             <thead>
               <tr>
                 <th>Ticket ID</th>
-                <th>Traveller</th>
+                <th>Submitter</th>
                 <th>Subject</th>
                 <th>Category</th>
                 <th>Priority</th>
@@ -202,6 +255,8 @@ export default function TicketList({
                     ? 'ticket-priority-low'
                     : 'ticket-priority-medium';
 
+                const { role: submitterRole, roleClass } = getSubmitterRole(ticket);
+
                 return (
                   <tr key={ticket.id}>
                     {/* Ticket ID & Created Date */}
@@ -214,11 +269,16 @@ export default function TicketList({
                       </div>
                     </td>
 
-                    {/* Traveller */}
+                    {/* Submitter & Inferred Role Badge */}
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <span style={{ fontWeight: '500', color: '#1e293b' }}>
-                        {ticket.travellerName || ticket.travellerId || 'Traveller'}
-                      </span>
+                      <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                        {ticket.travellerName || ticket.travellerId || 'Submitter'}
+                      </div>
+                      <div>
+                        <span className={`admin-ticket-role-badge ${roleClass}`}>
+                          {submitterRole}
+                        </span>
+                      </div>
                     </td>
 
                     {/* Subject (Prominently displayed, description omitted from table) */}
@@ -277,6 +337,8 @@ export default function TicketList({
                 ? 'ticket-priority-low'
                 : 'ticket-priority-medium';
 
+            const { role: submitterRole, roleClass } = getSubmitterRole(ticket);
+
             return (
               <div key={`mob-${ticket.id}`} className="admin-ticket-mobile-card">
                 <div className="admin-ticket-mobile-header">
@@ -295,8 +357,13 @@ export default function TicketList({
                   {ticket.subject}
                 </div>
 
-                <div className="admin-ticket-mobile-meta">
-                  <span>👤 {ticket.travellerName || ticket.travellerId || 'Traveller'}</span>
+                <div className="admin-ticket-mobile-meta" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span>👤 {ticket.travellerName || ticket.travellerId || 'Submitter'}</span>
+                    <span className={`admin-ticket-role-badge ${roleClass}`}>
+                      {submitterRole}
+                    </span>
+                  </div>
                   <span>📁 {ticket.category || 'General'}</span>
                   <span className={priorityClass}>● {ticket.priority || 'MEDIUM'}</span>
                 </div>

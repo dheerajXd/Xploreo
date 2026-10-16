@@ -63,8 +63,8 @@ export class GuideController {
   @Get(':id')
   @ApiOperation({ summary: 'Get guide by ID' })
   @ApiReadEndpoint()
-  findOne(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.guideService.findOne(id);
+  findOne(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.guideService.findOne(id, req.user);
   }
 
   @Roles(Role.SUPERADMIN, Role.NONTECHADMIN, Role.GUIDE)

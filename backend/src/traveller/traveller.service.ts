@@ -24,9 +24,19 @@ export class TravellerService {
     return this.travellerRepository.findAll();
   }
 
-  findOne(id: string) {
+  findOne(id: string, actor?: { userId?: string; role?: string }) {
     const t = this.travellerRepository.findById(id);
     if (!t) throw new NotFoundException(`Traveller ${id} not found`);
+
+    const isSelf = actor?.userId === id;
+    const isAdmin = actor?.role === 'superadmin' || actor?.role === 'nontechadmin';
+
+    // If caller is not self or admin, redact private contact information
+    if (!isSelf && !isAdmin) {
+      const { email: _email, phno: _phno, ...publicProfile } = t;
+      return publicProfile;
+    }
+
     return t;
   }
 

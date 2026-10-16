@@ -49,8 +49,8 @@ export class TravellerController {
   @Get(':id')
   @ApiOperation({ summary: 'Get traveller by ID' })
   @ApiReadEndpoint()
-  findOne(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.travellerService.findOne(id);
+  findOne(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.travellerService.findOne(id, req.user);
   }
 
   @Patch(':id')

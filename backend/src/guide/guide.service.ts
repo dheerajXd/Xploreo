@@ -30,9 +30,26 @@ export class GuideService {
     return this.guideRepository.findAll();
   }
 
-  findOne(id: string) {
+  findOne(id: string, actor?: { userId?: string; role?: string }) {
     const guide = this.guideRepository.findById(id);
     if (!guide) throw new NotFoundException(`Guide ${id} not found`);
+
+    const isSelf = actor?.userId === id;
+    const isAdmin = actor?.role === 'superadmin' || actor?.role === 'nontechadmin';
+
+    // If caller is not self or admin, redact private banking and personal contact information
+    if (!isSelf && !isAdmin) {
+      const {
+        bank_name: _bank_name,
+        bank_acc_num_end: _bank_acc,
+        iban: _iban,
+        phone: _phone,
+        email: _email,
+        ...publicGuide
+      } = guide;
+      return publicGuide;
+    }
+
     return guide;
   }
 
