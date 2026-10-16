@@ -1,28 +1,13 @@
 import { Outlet } from 'react-router-dom';
-import { Navbar, useAuth } from '@/foundation';
+import Navbar from '@/components/Navbar/navbar.jsx';
 
-const LINKS = [
-  { to: '/hotel/dashboard', label: 'Dashboard', icon: 'dashboard.svg' },
-  { to: '/hotel/rooms', label: 'Services', icon: 'tours.svg' },
-  { to: '/hotel/bookings', label: 'Bookings', icon: 'schedule.svg' },
-  { to: '/hotel/earnings', label: 'Earnings', icon: 'earnings.svg' },
-  { to: '/hotel/reviews', label: 'Reviews', icon: 'reviews.svg' },
-];
-
+// Hotel shares the Traveller/Guide navbar (same component, same CSS) — see
+// components/Navbar/navbar.jsx's HOTEL_NAV_LINKS/HOTEL_DROPDOWN_LINKS for its links.
 export default function HotelLayout() {
-  const { user, logout } = useAuth();
   return (
     <>
-      <Navbar
-        links={LINKS}
-        userName={user?.businessName || user?.name || 'Hotel Partner'}
-        profileTo="/hotel/profile"
-        supportTo="/hotel/support"
-        onLogout={logout}
-      />
-      <main className="admin-portal-content">
-        <Outlet />
-      </main>
+      <Navbar />
+      <Outlet />
     </>
   );
 }

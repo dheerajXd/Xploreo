@@ -103,6 +103,24 @@ const GUIDE_DROPDOWN_LINKS = [
   { to: "/guide/profile", label: "My Profile" },
 ];
 
+const HOTEL_NAV_LINKS = [
+  { to: "/hotel/dashboard", label: "Dashboard", icon: GUIDE_NAV_LINKS[0].icon, icon2: GUIDE_NAV_LINKS[0].icon2 },
+  {
+    to: "/hotel/rooms",
+    label: "Services",
+    icon: <path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14" />,
+    icon2: <path d="M3 21h18M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4" />,
+  },
+  { to: "/hotel/bookings", label: "Bookings", icon: TRAVELLER_NAV_LINKS[1].icon, icon2: TRAVELLER_NAV_LINKS[1].icon2 },
+  { to: "/hotel/earnings", label: "Earnings", icon: GUIDE_NAV_LINKS[2].icon, icon2: GUIDE_NAV_LINKS[2].icon2 },
+  { to: "/hotel/reviews", label: "Reviews", icon: GUIDE_NAV_LINKS[3].icon, icon2: null },
+];
+
+const HOTEL_DROPDOWN_LINKS = [
+  { to: "/hotel/support", label: "Support Tickets" },
+  { to: "/hotel/profile", label: "My Profile" },
+];
+
 // Shared visual shell for Traveller and Guide: identical markup/classes, only the nav
 // destinations and dropdown links differ per role.
 function TravellerStyleNavbar({ displayName, initial, user, dropdownOpen, setDropdownOpen, onLogout, navLinks, dropdownLinks }) {
@@ -219,6 +237,21 @@ export default function Navbar({ user: propUser, isPublic = false } = {}) {
         onLogout={handleLogout}
         navLinks={GUIDE_NAV_LINKS}
         dropdownLinks={GUIDE_DROPDOWN_LINKS}
+      />
+    );
+  }
+
+  if (!isPublicRoute && role === "hotel") {
+    return (
+      <TravellerStyleNavbar
+        displayName={user?.businessName || displayName}
+        initial={initial}
+        user={user}
+        dropdownOpen={dropdownOpen}
+        setDropdownOpen={setDropdownOpen}
+        onLogout={handleLogout}
+        navLinks={HOTEL_NAV_LINKS}
+        dropdownLinks={HOTEL_DROPDOWN_LINKS}
       />
     );
   }

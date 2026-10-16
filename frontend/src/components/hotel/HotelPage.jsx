@@ -1,12 +1,13 @@
 // Shared shell for the hotel portal pages. Mirrors the original hotels/*.html:
 //   <div id="navbar"> + <main id="main" class="dashboard-wrapper"> (the CSS reserves the space under the fixed navbar).
 import { HOTEL_PAGE_CSS } from '@/legacy/styles.js';
+import './hotelUnified.css';
 import { usePageStyles } from '@/lib/usePageStyles.js';
 
 export default function HotelPage({ title, children }) {
   usePageStyles(HOTEL_PAGE_CSS, 'hotel-bg-light', title);
   return (
-    <main id="main" className="dashboard-wrapper">
+    <main id="main" className="dashboard-wrapper hotel-unified">
       {children}
     </main>
   );
