@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/foundation';
 import { useAsyncData } from '@/hooks/useAsyncData.js';
-import { getTraveller, listMyAssignments, listMyTrips, listPlans, updateTripTracking } from '@/services/guide.api.js';
-import { GUIDE_TOURS_CSS } from '@/legacy/styles.js';
+import {
+  getTraveller,
+  listMyAssignments,
+  listMyTrips,
+  listPlans,
+  updateTripTracking,
+} from '@/services/guide.api.js';
 import { formatCurrency, formatDate } from '@/lib/datetime.js';
-import { ui } from '@/lib/assets.js';
-import { fontPx, px } from '@/lib/density.js';
-import GuidePage from '@/components/guide/GuidePage.jsx';
-import { ErrorNotice, LoadingState } from '@/components/guide/Feedback.jsx';
 import { useToast } from '@/components/guide/Toast.jsx';
+import './guideTours.css';
 
 const TABS = [
   { key: 'pending', label: 'Upcoming' },
@@ -31,6 +33,9 @@ function stopsOf(trip) {
 const stopIndex = (trip, stops) => Math.max(0, stops.findIndex((s) => s.title === trip.currentStop));
 const progressOf = (index, total) => Math.round((index / (total - 1 || 1)) * 100);
 const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—');
+// Assignments are Trips: there's no top-level "start date"/"fee"/"guests" field, only itinerary
+// dates and totalAmount — see trips/entities/trip.entity.ts.
+const tripDate = (trip, stops) => trip.itinerary?.day1?.hotel?.checkInDate || trip.itinerary?.day1?.flight?.departureAt || stops[0]?.startsAt;
 
 async function loadTours(guideId) {
   const [trips, assignments, plans] = await Promise.all([listMyTrips(guideId), listMyAssignments(guideId), listPlans()]);
@@ -58,21 +63,18 @@ export default function GuideTours() {
     const planById = new Map(data.plans.map((p) => [p.id, p]));
     return data.trips.map((trip) => {
       const plan = planById.get(trip.planId);
-      const job = data.assignments.find((a) => a.travellerId === trip.travellerId && a.planId === trip.planId && a.status !== 'cancelled');
       const t = data.travellers[trip.travellerId];
       const stops = stopsOf(trip);
       return {
         trip,
         stops,
         plan,
-        job,
         title: plan?.title || trip.planId,
         destination: plan?.destination || '',
         customer: t ? `${t.fname || ''} ${t.lname || ''}`.trim() || 'Traveller' : 'Traveller',
         phone: t?.phno ? String(t.phno) : '',
-        guests: job?.travelerCount ?? 1,
-        amount: job?.paidAmount,
-        date: job?.startDate || stops[0]?.startsAt,
+        amount: trip.totalAmount,
+        date: tripDate(trip, stops),
         duration: plan ? `${plan.durationNights + 1} days` : '—',
       };
     });
@@ -128,56 +130,80 @@ export default function GuideTours() {
   }
 
   return (
-    <GuidePage css={GUIDE_TOURS_CSS} title="Tours" pageWrapper>
-      <div id="tour-page-header" className="welcome">
-        <h1>Tour Management</h1>
-        <p>View all your tours at one place</p>
-      </div>
-      <div id="tours-internal-navbar" className="internal-navbar" role="tablist">
-        {TABS.map((t) => (
-          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={`tab-btn${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>
-            {t.label}{data ? ` (${counts[t.key]})` : ''}
-          </button>
-        ))}
-      </div>
+    <div className="gd-page-wrapper">
+      <main className="gd-page">
+        <header className="gd-header">
+          <div className="gd-header-text">
+            <span className="gd-eyebrow">Guide Portal</span>
+            <h1 className="gd-title">Tour Management</h1>
+            <p className="gd-subtitle">View all your tours in one place.</p>
+          </div>
+        </header>
 
-      {!data && loading ? <LoadingState label="Loading your tours…" /> : null}
-      <ErrorNotice error={error} onRetry={reload} />
-
-      {data ? (
-        <div id="internal-contents">
-          {shown.length === 0 ? <EmptyTours tab={tab} /> : null}
-          {tab === 'pending' && shown.length > 0 ? (
-            <div className="tours-grid">
-              {shown.map((c) => (
-                <UpcomingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onStart={() => start(c)} onDetails={() => setOpenId(c.trip.id)} />
-              ))}
-            </div>
-          ) : null}
-          {tab === 'ongoing' ? shown.map((c) => (
-            <OngoingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onAdvance={() => advance(c)} onDetails={() => setOpenId(c.trip.id)} />
-          )) : null}
-          {tab === 'completed' && shown.length > 0 ? (
-            <div className="tours-list-vertical">
-              {shown.map((c) => <CompletedCard key={c.trip.id} card={c} onDetails={() => setOpenId(c.trip.id)} />)}
-            </div>
-          ) : null}
+        <div className="gd-tabs" role="tablist">
+          {TABS.map((t) => (
+            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={`gd-tab${tab === t.key ? ' active' : ''}`} onClick={() => setTab(t.key)}>
+              {t.label}{data ? ` (${counts[t.key]})` : ''}
+            </button>
+          ))}
         </div>
-      ) : null}
 
-      {open ? (
-        <TourModal
-          card={open}
-          busy={busyId === open.trip.id}
-          onClose={() => setOpenId(null)}
-          onStart={() => start(open)}
-          onAdvance={() => advance(open)}
-          onPause={() => track(open, { trackingStatus: 'paused' }, 'Tracking paused.')}
-          onResume={() => track(open, { trackingStatus: 'ongoing' }, 'Tracking resumed.')}
-        />
-      ) : null}
-      {toast}
-    </GuidePage>
+        {!data && loading ? (
+          <div className="gd-review-loading" aria-hidden="true">
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="gd-state-error" role="alert">
+            <div className="gd-state-icon">⚠️</div>
+            <h3 className="gd-state-title">{error.status === 403 ? 'Not permitted' : 'Something went wrong'}</h3>
+            <p className="gd-state-text">{error.message}</p>
+            {error.status !== 403 ? <button type="button" className="gd-btn-retry" onClick={reload}>Try Again</button> : null}
+          </div>
+        ) : null}
+
+        {data ? (
+          <>
+            {shown.length === 0 ? <EmptyTours tab={tab} /> : null}
+            {tab === 'pending' && shown.length > 0 ? (
+              <div className="gd-tours-grid">
+                {shown.map((c) => (
+                  <UpcomingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onStart={() => start(c)} onDetails={() => setOpenId(c.trip.id)} />
+                ))}
+              </div>
+            ) : null}
+            {tab === 'ongoing' ? (
+              <div className="gd-tours-list-vertical">
+                {shown.map((c) => (
+                  <OngoingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onAdvance={() => advance(c)} onDetails={() => setOpenId(c.trip.id)} />
+                ))}
+              </div>
+            ) : null}
+            {tab === 'completed' && shown.length > 0 ? (
+              <div className="gd-tours-list-vertical">
+                {shown.map((c) => <CompletedCard key={c.trip.id} card={c} onDetails={() => setOpenId(c.trip.id)} />)}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {open ? (
+          <TourModal
+            card={open}
+            busy={busyId === open.trip.id}
+            onClose={() => setOpenId(null)}
+            onStart={() => start(open)}
+            onAdvance={() => advance(open)}
+            onPause={() => track(open, { trackingStatus: 'paused' }, 'Tracking paused.')}
+            onResume={() => track(open, { trackingStatus: 'ongoing' }, 'Tracking resumed.')}
+          />
+        ) : null}
+        {toast}
+      </main>
+    </div>
   );
 }
 
@@ -188,45 +214,33 @@ function EmptyTours({ tab }) {
     completed: ['Completed Tours', 'No completed tours yet!'],
   }[tab];
   return (
-    <div className="empty-state-card">
-      <h2>{copy[0]}</h2>
-      <p className="no-data">{copy[1]}</p>
-    </div>
-  );
-}
-
-function Meta({ icon, alt, children }) {
-  return (
-    <div className="meta-item">
-      <img src={ui(icon)} alt={alt} className="meta-icon" />
-      <span>{children}</span>
+    <div className="gd-empty">
+      <p style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>{copy[0]}</p>
+      <p style={{ margin: '0.35rem 0 0 0' }}>{copy[1]}</p>
     </div>
   );
 }
 
 function UpcomingCard({ card, busy, onStart, onDetails }) {
   return (
-    <div className="tour-card">
-      <div className="card-badge"><span className="badge badge-confirmed">Confirmed</span></div>
-      <h2 className="card-title">{card.title}</h2>
-      <div className="tour-meta-grid">
-        <Meta icon="user.svg" alt="user">{card.customer}</Meta>
-        <Meta icon="support.svg" alt="phone">{card.phone || 'N/A'}</Meta>
-        <Meta icon="upcomingtours.svg" alt="date">{formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</Meta>
-        <Meta icon="schedule.svg" alt="time">{timeOf(card.stops[0]?.startsAt)}</Meta>
-        <Meta icon="tours.svg" alt="location">{card.destination}</Meta>
+    <article className="gd-tour-card">
+      <span className="gd-chip" style={{ color: '#0284c7', background: '#eff6ff', borderColor: '#bfdbfe', alignSelf: 'flex-start' }}>Confirmed</span>
+      <h2 className="gd-tour-card-title">{card.title}</h2>
+      <div className="gd-tour-meta-grid">
+        <span className="gd-meta-item">👤 {card.customer}</span>
+        <span className="gd-meta-item">📞 {card.phone || 'N/A'}</span>
+        <span className="gd-meta-item">📅 {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        <span className="gd-meta-item">🕐 {timeOf(card.stops[0]?.startsAt)}</span>
+        <span className="gd-meta-item">📍 {card.destination}</span>
       </div>
-      <div className="card-footer-info">
-        <div className="guests-amount">
-          <p className="guests">{card.guests} guests</p>
-          {card.amount != null ? <p className="amount">{formatCurrency(card.amount)}</p> : null}
-        </div>
-        <div className="card-actions">
-          <button type="button" className="btn btn-solid-blue" disabled={busy} onClick={onStart}>Start</button>
-          <button type="button" className="btn btn-outline-blue" onClick={onDetails}>Details</button>
+      <div className="gd-tour-card-footer">
+        {card.amount != null ? <p className="gd-tour-amount">{formatCurrency(card.amount)}</p> : <span />}
+        <div className="gd-tour-card-actions">
+          <button type="button" className="gd-btn gd-btn-primary gd-btn-sm" disabled={busy} onClick={onStart}>Start</button>
+          <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" onClick={onDetails}>Details</button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -238,74 +252,63 @@ function OngoingCard({ card, busy, onAdvance, onDetails }) {
   const nextStop = stops[index + 1]?.title || 'Arrived';
   const paused = trip.trackingStatus === 'paused';
   return (
-    <div className="ongoing-tour-card">
-      <div className="card-top-header">
-        <div className="title-row">
-          <h2>{card.title}</h2>
-          <span className="badge badge-ongoing">{paused ? 'Paused' : 'In Progress'}</span>
+    <article className="gd-ongoing-card">
+      <div className="gd-ongoing-top">
+        <div>
+          <div className="gd-ongoing-title-row">
+            <h2>{card.title}</h2>
+            <span className="gd-chip" style={{ color: paused ? '#854d0e' : '#0284c7', background: paused ? '#fffbeb' : '#eff6ff', borderColor: paused ? '#fde68a' : '#bfdbfe' }}>
+              {paused ? 'Paused' : 'In Progress'}
+            </span>
+          </div>
+          <p className="gd-ongoing-sub">{card.customer}</p>
         </div>
-        <div className="price-guests">
-          {card.amount != null ? <h3 className="price">{formatCurrency(card.amount)}</h3> : null}
-          <p className="guests-small">{card.guests} guests</p>
-        </div>
-      </div>
-      <p className="customer-subtitle">{card.customer}</p>
-
-      <div className="info-boxes">
-        <div className="info-box light-blue"><label>Current Stop</label><span>{trip.currentStop || '—'}</span></div>
-        <div className="info-box light-purple"><label>Duration</label><span>{card.duration}</span></div>
-        <div className="info-box light-orange"><label>Next Stop</label><span className="next-stop-text">{nextStop}</span></div>
-      </div>
-
-      <div className="progress-section">
-        <div className="progress-labels">
-          <label>Tour Progress</label>
-          <span className="percent text-blue">{progress}%</span>
-        </div>
-        <div className="progress-bar-container">
-          <div className="progress-fill" style={{ width: `${progress}%` }} />
+        <div className="gd-ongoing-price">
+          {card.amount != null ? <p className="price">{formatCurrency(card.amount)}</p> : null}
         </div>
       </div>
 
-      <div className="action-buttons-ongoing">
+      <div className="gd-info-boxes">
+        <div className="gd-info-box blue"><label>Current Stop</label><span>{trip.currentStop || '—'}</span></div>
+        <div className="gd-info-box purple"><label>Duration</label><span>{card.duration}</span></div>
+        <div className="gd-info-box orange"><label>Next Stop</label><span>{nextStop}</span></div>
+      </div>
+
+      <div>
+        <div className="gd-progress-labels"><span>Tour Progress</span><span>{progress}%</span></div>
+        <div className="gd-progress-bar-track"><div className="gd-progress-bar-fill" style={{ width: `${progress}%` }} /></div>
+      </div>
+
+      <div className="gd-ongoing-actions">
         {card.phone ? (
-          <a className="btn btn-solid-blue flex-btn" href={`tel:${card.phone}`} style={{ textDecoration: 'none' }}>
-            <img src={ui('support.svg')} alt="" className="btn-icon" style={{ filter: 'brightness(0) invert(1)' }} /> Call Customer
-          </a>
+          <a className="gd-btn gd-btn-primary" href={`tel:${card.phone}`}>📞 Call Customer</a>
         ) : (
-          <button type="button" className="btn btn-solid-blue flex-btn" disabled>
-            <img src={ui('support.svg')} alt="" className="btn-icon" style={{ filter: 'brightness(0) invert(1)' }} /> Call Customer
-          </button>
+          <button type="button" className="gd-btn gd-btn-primary" disabled>📞 Call Customer</button>
         )}
-        <button type="button" className="btn btn-outline-blue flex-btn" onClick={onDetails}>
-          <img src={ui('tours.svg')} alt="" className="btn-icon" /> View Route
-        </button>
-        <button type="button" className="btn btn-outline-green flex-btn" disabled={busy || paused} onClick={onAdvance}>
-          <img src={ui('schedule.svg')} alt="" className="btn-icon" /> {index >= total - 1 ? 'Finish Tour' : 'Complete'}
+        <button type="button" className="gd-btn gd-btn-secondary" onClick={onDetails}>🗺️ View Route</button>
+        <button type="button" className="gd-btn gd-btn-success" disabled={busy || paused} onClick={onAdvance}>
+          {index >= total - 1 ? 'Finish Tour' : 'Complete'}
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
 function CompletedCard({ card, onDetails }) {
   return (
-    <div className="completed-tour-card">
-      <div className="comp-header">
+    <article className="gd-completed-card">
+      <div className="gd-completed-left">
         <h2>{card.title}</h2>
-        {card.amount != null ? <h3 className="price">{formatCurrency(card.amount)}</h3> : null}
-      </div>
-      <div className="comp-sub">
-        <div className="comp-icons">
-          <span className="cust-info"><img src={ui('user.svg')} alt="user" /> {card.customer}</span>
-          <span className="cust-info"><img src={ui('upcomingtours.svg')} alt="date" /> {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-          <span className="cust-info">{card.guests} guests</span>
+        <div className="gd-completed-icons">
+          <span>👤 {card.customer}</span>
+          <span>📅 {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
         </div>
       </div>
-      <div className="comp-actions">
-        <button type="button" className="btn btn-outline-blue" onClick={onDetails}>View Details</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {card.amount != null ? <p className="gd-tour-amount" style={{ margin: 0 }}>{formatCurrency(card.amount)}</p> : null}
+        <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" onClick={onDetails}>View Details</button>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -321,67 +324,56 @@ function TourModal({ card, busy, onClose, onStart, onAdvance, onPause, onResume 
 
   const current = trip.trackingStatus === 'not_started' ? -1 : stopIndex(trip, stops);
   const done = trip.trackingStatus === 'completed';
-  const stateOf = (i) => (done || i < current ? 'completed' : i === current ? 'current' : 'pending');
+  const stateOf = (i) => (done || i < current ? 'completed' : i === current ? 'current' : '');
 
   return (
-    <div id="tourModal" className="modal-overlay active" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="tour-modal-title">
-        <div className="modal-header">
-          <span />
-          <button type="button" className="close-btn" aria-label="Close" onClick={onClose}>&times;</button>
-        </div>
-        <div id="modalBody" className="modal-body">
-          <div className="tracking-modal-header" style={{ padding: `${px(20)}px ${px(24)}px`, borderBottom: '1px solid #e5e7eb' }}>
-            <h2 id="tour-modal-title" style={{ margin: 0, fontSize: fontPx(20), fontWeight: 600, color: '#111827' }}>{card.title}</h2>
-            <div style={{ marginTop: px(8), display: 'flex', gap: px(16), fontSize: fontPx(13), color: '#4b5563' }}>
-              <span><strong style={{ color: '#111827' }}>ID:</strong> {trip.id}</span>
-              <span><strong style={{ color: '#111827' }}>Date:</strong> {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              <span><strong style={{ color: '#111827' }}>Customer:</strong> {card.customer}</span>
-            </div>
+    <div className="gc-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="gc-dialog" style={{ width: 760, maxWidth: '95vw', padding: 0 }} role="dialog" aria-modal="true" aria-labelledby="tour-modal-title">
+        <div className="gd-tour-modal-header">
+          <h2 id="tour-modal-title">{card.title}</h2>
+          <div className="gd-tour-modal-meta">
+            <span><strong>ID:</strong> {trip.id.slice(0, 8)}</span>
+            <span><strong>Date:</strong> {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            <span><strong>Customer:</strong> {card.customer}</span>
           </div>
+        </div>
 
-          <div className="tracking-container" style={{ height: px(500), padding: px(24) }}>
-            <div className="tracking-left">
-              <h3 style={{ margin: `0 0 ${px(16)}px 0`, fontSize: fontPx(16), color: '#111827' }}>Itinerary</h3>
-              <ul id="trackingStops">
-                {stops.length === 0 ? <li className="pending">No stops planned yet.</li> : null}
-                {stops.map((s, i) => (
-                  <li key={s.id} className={stateOf(i)}>{s.title}</li>
-                ))}
-              </ul>
+        <div className="gd-tracking-container">
+          <div className="gd-tracking-left">
+            <h3>Itinerary</h3>
+            <ul className="gd-tracking-stops">
+              {stops.length === 0 ? <li>No stops planned yet.</li> : null}
+              {stops.map((s, i) => <li key={s.id} className={stateOf(i)}>{s.title}</li>)}
+            </ul>
 
-              {!done ? (
-                <div id="guideControls" style={{ marginTop: 'auto', paddingTop: px(16), borderTop: '1px solid #e5e7eb' }}>
-                  <div style={{ display: 'flex', gap: px(8), flexWrap: 'wrap' }}>
-                    {trip.trackingStatus === 'not_started' ? (
-                      <button type="button" className="btn-solid-blue" disabled={busy} onClick={onStart}>Start</button>
-                    ) : (
-                      <>
-                        <button type="button" className="btn-outline-blue" disabled={busy || trip.trackingStatus === 'paused'} onClick={onPause}>Pause</button>
-                        <button type="button" className="btn-outline-blue" disabled={busy || trip.trackingStatus !== 'paused'} onClick={onResume}>Resume</button>
-                        <button type="button" className="btn-outline-blue" disabled={busy || trip.trackingStatus === 'paused'} onClick={onAdvance}>Skip</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="tracking-right">
-              <div style={{ padding: px(24), height: '100%', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: px(10), fontSize: fontPx(14), color: '#374151' }}>
-                <h3 style={{ margin: 0, fontSize: fontPx(16), color: '#111827' }}>Live status</h3>
-                <div><strong>Status:</strong> {trip.trackingStatus.replace('_', ' ')}</div>
-                <div><strong>Day:</strong> {trip.currentDay}</div>
-                <div><strong>Current stop:</strong> {trip.currentStop || '—'}</div>
-                <div><strong>Location:</strong> {trip.currentLocation || '—'}</div>
-                <div><strong>Progress:</strong> {trip.progressPercentage}%</div>
-                <div style={{ color: '#6b7280', fontSize: fontPx(12) }}>Updated {trip.lastUpdatedAt ? new Date(trip.lastUpdatedAt).toLocaleString() : '—'}</div>
+            {!done ? (
+              <div className="gd-tour-modal-controls">
+                {trip.trackingStatus === 'not_started' ? (
+                  <button type="button" className="gd-btn gd-btn-primary" disabled={busy} onClick={onStart}>Start</button>
+                ) : (
+                  <>
+                    <button type="button" className="gd-btn gd-btn-secondary" disabled={busy || trip.trackingStatus === 'paused'} onClick={onPause}>Pause</button>
+                    <button type="button" className="gd-btn gd-btn-secondary" disabled={busy || trip.trackingStatus !== 'paused'} onClick={onResume}>Resume</button>
+                    <button type="button" className="gd-btn gd-btn-secondary" disabled={busy || trip.trackingStatus === 'paused'} onClick={onAdvance}>Skip</button>
+                  </>
+                )}
               </div>
-            </div>
+            ) : null}
+          </div>
+
+          <div className="gd-tracking-right">
+            <h3>Live status</h3>
+            <div><strong>Status:</strong> {trip.trackingStatus.replace('_', ' ')}</div>
+            <div><strong>Day:</strong> {trip.currentDay}</div>
+            <div><strong>Current stop:</strong> {trip.currentStop || '—'}</div>
+            <div><strong>Location:</strong> {trip.currentLocation || '—'}</div>
+            <div><strong>Progress:</strong> {trip.progressPercentage}%</div>
+            <div className="muted">Updated {trip.lastUpdatedAt ? new Date(trip.lastUpdatedAt).toLocaleString() : '—'}</div>
           </div>
         </div>
-        <div className="modal-footer">
-          <button type="button" className="secondary-btn" onClick={onClose}>Close</button>
+
+        <div className="gd-modal-footer">
+          <button type="button" className="gd-btn gd-btn-secondary" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

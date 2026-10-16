@@ -1,0 +1,112 @@
+/* guideTours.css — Tours-specific pieces; page chrome lives in guideShared.css. */
+@import './guideShared.css';
+
+.gd-tours-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+.gd-tours-list-vertical { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ── Upcoming tour card ───────────────────────────────────────── */
+.gd-tour-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.gd-tour-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(13, 148, 136, 0.08); border-color: #cbd5e1; }
+
+.gd-tour-card-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
+
+.gd-tour-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; font-size: 0.825rem; color: #475569; }
+.gd-meta-item { display: flex; align-items: center; gap: 0.4rem; }
+.gd-meta-icon { width: 14px; height: 14px; opacity: 0.7; }
+
+.gd-tour-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9; }
+.gd-tour-guests { font-size: 0.8rem; color: #64748b; margin: 0; }
+.gd-tour-amount { font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0; }
+.gd-tour-card-actions { display: flex; gap: 0.5rem; }
+
+/* ── Ongoing tour card ────────────────────────────────────────── */
+.gd-ongoing-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-ongoing-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.gd-ongoing-title-row { display: flex; align-items: center; gap: 0.6rem; }
+.gd-ongoing-title-row h2 { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
+.gd-ongoing-sub { font-size: 0.875rem; color: #64748b; margin: 0; }
+.gd-ongoing-price { text-align: right; }
+.gd-ongoing-price .price { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
+.gd-ongoing-price .guests-small { font-size: 0.775rem; color: #94a3b8; margin: 0; }
+
+.gd-info-boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.gd-info-box { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 0.65rem; padding: 0.65rem 0.85rem; }
+.gd-info-box label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #94a3b8; margin-bottom: 0.2rem; }
+.gd-info-box span { font-size: 0.875rem; font-weight: 700; color: #0f172a; }
+.gd-info-box.blue { background: #eff6ff; border-color: #dbeafe; }
+.gd-info-box.purple { background: #faf5ff; border-color: #ede9fe; }
+.gd-info-box.orange { background: #fff7ed; border-color: #fed7aa; }
+
+.gd-progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 0.4rem; }
+.gd-progress-bar-track { height: 8px; background: #f1f5f9; border-radius: 9999px; overflow: hidden; }
+.gd-progress-bar-fill { height: 100%; background: linear-gradient(90deg, #0d9488, #0284c7); border-radius: 9999px; transition: width 0.3s ease; }
+
+.gd-ongoing-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.gd-ongoing-actions .gd-btn { flex: 1; min-width: 140px; }
+
+/* ── Completed tour card ──────────────────────────────────────── */
+.gd-completed-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.1rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-completed-left h2 { font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 0.3rem 0; }
+.gd-completed-icons { display: flex; gap: 1rem; font-size: 0.8rem; color: #64748b; flex-wrap: wrap; }
+.gd-completed-icons span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+/* ── Tour tracking modal ──────────────────────────────────────── */
+.gd-tour-modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; }
+.gd-tour-modal-header h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a; }
+.gd-tour-modal-meta { margin-top: 0.5rem; display: flex; gap: 1.25rem; font-size: 0.825rem; color: #64748b; flex-wrap: wrap; }
+.gd-tour-modal-meta strong { color: #0f172a; }
+
+.gd-tracking-container { display: grid; grid-template-columns: 1fr 1fr; min-height: 420px; }
+.gd-tracking-left { padding: 1.5rem; display: flex; flex-direction: column; border-right: 1px solid #f1f5f9; }
+.gd-tracking-left h3 { margin: 0 0 1rem 0; font-size: 1rem; font-weight: 800; color: #0f172a; }
+
+.gd-tracking-stops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.gd-tracking-stops li { padding: 0.55rem 0.85rem; border-radius: 0.6rem; font-size: 0.875rem; font-weight: 600; background: #f8fafc; color: #94a3b8; border: 1px solid #f1f5f9; }
+.gd-tracking-stops li.current { background: #eff6ff; color: #0284c7; border-color: #bfdbfe; }
+.gd-tracking-stops li.completed { background: #f0fdf4; color: #166534; border-color: #bbf7d0; text-decoration: line-through; }
+
+.gd-tour-modal-controls { margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.gd-tracking-right { padding: 1.5rem; background: #f8fafc; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem; color: #334155; }
+.gd-tracking-right h3 { margin: 0; font-size: 1rem; font-weight: 800; color: #0f172a; }
+.gd-tracking-right .muted { color: #94a3b8; font-size: 0.775rem; }
+
+.gd-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
+
+@media (max-width: 760px) {
+  .gd-tracking-container { grid-template-columns: 1fr; }
+  .gd-tracking-left { border-right: none; border-bottom: 1px solid #f1f5f9; }
+  .gd-info-boxes { grid-template-columns: 1fr; }
+  .gd-tour-meta-grid { grid-template-columns: 1fr; }
+}

@@ -5,7 +5,6 @@ import GuideDashboard from '@/pages/Guide/GuideDashboard.jsx';
 import GuideTours from '@/pages/Guide/GuideTours.jsx';
 import GuideEarnings from '@/pages/Guide/GuideEarnings.jsx';
 import GuideReviews from '@/pages/Guide/GuideReviews.jsx';
-import GuideSchedule from '@/pages/Guide/GuideSchedule.jsx';
 import GuideSupport from '@/pages/Guide/GuideSupport.jsx';
 import PartnerProfile from '@/pages/Partner/PartnerProfile.jsx';
 
@@ -18,7 +17,6 @@ export const guidePortal = {
     { index: true, element: <Navigate to="dashboard" replace /> },
     { path: 'dashboard', element: <GuideDashboard /> },
     { path: 'tours', element: <GuideTours /> },
-    { path: 'schedule', element: <GuideSchedule /> },
     { path: 'earnings', element: <GuideEarnings /> },
     { path: 'reviews', element: <GuideReviews /> },
     { path: 'support', element: <GuideSupport /> },

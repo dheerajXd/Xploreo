@@ -15,7 +15,6 @@ import { TripsModule } from './trips/trips.module';
 import { LocationModule } from './location/location.module';
 import { CitiesModule } from './cities/cities.module';
 import { ReviewsModule } from './reviews/reviews.module';
-import { ScheduleModule } from './schedule/schedule.module';
 import { GuideRequestsModule } from './guide-requests/guide-requests.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { PartnersModule } from './partners/partners.module';
@@ -37,7 +36,6 @@ import { UploadModule } from './upload/upload.module';
     PlansModule,
     TripsModule,
     ReviewsModule,
-    ScheduleModule,
     GuideRequestsModule,
     BookingsModule,
     PartnersModule,

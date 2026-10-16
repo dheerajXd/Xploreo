@@ -1,0 +1,191 @@
+/* guideSupport.css — Support-specific pieces; page chrome lives in guideShared.css. */
+@import './guideShared.css';
+
+.gd-support-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.gd-support-main { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
+.gd-support-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.gd-section-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 0.25rem 0; }
+.gd-section-desc { font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 1.1rem; }
+
+.gd-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.gd-alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.gd-alert.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+.gd-form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+.gd-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.gd-form-group label { font-size: 0.825rem; font-weight: 700; color: #334155; }
+.gd-form-group textarea.gd-input { min-height: 110px; resize: vertical; }
+
+/* ── Ticket cards ─────────────────────────────────────────────── */
+.gd-ticket-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.gd-ticket-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.1rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-ticket-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.gd-ticket-id { font-weight: 700; color: #0284c7; font-size: 0.8rem; }
+
+.gd-priority-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gd-priority-tag.low { background: #f1f5f9; color: #475569; }
+.gd-priority-tag.medium { background: #fef3c7; color: #854d0e; }
+.gd-priority-tag.high { background: #fee2e2; color: #991b1b; }
+
+.gd-ticket-title { font-weight: 700; color: #0f172a; font-size: 0.95rem; margin-top: 0.15rem; display: block; }
+.gd-ticket-meta { display: flex; gap: 0.5rem; font-size: 0.775rem; color: #94a3b8; margin-top: 0.2rem; }
+
+.gd-ticket-message {
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: #f8fafc;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid #f1f5f9;
+}
+
+.gd-status-pill { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 9999px; white-space: nowrap; }
+.gd-status-pill.open { background: #fef3c7; color: #854d0e; }
+.gd-status-pill.resolved { background: #dcfce7; color: #166534; }
+
+.gd-ticket-resolution-box {
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.gd-ticket-resolution-header { display: flex; align-items: center; gap: 0.4rem; color: #0f766e; font-weight: 700; font-size: 0.8rem; }
+.gd-ticket-resolution-text { margin: 0; font-size: 0.85rem; color: #0f172a; line-height: 1.5; }
+.gd-ticket-resolution-meta { font-size: 0.75rem; color: #64748b; }
+
+/* ── FAQ accordion ────────────────────────────────────────────── */
+.gd-faq-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.gd-faq-item { border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
+
+.gd-faq-question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  background: #ffffff;
+  border: none;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.gd-faq-item .gd-chevron { transition: transform 0.2s ease; color: #64748b; flex-shrink: 0; }
+.gd-faq-item.active .gd-chevron { transform: rotate(180deg); }
+
+.gd-faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.55;
+  background: #f8fafc;
+}
+
+.gd-faq-item.active .gd-faq-answer { max-height: 220px; padding: 0 1.1rem 1rem 1.1rem; }
+
+/* ── Sidebar cards ────────────────────────────────────────────── */
+.gd-sidebar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-response-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border: none;
+}
+
+.gd-time-circle { width: 2.75rem; height: 2.75rem; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.gd-time-val { display: block; font-size: 1.1rem; font-weight: 800; }
+.gd-time-desc { display: block; font-size: 0.775rem; opacity: 0.9; margin-top: 0.1rem; }
+
+.gd-contact-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
+.gd-contact-item:last-child { border-bottom: none; }
+
+.gd-icon-box {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.6rem;
+  background: #f0fdfa;
+  color: #0d9488;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gd-contact-info { display: flex; flex-direction: column; }
+.gd-contact-label { font-size: 0.75rem; color: #94a3b8; }
+.gd-contact-value { font-size: 0.875rem; font-weight: 700; color: #0f172a; }
+.gd-contact-meta { font-size: 0.75rem; color: #64748b; }
+
+.gd-quick-links { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.gd-quick-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.6rem;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.gd-quick-link:hover { background: #f1f5f9; color: #0f172a; }
+
+@media (max-width: 960px) {
+  .gd-support-grid { grid-template-columns: 1fr; }
+  .gd-form-row { grid-template-columns: 1fr; }
+}

@@ -2,29 +2,24 @@ import { useCallback, useState } from 'react';
 import { useAuth } from '@/foundation';
 import { useAsyncData } from '@/hooks/useAsyncData.js';
 import { listMyAssignments, listPlans } from '@/services/guide.api.js';
-import { GUIDE_EARNINGS_CSS } from '@/legacy/styles.js';
-import GuidePage from '@/components/guide/GuidePage.jsx';
-import GuideHeader, { HeaderStat } from '@/components/guide/GuideHeader.jsx';
-import { ErrorNotice, LoadingState } from '@/components/guide/Feedback.jsx';
+import StatusChip from '@/components/guide/StatusChip.jsx';
+import './guideEarnings.css';
 
 const FILTERS = [
   ['all', 'All'],
   ['confirmed', 'Confirmed'],
   ['pending_guide_confirm', 'Pending'],
   ['rejected_by_guide', 'Rejected'],
-  ['cancelled', 'Cancelled'],
 ];
-const CHIPS = {
-  pending_guide_confirm: ['⏳ Pending', '#d97706', '#fffbeb'],
-  confirmed: ['✅ Confirmed', '#16a34a', '#f0fdf4'],
-  rejected_by_guide: ['❌ Rejected', '#dc2626', '#fef2f2'],
-  cancelled: ['🚫 Cancelled', '#6b7280', '#f9fafb'],
-};
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
-// The amount of a job is whatever the server recorded for it; the page only adds jobs up for display.
-const amountOf = (job) => (typeof job.paidAmount === 'number' ? job.paidAmount : null);
-const sum = (jobs) => jobs.reduce((total, job) => total + (amountOf(job) ?? 0), 0);
+
+// Assignments are Trips (see trips.service.ts#findAssignmentsForGuide): the only figure the
+// server actually tracks per trip is totalAmount (and refundAmount once rejected) — there is no
+// separate "fee per traveller" field, so the page shows exactly that instead of guessing.
+const amountOf = (job) => Number(job.totalAmount) || 0;
+const sum = (jobs) => jobs.reduce((total, job) => total + amountOf(job), 0);
+const dateOf = (job) => job.itinerary?.day1?.hotel?.checkInDate || job.itinerary?.day1?.flight?.departureAt || job.lastUpdatedAt;
 
 export default function GuideEarnings() {
   const { user } = useAuth();
@@ -33,90 +28,99 @@ export default function GuideEarnings() {
   const [filter, setFilter] = useState('all');
   const [jobs, plans] = data ?? [[], []];
 
-  const confirmed = jobs.filter((j) => j.status === 'confirmed');
+  const confirmed = jobs.filter((j) => j.status === 'confirmed' || j.status === 'started' || j.status === 'completed');
   const pending = jobs.filter((j) => j.status === 'pending_guide_confirm');
   const rows = filter === 'all' ? jobs : jobs.filter((j) => j.status === filter);
   const planOf = (id) => plans.find((p) => String(p.id) === String(id));
 
   return (
-    <GuidePage css={GUIDE_EARNINGS_CSS} title="Earnings">
-      <div className="guide-page-wrapper">
-        <GuideHeader name={user.name} subtitle="Your trip-by-trip income overview">
-          <div className="guide-header-stats" id="earn-header-stats">
-            <HeaderStat value={jobs.length} label="Total Jobs" />
-            <HeaderStat value={confirmed.length} label="Confirmed" tone="green" />
-            <HeaderStat value={pending.length} label="Pending" tone="yellow" />
+    <div className="gd-page-wrapper">
+      <main className="gd-page">
+        <header className="gd-header">
+          <div className="gd-header-text">
+            <span className="gd-eyebrow">Guide Portal</span>
+            <h1 className="gd-title">Earnings</h1>
+            <p className="gd-subtitle">Your trip-by-trip income overview.</p>
           </div>
-        </GuideHeader>
+        </header>
 
-        {!data && loading ? <LoadingState label="Loading your earnings…" /> : null}
-        <ErrorNotice error={error} onRetry={reload} />
+        <section className="gd-kpi-row" aria-label="Earnings Overview">
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-teal">₹</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{inr(sum(confirmed))}</span><span className="gd-kpi-lbl">Total Earned</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-yellow">⏳</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{inr(sum(pending))}</span><span className="gd-kpi-lbl">Pending Payout</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-green">✓</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{confirmed.length}</span><span className="gd-kpi-lbl">Confirmed Trips</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-blue">📋</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{jobs.length}</span><span className="gd-kpi-lbl">Total Jobs</span></div>
+          </div>
+        </section>
+
+        <section className="gd-section-header">
+          <h2>Trip Earnings Breakdown</h2>
+          <div className="gd-filter-row">
+            {FILTERS.map(([key, label]) => (
+              <button key={key} type="button" className={`gd-filter-btn${filter === key ? ' active' : ''}`} onClick={() => setFilter(key)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {!data && loading ? (
+          <div className="gd-review-loading" aria-hidden="true">
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="gd-state-error" role="alert">
+            <div className="gd-state-icon">⚠️</div>
+            <h3 className="gd-state-title">{error.status === 403 ? 'Not permitted' : 'Something went wrong'}</h3>
+            <p className="gd-state-text">{error.message}</p>
+            {error.status !== 403 ? <button type="button" className="gd-btn-retry" onClick={reload}>Try Again</button> : null}
+          </div>
+        ) : null}
 
         {data ? (
-          <>
-            <div className="earn-stats-row" id="earn-stats">
-              <StatCard icon="💰" value={inr(sum(confirmed))} label="Total Earned" />
-              <StatCard icon="⏳" value={inr(sum(pending))} label="Pending Payout" tone="earn-yellow" />
-              <StatCard icon="✅" value={confirmed.length} label="Confirmed Trips" tone="earn-green" />
-              <StatCard icon="📋" value={jobs.length} label="Total Jobs" tone="earn-blue" />
-            </div>
-
-            <div className="earn-section-head">
-              <h2>Trip Earnings Breakdown</h2>
-              <div className="earn-filter-row" id="earn-filters">
-                {FILTERS.map(([key, label]) => (
-                  <button key={key} type="button" className={`earn-filter-btn${filter === key ? ' active' : ''}`} onClick={() => setFilter(key)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div id="earn-list" className="earn-list">
-              {rows.length === 0 ? <div className="earn-empty">No trips found for this filter.</div> : null}
-              {rows.map((job) => {
-                const plan = planOf(job.planId);
-                const count = job.travelerCount || job.numberOfTravelers || 1;
-                const earned = job.status === 'confirmed';
-                const total = amountOf(job);
-                const [label, color, background] = CHIPS[job.status] || [job.status, '#6b7280', '#f9fafb'];
-                return (
-                  <div className={`earn-trip-card${earned ? ' earn-trip-confirmed' : ''}`} key={job.id}>
-                    <div className="earn-trip-left">
-                      <div className="earn-trip-dest">{plan?.destination || 'Trip'}</div>
-                      <div className="earn-trip-name">{plan?.title || job.planId}</div>
-                      <div className="earn-trip-meta">
-                        <span>👤 {count} traveler{count !== 1 ? 's' : ''}</span>
-                        <span>📅 {new Date(job.startDate || job.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                      </div>
-                    </div>
-                    <div className="earn-trip-right">
-                      <div className="earn-trip-fee">
-                        <span className="earn-fee-label">Fee/person</span>
-                        <span className="earn-fee-per">{inr(job.guidePricePerPerson)}</span>
-                      </div>
-                      <div className={`earn-trip-total${earned ? ' earn-total-green' : ''}`}>{total == null ? '—' : inr(total)}</div>
-                      <span className="earn-chip" style={{ color, background, borderColor: `${color}40` }}>{label}</span>
+          <div className="gd-trip-list">
+            {rows.length === 0 ? <div className="gd-empty">No trips found for this filter.</div> : null}
+            {rows.map((job) => {
+              const plan = planOf(job.planId);
+              const earned = job.status === 'confirmed' || job.status === 'started' || job.status === 'completed';
+              return (
+                <article className={`gd-trip-card${earned ? ' is-earned' : ''}`} key={job.id}>
+                  <div className="gd-trip-left">
+                    <span className="gd-trip-dest">{plan?.destination || 'Trip'}</span>
+                    <h3 className="gd-trip-name">{plan?.title || job.planId}</h3>
+                    <div className="gd-trip-meta">
+                      <span>📅 {dateOf(job) ? new Date(dateOf(job)).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </>
+                  <div className="gd-trip-right">
+                    <div className="gd-trip-total-block">
+                      <span className="gd-trip-total-label">{job.status === 'rejected_by_guide' ? 'Refunded' : 'Trip Amount'}</span>
+                      <span className={`gd-trip-total${earned ? ' is-earned' : ''}`}>
+                        {inr(job.status === 'rejected_by_guide' ? job.refundAmount : job.totalAmount)}
+                      </span>
+                    </div>
+                    <StatusChip status={job.status} />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         ) : null}
-      </div>
-    </GuidePage>
-  );
-}
-
-function StatCard({ icon, value, label, tone = '' }) {
-  return (
-    <div className="earn-stat-card">
-      <span className="earn-stat-icon">{icon}</span>
-      <div>
-        <div className={`earn-stat-num ${tone}`.trim()}>{value}</div>
-        <div className="earn-stat-label">{label}</div>
-      </div>
+      </main>
     </div>
   );
 }

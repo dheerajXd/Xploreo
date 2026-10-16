@@ -51,23 +51,6 @@ export function updateTripTracking(tripId, changes) {
   return request(`/trips/${enc(tripId)}/tracking`, { method: 'PATCH', body });
 }
 
-// GET /schedule?guideId=   POST /schedule   PATCH /schedule/:id   DELETE /schedule/:id
-const SCHEDULE_FIELDS = ['guideId', 'title', 'date', 'startTime', 'endTime', 'status', 'location', 'capacity', 'notes'];
-const pickSchedule = (values) => Object.fromEntries(SCHEDULE_FIELDS.filter((f) => values[f] !== undefined).map((f) => [f, values[f]]));
-
-export async function listMySchedule(guideId) {
-  return listOf(await request('/schedule', { params: { guideId } }));
-}
-export function createScheduleItem(values) {
-  return request('/schedule', { method: 'POST', body: pickSchedule(values) });
-}
-export function updateScheduleItem(id, values) {
-  return request(`/schedule/${enc(id)}`, { method: 'PATCH', body: pickSchedule(values) });
-}
-export function deleteScheduleItem(id) {
-  return request(`/schedule/${enc(id)}`, { method: 'DELETE' });
-}
-
 // GET /tickets (user-scoped by the server)   POST /tickets   CreateTicketDto { subject, message, category?, priority? }
 export async function listMyTickets() {
   return listOf(await request('/tickets'));

@@ -1,0 +1,46 @@
+/* guideEarnings.css — Earnings-specific pieces; page chrome lives in guideShared.css. */
+@import './guideShared.css';
+
+.gd-trip-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.gd-trip-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.gd-trip-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(13, 148, 136, 0.08); border-color: #cbd5e1; }
+.gd-trip-card.is-earned { border-left: 4px solid #16a34a; }
+
+.gd-trip-left { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+
+.gd-trip-dest {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0d9488;
+}
+
+.gd-trip-name { font-size: 1.05rem; font-weight: 800; color: #0f172a; }
+
+.gd-trip-meta { display: flex; gap: 1.25rem; font-size: 0.85rem; color: #64748b; flex-wrap: wrap; }
+
+.gd-trip-right { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
+
+.gd-trip-total-block { display: flex; flex-direction: column; align-items: flex-end; }
+.gd-trip-total-label { font-size: 0.75rem; color: #94a3b8; }
+.gd-trip-total { font-size: 1.2rem; font-weight: 800; color: #0f172a; }
+.gd-trip-total.is-earned { color: #166534; }
+
+@media (max-width: 720px) {
+  .gd-trip-card { flex-direction: column; align-items: flex-start; }
+  .gd-trip-right { width: 100%; justify-content: space-between; }
+}

@@ -2,15 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/foundation';
 import { useAsyncData } from '@/hooks/useAsyncData.js';
 import { applyToPlan, confirmAssignment, getTraveller, listMyApplications, listMyAssignments, listPlans, rejectAssignment } from '@/services/guide.api.js';
-import { GUIDE_DASHBOARD_CSS } from '@/legacy/styles.js';
 import { formatCurrency } from '@/lib/datetime.js';
-import { fontPx, px } from '@/lib/density.js';
-import GuidePage from '@/components/guide/GuidePage.jsx';
-import GuideHeader, { HeaderStat } from '@/components/guide/GuideHeader.jsx';
 import StatusChip from '@/components/guide/StatusChip.jsx';
-import { ErrorNotice, LoadingState } from '@/components/guide/Feedback.jsx';
 import { useToast } from '@/components/guide/Toast.jsx';
 import { ConfirmDialog, Overlay } from '@/components/guide/Dialog.jsx';
+import './guideDashboard.css';
 
 const TABS = [
   { key: 'plans', label: '📦 Browse Plans' },
@@ -41,6 +37,9 @@ const shortDate = (value) => {
   const d = new Date(String(value).length === 10 ? `${value}T12:00:00` : value);
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
 };
+// Assignments are Trips: there is no top-level "start date" field, only itinerary dates (and
+// lastUpdatedAt as a fallback) — see trips/entities/trip.entity.ts.
+const tripDate = (job) => job.itinerary?.day1?.hotel?.checkInDate || job.itinerary?.day1?.flight?.departureAt || job.lastUpdatedAt;
 
 export default function GuideDashboard() {
   const { user } = useAuth();
@@ -96,27 +95,37 @@ export default function GuideDashboard() {
   }
 
   return (
-    <GuidePage css={GUIDE_DASHBOARD_CSS} title="Dashboard" pageWrapper>
-      <div className="guide-page-wrapper">
-        <GuideHeader
-          name={user.name}
-          subtitle={
-            <>
-              Assigned Region:{' '}
-              <span style={{ display: 'inline-block', padding: `${px(2)}px ${px(10)}px`, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: 9999, fontWeight: 600, fontSize: fontPx(12) }}>
-                {region || '—'}
-              </span>{' '}
+    <div className="gd-page-wrapper">
+      <main className="gd-page">
+        <header className="gd-header">
+          <div className="gd-header-text">
+            <span className="gd-eyebrow">Guide Portal</span>
+            <h1 className="gd-title">Welcome, {user.name || 'Guide'}!</h1>
+            <p className="gd-subtitle">
+              Assigned region: <span className="gd-header-badge">{region || '—'}</span>{' '}
               · Manage your plan applications and bookings
-            </>
-          }
-        >
-          <div className="guide-header-stats" id="gd-stats">
-            <HeaderStat value={plans.length} label="Plans Available" />
-            <HeaderStat value={accepted} label="Accepted" tone="green" />
-            <HeaderStat value={pending} label="Pending" tone="yellow" />
-            <HeaderStat value={activeJobs} label="Active Jobs" tone="blue" />
+            </p>
           </div>
-        </GuideHeader>
+        </header>
+
+        <section className="gd-kpi-row" aria-label="Dashboard Overview">
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-blue">📦</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{plans.length}</span><span className="gd-kpi-lbl">Plans Available</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-green">✓</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{accepted}</span><span className="gd-kpi-lbl">Accepted</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-yellow">⏳</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{pending}</span><span className="gd-kpi-lbl">Pending</span></div>
+          </div>
+          <div className="gd-kpi-card">
+            <div className="gd-kpi-icon-wrap kpi-teal">🧳</div>
+            <div className="gd-kpi-data"><span className="gd-kpi-val">{activeJobs}</span><span className="gd-kpi-lbl">Active Jobs</span></div>
+          </div>
+        </section>
 
         <div className="gd-tabs" role="tablist">
           {TABS.map((t) => (
@@ -126,19 +135,33 @@ export default function GuideDashboard() {
           ))}
         </div>
 
-        {!data && loading ? <LoadingState label="Loading your dashboard…" /> : null}
-        <ErrorNotice error={error} onRetry={reload} />
+        {!data && loading ? (
+          <div className="gd-review-loading" aria-hidden="true">
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+            <div className="gd-review-skeleton-card" />
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="gd-state-error" role="alert">
+            <div className="gd-state-icon">⚠️</div>
+            <h3 className="gd-state-title">{error.status === 403 ? 'Not permitted' : error.status === 401 ? 'Session ended' : 'Something went wrong'}</h3>
+            <p className="gd-state-text">{error.message}</p>
+            {error.status !== 403 && error.status !== 401 ? <button type="button" className="gd-btn-retry" onClick={reload}>Try Again</button> : null}
+          </div>
+        ) : null}
 
         {data ? (
-          <div id="gd-content">
+          <>
             {tab === 'plans' ? <PlansTab plans={plans} applications={applications} onApply={setApplying} /> : null}
             {tab === 'applications' ? <ApplicationsTab applications={applications} planById={planById} /> : null}
             {tab === 'assignments' ? (
               <JobsTab assignments={assignments} planById={planById} busy={busy} onConfirm={onConfirm} onReject={setRejecting} onDetails={setDetails} />
             ) : null}
-          </div>
+          </>
         ) : null}
-      </div>
+      </main>
 
       {applying ? (
         <ApplyModal
@@ -164,7 +187,7 @@ export default function GuideDashboard() {
       ) : null}
       {details ? <DetailsModal assignment={details} onClose={() => setDetails(null)} /> : null}
       {toast}
-    </GuidePage>
+    </div>
   );
 }
 
@@ -340,8 +363,8 @@ function JobsTab({ assignments, planById, busy, onConfirm, onReject, onDetails }
               </div>
               <div className="gd-asgn-meta">
                 <span>👤 Traveller: <code>{job.travellerId}</code></span>
-                <span>💰 Earnings: ₹{job.guidePricePerPerson}/person</span>
-                <span>📅 Travel Date: {shortDate(job.startDate || job.createdAt)}</span>
+                <span>💰 {job.status === 'rejected_by_guide' ? 'Refunded' : 'Trip Amount'}: ₹{(job.status === 'rejected_by_guide' ? job.refundAmount : job.totalAmount) || 0}</span>
+                <span>📅 Travel Date: {shortDate(tripDate(job))}</span>
               </div>
               <div className="gd-asgn-actions">
                 {awaiting ? (
@@ -388,8 +411,9 @@ function DetailsModal({ assignment, onClose }) {
   }, [assignment.travellerId]);
 
   const name = traveller ? `${traveller.fname || ''} ${traveller.lname || ''}`.trim() : '';
-  const count = assignment.travelerCount || assignment.numberOfTravelers || 1;
   const email = traveller?.email;
+  const checkIn = assignment.itinerary?.day1?.hotel?.checkInDate;
+  const checkOut = assignment.itinerary?.day1?.hotel?.checkOutDate;
   return (
     <Overlay labelledBy="gc-details-title" onClose={onClose} className="gc-details">
       <div className="gc-details-head">
@@ -408,14 +432,14 @@ function DetailsModal({ assignment, onClose }) {
           {traveller === undefined ? <small>Loading traveller details…</small> : null}
           {note ? <small>{note}</small> : null}
         </div>
-        <div className="gc-details-line"><strong>Travelers Count:</strong> {count}</div>
+        <div className="gc-details-line"><strong>Status:</strong> {assignment.status}</div>
         <hr />
-        <div className="gc-details-line"><strong>📅 Booking Made On:</strong> {longDate(assignment.createdAt)}</div>
-        <div className="gc-details-line"><strong>🛫 Travel Start Date:</strong> <b className="blue">{longDate(assignment.startDate || assignment.createdAt)}</b></div>
-        <div className="gc-details-line"><strong>🛬 Travel End Date:</strong> <b className="blue">{longDate(assignment.endDate)}</b></div>
+        <div className="gc-details-line"><strong>🛫 Check-in:</strong> <b className="blue">{longDate(checkIn)}</b></div>
+        <div className="gc-details-line"><strong>🛬 Check-out:</strong> <b className="blue">{longDate(checkOut)}</b></div>
         <hr />
-        <div><strong>💰 Guide Fee:</strong> ₹{assignment.guidePricePerPerson}/person</div>
-        <div className="gc-details-total">Total Expected: ₹{(assignment.guidePricePerPerson * count).toLocaleString('en-IN')}</div>
+        <div className="gc-details-total">
+          {assignment.status === 'rejected_by_guide' ? 'Refunded' : 'Trip Amount'}: ₹{((assignment.status === 'rejected_by_guide' ? assignment.refundAmount : assignment.totalAmount) || 0).toLocaleString('en-IN')}
+        </div>
       </div>
       <div className="gc-details-foot"><button type="button" onClick={onClose}>Close</button></div>
     </Overlay>

@@ -1,0 +1,355 @@
+/* guideShared.css — the Xploreo design system (same tokens as pages/Traveller/*.css) shared by
+   every Guide page: page chrome, header banner, buttons, badges, section cards, tabs. */
+
+.gd-page-wrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gd-page {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 2.25rem 2rem 4rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* ── Page Header ───────────────────────────────────────────────── */
+.gd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.gd-header-text { flex: 1; min-width: 280px; }
+
+.gd-eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d9488;
+  font-weight: 700;
+  margin: 0 0 0.35rem 0;
+}
+
+.gd-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.gd-subtitle { font-size: 1rem; color: #64748b; margin: 0; line-height: 1.5; }
+
+.gd-header-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.6rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* ── KPI Stat Row ──────────────────────────────────────────────── */
+.gd-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.gd-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gd-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04); }
+
+.gd-kpi-icon-wrap {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.gd-kpi-icon-wrap.kpi-blue { background: #e0f2fe; color: #0284c7; }
+.gd-kpi-icon-wrap.kpi-green { background: #dcfce7; color: #166534; }
+.gd-kpi-icon-wrap.kpi-yellow { background: #fef3c7; color: #854d0e; }
+.gd-kpi-icon-wrap.kpi-teal { background: #ccfbf1; color: #0f766e; }
+
+.gd-kpi-data { display: flex; flex-direction: column; }
+.gd-kpi-val { font-size: 1.5rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
+.gd-kpi-lbl { font-size: 0.8125rem; font-weight: 600; color: #64748b; margin-top: 0.2rem; }
+
+/* ── Tabs ──────────────────────────────────────────────────────── */
+.gd-tabs {
+  display: flex;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  padding: 0.3rem;
+  border-radius: 0.75rem;
+  width: fit-content;
+  flex-wrap: wrap;
+}
+
+.gd-tab {
+  background: none;
+  border: none;
+  padding: 0.55rem 1.15rem;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.gd-tab:hover { color: #0f172a; }
+.gd-tab.active { background: #ffffff; color: #0f172a; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); }
+
+/* ── Section header (title + controls) ────────────────────────── */
+.gd-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.gd-section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+
+.gd-search,
+.gd-input,
+.gd-select {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background: #f8fafc;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gd-search { min-width: 280px; }
+
+.gd-search:focus,
+.gd-input:focus,
+.gd-select:focus {
+  border-color: #0d9488;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.gd-filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.gd-filter-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.gd-filter-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+.gd-filter-btn.active {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.gd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.gd-btn-sm { padding: 0.45rem 0.95rem; font-size: 0.8rem; }
+
+.gd-btn-primary {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+.gd-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35); }
+
+.gd-btn-secondary { background: #ffffff; color: #334155; border-color: #cbd5e1; }
+.gd-btn-secondary:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+
+.gd-btn-success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.gd-btn-success:hover:not(:disabled) { background: #bbf7d0; }
+
+.gd-btn-danger { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.gd-btn-danger:hover:not(:disabled) { background: #fecaca; }
+
+.gd-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Status chip ───────────────────────────────────────────────── */
+.gd-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* ── Generic card / empty state ───────────────────────────────── */
+.gd-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-empty {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1.5px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.gd-empty-cell { text-align: center; padding: 2rem; color: #64748b; }
+
+/* ── Loading / error states ────────────────────────────────────── */
+.gd-state-empty,
+.gd-state-error {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #ffffff;
+  border-radius: 18px;
+  border: 1.5px dashed #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.gd-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+.gd-state-title { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0; letter-spacing: -0.015em; }
+.gd-state-text { font-size: 0.95rem; color: #64748b; margin: 0 0 1.25rem 0; max-width: 440px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+
+.gd-btn-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.gd-btn-retry:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35); }
+
+/* ── Confirm dialog + toast (used by Dialog.jsx / Toast.jsx everywhere) ──── */
+.gc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1rem;
+}
+
+.gc-dialog {
+  background: #ffffff;
+  border-radius: 1.1rem;
+  width: 380px;
+  max-width: 92vw;
+  padding: 1.5rem;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+  outline: none;
+}
+
+.gc-dialog-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 0.6rem; }
+.gc-dialog-text { font-size: 0.9rem; color: #64748b; margin-bottom: 1.25rem; line-height: 1.5; }
+.gc-dialog-actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
+.gc-dialog-actions button { padding: 0.55rem 1.1rem; border-radius: 0.6rem; font-weight: 700; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+.gc-btn-cancel { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; }
+.gc-btn-danger { background: #dc2626; color: #ffffff; border: none; }
+.gc-btn-blue { background: linear-gradient(135deg, #0d9488, #0284c7); color: #ffffff; border: none; }
+
+.gc-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  padding: 0.9rem 1.4rem;
+  border-radius: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  z-index: 12000;
+  max-width: 380px;
+}
+
+.gc-toast-success { background: #16a34a; }
+.gc-toast-error { background: #dc2626; }
+.gc-toast-warning { background: #d97706; }
+.gc-toast-info { background: #0284c7; }
+
+@media (max-width: 900px) {
+  .gd-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
