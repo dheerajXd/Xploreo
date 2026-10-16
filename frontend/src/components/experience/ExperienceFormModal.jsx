@@ -27,7 +27,7 @@ function toForm(exp) {
   };
 }
 
-function validate(v, editing, destination) {
+function validate(v, editing) {
   const errors = {};
   if (v.title.trim().length < 3) errors.title = 'Enter a name with at least 3 characters.';
   if (!v.category) errors.category = 'Select a category.';
@@ -40,17 +40,13 @@ function validate(v, editing, destination) {
     const capacity = Number(v.capacity);
     if (v.capacity === '' || !Number.isInteger(capacity) || capacity < 1) errors.capacity = 'Capacity must be a whole number of 1 or more.';
   }
-  if (!destination || typeof destination !== 'string' || !destination.trim()) {
-    errors.destination = 'Assigned location is required for this experience partner.';
-  }
   return errors;
 }
 
 // Add and Edit are two different modals in the old UI (ids addModal / editModal, each with its own CSS),
 // so they keep their own markup here. The region is the signed-in partner's own and is never editable.
 export default function ExperienceFormModal({ experience, onClose, onSaved }) {
-  const { user, region: authRegion } = useAuth();
-  const effectiveRegion = (authRegion || user?.region || user?.location || experience?.destination || '').trim();
+  const { region } = useAuth();
   const editing = Boolean(experience);
   const [values, setValues] = useState(() => toForm(experience));
   const [errors, setErrors] = useState({});
@@ -62,7 +58,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
   async function submit(event) {
     event.preventDefault();
     setFormError('');
-    const found = validate(values, editing, effectiveRegion);
+    const found = validate(values, editing);
     setErrors(found);
     if (Object.keys(found).length) {
       setFormError('Please fix the highlighted fields before saving.');
@@ -71,7 +67,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
     const payload = {
       title: values.title.trim(),
       description: values.description.trim(),
-      destination: effectiveRegion,
+      destination: region,
       category: values.category,
       price: Number(values.price),
       durationHours: Number(values.durationHours),
@@ -131,7 +127,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
 
               <label className="field-group field-group-full" htmlFor="editLocation">
                 <span>Assigned Location (Fixed)</span>
-                <input id="editLocation" name="location" readOnly disabled value={effectiveRegion} style={LOCKED_LOCATION_STYLE} />
+                <input id="editLocation" name="location" readOnly disabled value={region ?? ''} style={LOCKED_LOCATION_STYLE} />
               </label>
 
               <label className="field-group field-group-full" htmlFor="editCategory">
@@ -200,7 +196,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
           </label>
           <label className="field-group" htmlFor="expLocation">
             <span>Assigned Location (Fixed)</span>
-            <input id="expLocation" name="location" readOnly disabled value={effectiveRegion} style={LOCKED_LOCATION_STYLE} />
+            <input id="expLocation" name="location" readOnly disabled value={region ?? ''} style={LOCKED_LOCATION_STYLE} />
           </label>
 
           <label className="field-group" htmlFor="expCategory">

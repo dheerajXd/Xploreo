@@ -9,27 +9,7 @@ export function getUser() {
     if (!raw) return GUEST;
     const stored = JSON.parse(raw);
     const user = stored?.user || stored;
-    if (!user || user.role === 'default') return user || GUEST;
-
-    // If region or location is not explicitly present, extract from signed token claims
-    if (!user.region && !user.location) {
-      const token = user.token || (typeof localStorage !== 'undefined' ? localStorage.getItem('xploreoToken') : null);
-      if (token && typeof token === 'string' && token.includes('.')) {
-        try {
-          const parts = token.split('.');
-          if (parts[1]) {
-            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(decodeURIComponent(escape(atob(base64))));
-            if (payload.region) user.region = payload.region;
-            if (payload.location && !user.location) user.location = payload.location;
-          }
-        } catch {
-          /* token parsing failed gracefully */
-        }
-      }
-    }
-
-    return user;
+    return user || GUEST;
   } catch {
     return GUEST;
   }
