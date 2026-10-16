@@ -1,0 +1,85 @@
+================================================================================
+EXPERIENCE PARTNER — ADD EXPERIENCE VALIDATION ERROR FIX REPORT
+================================================================================
+Date: 2026-10-17
+Branch: React
+
+1. ISSUE SUMMARY & SYMPTOMS
+--------------------------------------------------------------------------------
+When an Experience Partner clicked "+ Add Experience" and submitted the form,
+the application surfaced an error:
+  "destination must be a string"
+Additionally, the form's "Assigned Location (Fixed)" input field was blank.
+
+2. INVESTIGATION & ROOT CAUSE ANALYSIS
+--------------------------------------------------------------------------------
+Traced through the flow from UI trigger down to backend DTO validation:
+1. Experience Partner Page:
+   - File: `frontend/src/pages/Experience/ExperienceCatalog.jsx`
+   - "+ Add Experience" button opened `ExperienceFormModal`.
+   - Header badge in catalog and form both attempted to display the region via
+     `const { region } = useAuth()`.
+2. Experience Modal & Form State:
+   - File: `frontend/src/components/experience/ExperienceFormModal.jsx`
+   - In `submit(event)`, the payload construction was:
+       payload = {
+         title: values.title.trim(),
+         description: values.description.trim(),
+         destination: region,
+         ...
+       }
+   - In both add and edit forms, the fixed location input was:
+       <input id="expLocation" name="location" readOnly disabled value={region ?? ''} ... />
+3. Auth & Session State:
+   - Files: `frontend/src/context/AuthContext.jsx`, `frontend/src/services/session.js`
+   - `AuthContext` derives `region: user?.region ?? user?.location ?? null`.
+   - Backend `AuthService.login()` issues a signed JWT containing { userId, username, role, region }.
+   - If a session in `localStorage` was stored or retrieved without an unpacked top-level `region`
+     or `location` property, `getUser()` returned a user object lacking `region`.
+   - Consequently, `region` resolved to `null` or `undefined`.
+4. API Request & Backend Validation:
+   - File: `frontend/src/services/partners.api.js`
+   - `createExperience(values)` uses `pick(values, ['title', 'description', 'destination', ...])`.
+     Because `destination` was `undefined` or `null`, it was either omitted or passed as null.
+   - Backend DTO: `backend/src/experiences/dto/create-experience.dto.ts`
+     Enforces `@IsString() destination!: string;`.
+     Class-validator rejected the creation request with HTTP 400:
+     `destination must be a string`.
+
+3. CHANGES IMPLEMENTED
+--------------------------------------------------------------------------------
+A targeted, minimal fix was implemented across 2 files without weakening validation,
+hardcoding regions, or bypassing backend authorization:
+
+1. `frontend/src/services/session.js`:
+   - Enhanced `getUser()` so that if `user.region` and `user.location` are not explicitly
+     present on the user object, it safely parses the signed JWT payload (from `user.token`
+     or `localStorage.getItem('xploreoToken')`) to extract and populate `region` and `location`.
+   - Ensures any authenticated session with a signed token reliably has the user's
+     assigned region available.
+
+2. `frontend/src/components/experience/ExperienceFormModal.jsx`:
+   - Updated modal to retrieve both `user` and `region` from `useAuth()`.
+   - Computed `effectiveRegion = (authRegion || user?.region || user?.location || experience?.destination || '').trim()`.
+   - Updated both the Add Modal (`#expLocation`) and Edit Modal (`#editLocation`) read-only
+     inputs to bind `value={effectiveRegion}`.
+   - Enhanced `validate(v, editing, destination)` to verify that `destination` is a non-empty
+     string before allowing submission, presenting an inline error if location is missing.
+   - Passed `destination: effectiveRegion` in the submission payload, ensuring a valid,
+     non-empty string is sent to `POST /experiences`.
+
+4. VERIFICATION & TEST RESULTS
+--------------------------------------------------------------------------------
+1. Frontend Build:
+   - Command: `npm run build` in `frontend/`
+   - Result: Successful build (0 errors, Vite bundle output generated).
+2. Backend Test Suite:
+   - Command: `npm test` in `backend/`
+   - Result: 15/15 tests passing across authentication, IDOR protections, and regional scoping.
+3. Git Status & Code Cleanliness:
+   - Only targeted files modified:
+     - `frontend/src/services/session.js`
+     - `frontend/src/components/experience/ExperienceFormModal.jsx`
+   - Read-only constraint preserved for Experience Partner assigned location.
+   - Full image upload and experience creation fields preserved.
+================================================================================
