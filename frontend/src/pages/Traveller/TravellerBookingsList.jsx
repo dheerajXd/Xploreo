@@ -3,7 +3,6 @@ import { useInRouterContext } from 'react-router-dom';
 import Navbar from '../../components/Navbar/navbar.jsx';
 import { formatCurrency, formatDate } from '../../utils/checkoutUtils.js';
 import { apiRequest } from '../../services/api.js';
-import { fetchHotelBookings } from '../../services/mockHotelAdapter.js';
 import BookingDetailsView from './BookingDetailsView.jsx';
 import './travellerBookings.css';
 
@@ -50,7 +49,6 @@ export default function TravellerBookingsList({
   onRetry,
   currentTravellerId,
   useFixtures = false,
-  hotelMode = 'mock',
 }) {
   const inRouter = useInRouterContext();
   const effectiveUser = user || {
@@ -62,12 +60,11 @@ export default function TravellerBookingsList({
 
   const isPreviewMode = useFixtures || (initialBookings && initialBookings.length > 0);
   const isControlled = initialLoading || !!initialError;
-  const shouldAutoFetch = !isPreviewMode && !isControlled && !!currentTravellerId;
+  const shouldAutoFetch = !isPreviewMode && !isControlled;
 
   const [liveBookings, setLiveBookings] = useState([]);
   const [liveLoading, setLiveLoading] = useState(shouldAutoFetch);
   const [liveError, setLiveError] = useState(null);
-  const [currentHotelMode, setCurrentHotelMode] = useState(hotelMode);
 
   const bookings = isPreviewMode || isControlled ? initialBookings : liveBookings;
   const isLoading = isControlled ? initialLoading : (isPreviewMode ? false : liveLoading);
@@ -82,25 +79,21 @@ export default function TravellerBookingsList({
     setLiveLoading(true);
     setLiveError(null);
     try {
-      // 1. Fetch live experience bookings
-      const expData = await apiRequest('/experience-bookings');
-      const expList = Array.isArray(expData) ? expData : expData?.data || [];
+      // Fetch both experience bookings and hotel bookings from live backend APIs
+      const [expData, hotelData] = await Promise.all([
+        apiRequest('/experience-bookings'),
+        apiRequest('/bookings'),
+      ]);
 
-      // 2. Fetch hotel bookings via explicit adapter (mock or live)
-      let hotelList = [];
-      try {
-        hotelList = await fetchHotelBookings({
-          mode: currentHotelMode,
-          travellerId: currentTravellerId,
-        });
-      } catch (hErr) {
-        if (currentHotelMode === 'live') {
-          throw new Error(
-            `Live hotel bookings API error: ${hErr?.message || 'GET /api/bookings unavailable'}. Switch to Demo Mode to view sample hotel bookings.`,
-            { cause: hErr }
-          );
-        }
-      }
+      const expList = (Array.isArray(expData) ? expData : expData?.data || []).map((b) => ({
+        ...b,
+        bookingType: 'experience',
+      }));
+
+      const hotelList = (Array.isArray(hotelData) ? hotelData : hotelData?.data || []).map((b) => ({
+        ...b,
+        bookingType: 'hotel',
+      }));
 
       setLiveBookings([...expList, ...hotelList]);
     } catch (err) {
@@ -109,7 +102,7 @@ export default function TravellerBookingsList({
     } finally {
       setLiveLoading(false);
     }
-  }, [currentHotelMode, currentTravellerId]);
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -134,9 +127,10 @@ export default function TravellerBookingsList({
   };
 
   // Security & Authorization Guard:
-  // If currentTravellerId is provided, filter strictly to travellerId matching currentTravellerId
-  const authorizedBookings = currentTravellerId
-    ? bookings.filter((b) => !b.travellerId || b.travellerId === currentTravellerId)
+  // Ensure bookings match the active traveller
+  const activeTravellerId = currentTravellerId || effectiveUser?.userId || user?.userId;
+  const authorizedBookings = activeTravellerId
+    ? bookings.filter((b) => !b.travellerId || String(b.travellerId).toLowerCase() === String(activeTravellerId).toLowerCase())
     : bookings;
 
   // Selected booking for detail view
@@ -188,7 +182,6 @@ export default function TravellerBookingsList({
     return categoryMatch && statusMatch && searchMatch;
   });
 
-  const hasMockHotelBookings = filteredBookings.some((b) => b.isDemo || b.source === 'mock');
 
   // Stats calculation
   const confirmedCount = authorizedBookings.filter((b) => b.status?.toUpperCase() === 'CONFIRMED').length;
@@ -270,25 +263,7 @@ export default function TravellerBookingsList({
           </section>
         )}
 
-        {/* ── 3. Demo Mode Notice for Hotel Bookings ── */}
-        {hasMockHotelBookings && (
-          <div className="trav-demo-banner" data-testid="mock-hotels-banner">
-            <div className="trav-demo-banner-text">
-              <strong>ℹ️ Demo Mode:</strong> Hotel booking history is displayed via the Mock Hotel Adapter because backend hotel booking retrieval (<code>GET /api/bookings</code>) is pending. Experience bookings are loaded from the live API.
-            </div>
-            {currentHotelMode === 'mock' && (
-              <button
-                type="button"
-                className="trav-demo-toggle-btn"
-                onClick={() => setCurrentHotelMode('live')}
-              >
-                Test Live Hotel API
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── 4. Booking Filter & Search Toolbar ── */}
+        {/* ── 3. Booking Filter & Search Toolbar ── */}
         <section className="trav-bookings-controls-card" aria-label="Filter Bookings">
           <div className="trav-bookings-controls-top">
             {/* Category Filter Pills */}
@@ -309,14 +284,14 @@ export default function TravellerBookingsList({
                 className={`trav-cat-btn ${categoryFilter === 'EXPERIENCE' ? 'is-active' : ''}`}
                 onClick={() => setCategoryFilter('EXPERIENCE')}
               >
-                🧭 Experiences (Live API)
+                🧭 Experiences
               </button>
               <button
                 type="button"
                 className={`trav-cat-btn ${categoryFilter === 'HOTEL' ? 'is-active' : ''}`}
                 onClick={() => setCategoryFilter('HOTEL')}
               >
-                🏨 Hotels (Demo Adapter)
+                🏨 Hotels
               </button>
             </div>
 
@@ -395,15 +370,7 @@ export default function TravellerBookingsList({
                   Try Again
                 </button>
               )}
-              {currentHotelMode === 'live' && (
-                <button
-                  type="button"
-                  className="trav-btn-retry trav-btn-demo"
-                  onClick={() => setCurrentHotelMode('mock')}
-                >
-                  Switch to Demo Mode
-                </button>
-              )}
+
             </div>
           </div>
         )}

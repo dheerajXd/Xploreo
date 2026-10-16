@@ -1,17 +1,10 @@
 /**
  * mockHotelAdapter.js
- * Explicit mock adapter for Traveller Hotel Booking history and details.
+ * Historical mock adapter reference for Traveller Hotel Booking history.
  *
- * Purpose:
- * The NestJS backend BookingsController currently provides only POST /api/bookings.
- * It lacks GET /api/bookings and GET /api/bookings/:id for travellers.
- *
- * Rules:
- * - Clear identification of mock data (all sample records flagged with isDemo: true, source: 'mock').
- * - Matching service interface with live requests.
- * - In live mode, requests are sent via apiRequest('/bookings') and failures are surfaced
- *   rather than silently substituting mock data.
- * - Does not send mock data to the live backend.
+ * Status:
+ * Replaced in the active path: The Traveller portal now uses the live backend API
+ * (GET /api/bookings) directly. This file is retained as reference/fixture data only.
  */
 
 import { apiRequest } from './api.js';

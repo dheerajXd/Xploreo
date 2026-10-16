@@ -91,29 +91,7 @@ export default function BookingDetailsView({
         </div>
       )}
 
-      {isDemo && (
-        <div
-          className="trav-demo-banner"
-          style={{
-            background: 'rgba(217, 119, 6, 0.12)',
-            border: '1px solid rgba(217, 119, 6, 0.35)',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            marginBottom: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            fontSize: '0.9rem',
-            color: '#b45309',
-          }}
-          data-testid="booking-details-demo-banner"
-        >
-          <span aria-hidden="true">ℹ️</span>
-          <div>
-            <strong>Demo Record (Mock Adapter):</strong> This reservation is rendered via the Mock Hotel Adapter because backend hotel booking retrieval (<code>GET /api/bookings</code>) is not yet available.
-          </div>
-        </div>
-      )}
+
 
       <div className="trav-details-header">
         <div>

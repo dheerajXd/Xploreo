@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useInRouterContext } from 'react-router-dom';
 import Navbar from '../../components/Navbar/navbar.jsx';
 import { apiRequest, getSavedUser } from '../../services/api.js';
-import { fetchHotelBookings } from '../../services/mockHotelAdapter.js';
 import { formatCurrency } from '../../utils/checkoutUtils.js';
 
 // Day 2 — Traveller Bookings
@@ -128,7 +127,6 @@ export default function TravellerDashboard({
   logAction,
   useFixtures = false,
   showNavbar = true,
-  hotelMode = 'mock',
 }) {
   const [activeSection, setActiveSection] = useState(SECTION.HOME);
   const [searchTab, setSearchTab] = useState('hotels');
@@ -235,31 +233,18 @@ export default function TravellerDashboard({
             expError = expErr;
           }
 
-          // 2. Fetch hotel bookings via explicit adapter matching TravellerBookingsList
+          // 2. Fetch live hotel bookings from the backend API
           let hotelList = [];
           let hotelError = null;
           try {
-            const hotelTravellerId = userIdentifiers.has('t001')
-              ? 'T001'
-              : (currentTravellerId || user?.userId || 'T001');
-
-            hotelList = await fetchHotelBookings({
-              mode: hotelMode,
-              travellerId: hotelTravellerId,
-            });
-
-            // Demo-adapter fallback: if mock mode returned 0 records, fetch sample records under T001
-            if (hotelList.length === 0 && hotelMode === 'mock') {
-              hotelList = await fetchHotelBookings({
-                mode: 'mock',
-                travellerId: 'T001',
-              });
-            }
+            const hotelData = await apiRequest('/bookings');
+            hotelList = (Array.isArray(hotelData) ? hotelData : hotelData?.data || []).map((b) => ({
+              ...b,
+              bookingType: 'hotel',
+            }));
           } catch (hErr) {
             hotelError = hErr;
-            if (hotelMode === 'live') {
-              hotelList = [];
-            }
+            hotelList = [];
           }
 
           if (expError && hotelError && expList.length === 0 && hotelList.length === 0) {
@@ -271,7 +256,6 @@ export default function TravellerDashboard({
             if (!b.travellerId) return true;
             if (isUserMatch(b.travellerId)) return true;
             if (b.travellerId === currentTravellerId) return true;
-            if (b.travellerId === 'T001' || b.isDemo || b.source === 'mock') return true;
             return false;
           });
 
@@ -361,7 +345,7 @@ export default function TravellerDashboard({
     return () => {
       isCancelled = true;
     };
-  }, [useFixtures, userIdentifiers, isUserMatch, user?.userId, currentTravellerId, hotelMode]);
+  }, [useFixtures, userIdentifiers, isUserMatch, user?.userId, currentTravellerId]);
 
   // Hotel search form state
   const [hotelDestination, setHotelDestination] = useState('');
