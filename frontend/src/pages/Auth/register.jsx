@@ -21,9 +21,12 @@ const initialForm = {
   email: "",
   phone: "",
   role: "traveller",
+  location: "",
   password: "",
   confirmPassword: "",
 };
+
+const PARTNER_ROLES = ["guide", "hotel", "experience"];
 
 export default function Register({ user, onAuthenticated }) {
   const navigate = useNavigate();
@@ -34,12 +37,19 @@ export default function Register({ user, onAuthenticated }) {
   const change = (event) =>
     setForm({ ...form, [event.target.name]: event.target.value });
 
+  const isPartnerRole = PARTNER_ROLES.includes(form.role);
+
   async function submitHandler(event) {
     event.preventDefault();
     setError("");
 
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    if (isPartnerRole && !form.location.trim()) {
+      setError("Please enter the region/city you'll be operating in.");
       return;
     }
 
@@ -51,6 +61,8 @@ export default function Register({ user, onAuthenticated }) {
       details.email = details.email.trim();
       details.name = details.name.trim();
       details.phone = details.phone.trim();
+      details.location = details.location.trim();
+      if (!isPartnerRole || !details.location) delete details.location;
       const result = await authApi.register(details);
       const authenticatedUser = result?.user || result;
       if (typeof localStorage !== "undefined") {
@@ -136,6 +148,19 @@ export default function Register({ user, onAuthenticated }) {
                 <option value="experience">Experience partner</option>
               </select>
             </label>
+
+            {isPartnerRole && (
+              <label>
+                Operating region / city
+                <input
+                  name="location"
+                  value={form.location}
+                  onChange={change}
+                  placeholder="e.g. Goa, Jaipur, Kerala"
+                  required
+                />
+              </label>
+            )}
 
             <label>
               Password

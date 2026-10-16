@@ -39,6 +39,48 @@ export function validateSearchInput(query) {
   return { isValid: true, sanitized: trimmed };
 }
 
+// How far ahead a traveller can search/book (native <input type="date"> happily accepts a
+// 6-digit year like "211000" when typed — the HTML date spec allows years up to 275760, it's
+// just nonsense for a travel booking. Reject anything outside [today, today + N years].
+const MAX_BOOKING_YEARS_AHEAD = 2;
+
+/**
+ * Validate a date-input value (expects the native "YYYY-MM-DD" format).
+ * Returns { isValid, sanitized, error }: sanitized is '' when invalid/unparseable, or clamped
+ * to the nearest allowed bound when the date is real but out of range.
+ */
+export function validateDateInput(value, { minDate, maxDate } = {}) {
+  if (!value) return { isValid: true, sanitized: '' };
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return { isValid: false, sanitized: '', error: 'Enter a valid date.' };
+  }
+
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return { isValid: false, sanitized: '', error: 'Enter a valid date.' };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const min = minDate ? new Date(`${minDate}T00:00:00`) : today;
+  const max = maxDate
+    ? new Date(`${maxDate}T00:00:00`)
+    : new Date(today.getFullYear() + MAX_BOOKING_YEARS_AHEAD, today.getMonth(), today.getDate());
+
+  if (parsed < min) {
+    return { isValid: false, sanitized: toIsoDate(min), error: `Date cannot be before ${toIsoDate(min)}.` };
+  }
+  if (parsed > max) {
+    return { isValid: false, sanitized: toIsoDate(max), error: `Date cannot be after ${toIsoDate(max)}.` };
+  }
+  return { isValid: true, sanitized: value };
+}
+
+function toIsoDate(date) {
+  return date.toISOString().split('T')[0];
+}
+
 /**
  * Filter and sort hotels based on search parameters.
  */

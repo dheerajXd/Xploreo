@@ -4,7 +4,18 @@ import { GuideApplication, GuideApplicationStatus } from './entities/guide-appli
 
 @Injectable()
 export class GuideApplicationsRepository {
-  private readonly applications: GuideApplication[] = [];
+  private readonly applications: GuideApplication[] = [
+    {
+      id: 'guide-app-1',
+      guideId: 'G001',
+      planId: 'plan-1',
+      guidePricePerPerson: 1800,
+      status: GuideApplicationStatus.ACCEPTED,
+      autoDecisionReason: "Auto-accepted: Guide location 'Kerala' matches plan destination 'Kerala'.",
+      createdAt: new Date('2026-04-01'),
+      updatedAt: new Date('2026-04-01'),
+    },
+  ];
 
   create(data: {
     guideId: string;

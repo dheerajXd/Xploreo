@@ -113,8 +113,8 @@ export class ExperienceBookingsRepository {
     }
 
     const booking: ExperienceBooking = {
-      id: data.id || randomUUID(),
       ...data,
+      id: data.id || randomUUID(),
       status: ExperienceBookingStatus.CONFIRMED,
       createdAt: new Date(),
     };

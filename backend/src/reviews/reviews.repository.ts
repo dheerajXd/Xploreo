@@ -63,6 +63,17 @@ export class ReviewsRepository {
     },
     {
       id: 5,
+      userId: 'T001',
+      authorName: 'Anjali Sharma',
+      targetType: ReviewTargetType.HOTEL,
+      targetId: 'hotel-hp001-2',
+      tripId: 'trip-kerala-completed',
+      rating: 5,
+      comment: 'Woke up to the backwaters right outside our window. The houseboat transfer made check-in effortless.',
+      createdAt: new Date('2026-04-18'),
+    },
+    {
+      id: 6,
       userId: '20004',
       authorName: 'Priya Nair',
       targetType: ReviewTargetType.EXPERIENCE,
@@ -72,7 +83,7 @@ export class ReviewsRepository {
       createdAt: new Date('2026-09-29'),
     },
     {
-      id: 6,
+      id: 7,
       userId: 'T001',
       authorName: 'Anjali Sharma',
       targetType: ReviewTargetType.EXPERIENCE,
@@ -82,7 +93,7 @@ export class ReviewsRepository {
       createdAt: new Date('2026-10-11'),
     },
     {
-      id: 7,
+      id: 8,
       userId: '20002',
       authorName: 'Rohit Malhotra',
       targetType: ReviewTargetType.EXPERIENCE,
@@ -93,7 +104,7 @@ export class ReviewsRepository {
     },
   ];
 
-  private nextId = 8;
+  private nextId = 9;
 
   create(dto: CreateReviewDto): Review {
     const review: Review = {

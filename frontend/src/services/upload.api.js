@@ -6,13 +6,17 @@ import { request } from '@/foundation';
 import { identityHeaders } from './session.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// The backend returns upload URLs as server-relative paths ("/uploads/images/xxx.png"). The
+// frontend runs on its own origin (the Vite dev server), so a relative path resolves against
+// THAT origin and 404s. Absolutize it against the backend's own origin before handing it back.
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
-// The backend serves uploads from its own origin (outside /api), so a relative
-// "/uploads/..." URL must be made absolute or the browser resolves it against the frontend.
-function absoluteUrl(url) {
-  if (!url || /^(https?:|data:|blob:)/i.test(url)) return url;
-  return `${API_BASE_URL.replace(/\/api\/?$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+function absolutizeUploadUrl(url) {
+  if (!url || /^(https?:|data:|blob:)/i.test(url)) return url ?? '';
+  return `${BACKEND_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
 }
+
+const absoluteUrl = absolutizeUploadUrl;
 
 function isMockMode() {
   const flag = (import.meta.env.VITE_MOCKS || '').trim();
@@ -52,7 +56,7 @@ export async function uploadSingle(file, onProgress) {
     });
 
     if (onProgress) onProgress(100);
-    return { url: result?.data?.url ?? result?.data?.path ?? result?.url ?? '' };
+    return { url: absolutizeUploadUrl(result?.data?.url ?? result?.data?.path ?? result?.url ?? '') };
   }
 
   // Real path: FormData multipart upload via XMLHttpRequest
@@ -75,7 +79,7 @@ export async function uploadSingle(file, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const json = JSON.parse(xhr.responseText);
-          resolve({ url: absoluteUrl(json?.data?.url ?? json?.data?.path ?? '') });
+          resolve({ url: absolutizeUploadUrl(json?.data?.url ?? json?.data?.path ?? '') });
         } catch (_) {
           resolve({ url: '' });
         }
@@ -125,7 +129,7 @@ export async function uploadMultiple(files, onProgress) {
     });
 
     if (onProgress) onProgress(100);
-    return (result?.data ?? []).map((d) => ({ url: d.url ?? d.path ?? '' }));
+    return (result?.data ?? []).map((d) => ({ url: absolutizeUploadUrl(d.url ?? d.path ?? '') }));
   }
 
   // Real path: FormData multipart upload
@@ -145,5 +149,5 @@ export async function uploadMultiple(files, onProgress) {
 
   const json = await response.json();
   if (onProgress) onProgress(100);
-  return (json?.data ?? []).map((d) => ({ url: absoluteUrl(d.url ?? d.path ?? '') }));
+  return (json?.data ?? []).map((d) => ({ url: absolutizeUploadUrl(d.url ?? d.path ?? '') }));
 }

@@ -103,8 +103,8 @@ export default function ExperienceCatalog() {
                     <div className="ep-catalog-body">
                       <div className="ep-catalog-head">
                         <h2>{exp.title}</h2>
-                        <span className="gd-chip" style={exp.status === 'active' ? { background: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' } : { background: '#fee2e2', color: '#991b1b', borderColor: '#fecaca' }}>
-                          {exp.status}
+                        <span className="gd-chip" style={exp.availability === 'available' ? { background: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' } : { background: '#fee2e2', color: '#991b1b', borderColor: '#fecaca' }}>
+                          {exp.availability === 'available' ? 'available' : 'unavailable'}
                         </span>
                       </div>
                       <div className="ep-catalog-details">

@@ -3,9 +3,11 @@
 import { request } from '@/foundation';
 
 // CreateExperienceDto / UpdateExperienceDto. Deliberately NOT sent from the UI:
-// id, partnerId (the server uses the signed-in partner), booked, availability, nextSlot (server-derived).
-const EXPERIENCE_FIELDS = ['title', 'description', 'destination', 'category', 'price', 'durationHours', 'capacity', 'image', 'status'];
-const PROFILE_FIELDS = ['name', 'email', 'phone', 'businessName'];
+// id, partnerId (the server uses the signed-in partner), booked, nextSlot (server-derived).
+const EXPERIENCE_FIELDS = ['title', 'description', 'destination', 'category', 'price', 'durationHours', 'capacity', 'image', 'availability'];
+const PROFILE_FIELDS = ['name', 'email', 'phone', 'businessName', 'location'];
+// CreateExperienceBookingDto
+const EXPERIENCE_BOOKING_FIELDS = ['experienceId', 'guestName', 'email', 'phone', 'date', 'participants'];
 
 function pick(source, fields) {
   return Object.fromEntries(fields.filter((f) => source[f] !== undefined).map((f) => [f, source[f]]));
@@ -33,6 +35,12 @@ export function deleteExperience(id) {
 
 export function listExperienceBookings() {
   return request('/experience-bookings');
+}
+
+// POST /experience-bookings — traveller books a slot. The server derives totalAmount from the
+// experience's price × participants; it is never sent from the client.
+export function createExperienceBooking(values) {
+  return request('/experience-bookings', { method: 'POST', body: pick(values, EXPERIENCE_BOOKING_FIELDS) });
 }
 
 // status: CHECKED_IN | END_REQUESTED | CANCELLED (a partner may not set COMPLETED: the traveller does)

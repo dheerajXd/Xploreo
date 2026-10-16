@@ -301,6 +301,13 @@
   margin-top: -0.5rem;
 }
 
+.trav-browse-field-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 600;
+  margin: 0.35rem 0 0 0;
+}
+
 /* ── Main Layout: 290px Left Sidebar + Right Results ───────── */
 .trav-browse-main-layout {
   display: grid;

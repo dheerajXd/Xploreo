@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getExperience } from '@/services/partners.api.js';
+import { useAuth } from '@/foundation';
+import { createExperienceBooking, getExperience } from '@/services/partners.api.js';
 import { listReviews } from '@/services/reviews.api.js';
 import TravellerHeader from './TravellerHeader.jsx';
 import './travellerDetail.css';
 
 export default function ExperienceDetailPage() {
   const { id } = useParams();
+  const { user } = useAuth();
 
   const [experience, setExperience] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -16,8 +18,10 @@ export default function ExperienceDetailPage() {
   // Booking drawer state
   const [selectedSlotId, setSelectedSlotId] = useState(null);
   const [participants, setParticipants] = useState(2);
+  const [booking, setBooking] = useState(false);
   const [bookedSuccess, setBookedSuccess] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
+  const [bookingError, setBookingError] = useState('');
 
   const loadExperienceData = async () => {
     if (!id || id.trim() === '') {
@@ -61,15 +65,31 @@ export default function ExperienceDetailPage() {
   }, [id]);
 
   // Handle slot reservation
-  const handleReserveExperience = (e) => {
+  const handleReserveExperience = async (e) => {
     e.preventDefault();
+    setBookingError('');
     if (!selectedSlotId) {
       setBookingMessage('Please select an available session slot before booking.');
       return;
     }
-
-    setBookedSuccess(true);
-    setBookingMessage(`🎉 Experience session booked successfully for ${participants} guest(s)! Confirmation details sent to your registered email.`);
+    const slot = (experience.slots || []).find((s) => s.id === selectedSlotId);
+    setBooking(true);
+    try {
+      await createExperienceBooking({
+        experienceId: experience.id,
+        guestName: user?.name || 'Traveller',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        date: slot?.date,
+        participants,
+      });
+      setBookedSuccess(true);
+      setBookingMessage(`🎉 Experience session booked successfully for ${participants} guest(s)! Confirmation details sent to your registered email.`);
+    } catch (err) {
+      setBookingError(err?.message || 'Failed to book this experience. Please try again.');
+    } finally {
+      setBooking(false);
+    }
   };
 
   // 1. Loading State
@@ -370,6 +390,12 @@ export default function ExperienceDetailPage() {
               </div>
             )}
 
+            {bookingError && (
+              <div className="trav-validation-alert" role="alert" style={{ marginBottom: '16px' }}>
+                {bookingError}
+              </div>
+            )}
+
             <form onSubmit={handleReserveExperience}>
               <div className="trav-form-group">
                 <label className="trav-form-label" htmlFor="trav-participants">Participants / Guests</label>
@@ -411,11 +437,11 @@ export default function ExperienceDetailPage() {
 
               <button
                 type="submit"
-                disabled={isSelectedSlotFull || slots.length === 0 || bookedSuccess}
+                disabled={isSelectedSlotFull || slots.length === 0 || bookedSuccess || booking}
                 className="trav-btn trav-btn-primary"
                 style={{ width: '100%', marginTop: '20px', padding: '14px' }}
               >
-                {bookedSuccess ? '✓ Booked' : isSelectedSlotFull ? 'Slot Full' : 'Confirm Experience Booking →'}
+                {bookedSuccess ? '✓ Booked' : booking ? 'Booking…' : isSelectedSlotFull ? 'Slot Full' : 'Confirm Experience Booking →'}
               </button>
 
               <div style={{ textAlign: 'center', marginTop: '14px' }}>

@@ -5,14 +5,13 @@ import ModalFrame, { CloseButton } from './ModalFrame.jsx';
 import ImageDropzone from './ImageDropzone.jsx';
 import { FieldError, FormMessage } from './Feedback.jsx';
 
-// Values of the backend ExperienceCategory enum (value, label); the order follows the old form.
+// Values of the backend ExperienceCategory enum (value, label) — see
+// experiences/entities/experience.entity.ts. Submitting anything outside this list is a 400.
 const CATEGORIES = [
-  ['adventure', 'Adventure'], ['culture', 'Culture'], ['tours', 'Tours'], ['attraction tickets', 'Attraction Tickets'],
-  ['water sports', 'Water Sports'], ['cruises', 'Cruises'], ['family', 'Family'], ['luxury', 'Luxury'],
-  ['weekend getaway', 'Weekend Getaway'], ['honeymoon', 'Honeymoon'], ['pilgrimage', 'Pilgrimage'],
-  ['culinary', 'Culinary'], ['wellness', 'Wellness'], ['wildlife', 'Wildlife'], ['photography', 'Photography'],
+  ['adventure', 'Adventure'], ['culture', 'Culture'], ['culinary', 'Culinary'],
+  ['wellness', 'Wellness'], ['wildlife', 'Wildlife'], ['photography', 'Photography'],
 ];
-const FORM_FIELDS = ['title', 'description', 'category', 'price', 'durationHours', 'capacity', 'status', 'image'];
+const FORM_FIELDS = ['title', 'description', 'category', 'price', 'durationHours', 'capacity', 'availability', 'image'];
 const LOCKED_LOCATION_STYLE = { backgroundColor: '#f1f5f9', cursor: 'not-allowed', fontWeight: 600, color: '#1e293b' };
 
 function toForm(exp) {
@@ -23,7 +22,7 @@ function toForm(exp) {
     durationHours: exp ? String(exp.durationHours) : '',
     capacity: exp?.capacity ? String(exp.capacity) : '',
     description: exp?.description ?? '',
-    status: exp?.status ?? 'active',
+    availability: exp?.availability ?? 'available',
     image: exp?.image ?? '',
   };
 }
@@ -72,7 +71,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
       category: values.category,
       price: Number(values.price),
       durationHours: Number(values.durationHours),
-      status: values.status,
+      availability: values.availability,
     };
     if (values.image) payload.image = values.image;
     if (!editing) payload.capacity = Number(values.capacity);
@@ -157,11 +156,11 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
 
               <label className="field-group field-group-full" htmlFor="editStatus">
                 <span>Listing Status</span>
-                <select id="editStatus" name="status" value={values.status} onChange={set('status')}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Paused (hidden from travellers)</option>
+                <select id="editStatus" name="availability" value={values.availability} onChange={set('availability')}>
+                  <option value="available">Available</option>
+                  <option value="unavailable">Paused (hidden from travellers)</option>
                 </select>
-                <FieldError>{errors.status}</FieldError>
+                <FieldError>{errors.availability}</FieldError>
               </label>
 
               <ImageDropzone id="editImage" value={values.image} onChange={(image) => setValues((v) => ({ ...v, image }))} />

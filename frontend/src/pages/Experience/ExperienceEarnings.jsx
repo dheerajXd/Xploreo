@@ -23,7 +23,6 @@ const PILL = {
   pending: { background: '#dbeafe', color: '#1e40af', label: 'Pending' },
   refunded: { background: '#fee2e2', color: '#991b1b', label: 'Refunded' },
 };
-const BENCHMARK = 5;
 
 export default function ExperienceEarnings() {
   const [period, setPeriod] = useState('90');
@@ -34,9 +33,6 @@ export default function ExperienceEarnings() {
   const unavailable = error?.status === 404;
   const summary = data?.summary;
   const rows = (data?.transactions ?? []).filter((t) => status === 'all' || t.status === status);
-  const refundPercent = summary?.refundPercent ?? 0;
-  const aboveBenchmark = refundPercent > BENCHMARK;
-  const trendDelta = Math.abs(refundPercent - BENCHMARK).toFixed(1);
 
   return (
     <ExperiencePage pageClass="earnings-page experience-earnings-page" title="Earnings">
@@ -117,62 +113,32 @@ export default function ExperienceEarnings() {
                 </div>
               </section>
 
-              <section className="ep-bottom-grid">
-                <div className="ep-panel">
-                  <h3>Revenue Sources</h3>
-                  {data.byExperience.map((row, index) => {
-                    const color = index === 0 ? 'blue' : 'green';
-                    return (
-                      <article key={row.experienceId} className="ep-source-item">
-                        <div className="ep-source-top">
-                          <div className="ep-source-label">
-                            <span className={`ep-dot ${color}`} />
-                            <span>{row.title}</span>
-                          </div>
-                          <div className="ep-source-metrics">
-                            <span className="amount">{formatCurrency(row.net)}</span>
-                            <span className="percent">{row.sharePercent}%</span>
-                          </div>
+              <section className="ep-panel">
+                <h3>Revenue Sources</h3>
+                {data.byExperience.map((row, index) => {
+                  const color = index === 0 ? 'blue' : 'green';
+                  return (
+                    <article key={row.experienceId} className="ep-source-item">
+                      <div className="ep-source-top">
+                        <div className="ep-source-label">
+                          <span className={`ep-dot ${color}`} />
+                          <span>{row.title}</span>
                         </div>
-                        <div className="ep-progress-track">
-                          <div className={`ep-progress-fill ${color}`} style={{ width: `${row.sharePercent}%` }} />
+                        <div className="ep-source-metrics">
+                          <span className="amount">{formatCurrency(row.net)}</span>
+                          <span className="percent">{row.sharePercent}%</span>
                         </div>
-                      </article>
-                    );
-                  })}
-                  <div className="ep-divider" />
-                  <div className="ep-total-row">
-                    <span>Total Revenue</span>
-                    <span>{formatCurrency(summary.net)}</span>
-                  </div>
-                </div>
-
-                <div className="ep-panel">
-                  <h3>Refund Breakdown</h3>
-                  <p className="ep-refund-label">Total Refunded</p>
-                  <h2 className="ep-refund-amount">{formatCurrency(summary.refunded)}</h2>
-                  <p className="ep-refund-label">Percentage of Revenue</p>
-                  <div className="ep-refund-percentage">
-                    <span>{refundPercent}%</span>
-                    <span className={`ep-trend${aboveBenchmark ? ' negative' : ''}`}>
-                      {aboveBenchmark ? '+' : '-'}{trendDelta}% vs industry benchmark
-                    </span>
-                  </div>
-                  <div className="ep-refund-rate-row">
-                    <span>Refund Rate</span>
-                    <span>{refundPercent}%</span>
-                  </div>
-                  <div className="ep-progress-track">
-                    <div className="ep-progress-fill red" style={{ width: `${Math.min(100, refundPercent)}%` }} />
-                  </div>
-                  <div className={`ep-refund-note${aboveBenchmark ? ' warning' : ' good'}`}>
-                    <strong>{aboveBenchmark ? 'Refund Rate Above Target' : 'Low Refund Rate'}</strong>
-                    <p>
-                      {aboveBenchmark
-                        ? 'Your refund rate is above the typical benchmark. Review cancellation and expectation-setting.'
-                        : 'Your refund rate is below industry average (5%).'}
-                    </p>
-                  </div>
+                      </div>
+                      <div className="ep-progress-track">
+                        <div className={`ep-progress-fill ${color}`} style={{ width: `${row.sharePercent}%` }} />
+                      </div>
+                    </article>
+                  );
+                })}
+                <div className="ep-divider" />
+                <div className="ep-total-row">
+                  <span>Total Revenue</span>
+                  <span>{formatCurrency(summary.net)}</span>
                 </div>
               </section>
 

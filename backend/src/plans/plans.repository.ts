@@ -12,7 +12,7 @@ export class PlansRepository {
       title: 'Kerala Backwaters Escape',
       description: 'Relax in the serene backwaters of Alleppey with houseboat stays.',
       originCity: 'Bangalore',
-      destination: 'Alleppey',
+      destination: 'Kerala',
       status: 'available',
       durationNights: 5,
       pricePerPerson: 22000,
@@ -26,7 +26,7 @@ export class PlansRepository {
       ], {
         idPrefix: 'plan-1',
         originCity: 'Bangalore',
-        destination: 'Alleppey',
+        destination: 'Kerala',
         startDate: '2026-07-01',
         endDate: '2026-07-06',
         includesFlight: true,

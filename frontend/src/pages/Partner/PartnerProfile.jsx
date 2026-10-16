@@ -19,11 +19,12 @@ const splitName = (name = '') => {
 };
 const phoneDigits = (phone = '') => String(phone).replace(/^\+91\s*/, '').replace(/\D/g, '');
 
-function validate(values, variant) {
+function validate(values, variant, regionAssigned) {
   const errors = {};
   if (values.firstName.trim().length < 2) errors.firstName = 'Enter at least 2 characters.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = 'Enter a valid email address.';
   if (!/^[6-9]\d{9}$/.test(values.phone)) errors.phone = 'Enter a valid 10-digit Indian mobile number starting with 6-9.';
+  if (!regionAssigned && values.location.trim().length < 2) errors.location = 'Enter the region/city you operate in.';
   if (variant.businessLabel && values.businessName.trim().length < 2) errors.businessName = `Enter your ${variant.businessLabel.toLowerCase()}.`;
   if (variant.professional) {
     if (values.yearsExp === '' || !Number.isInteger(Number(values.yearsExp)) || Number(values.yearsExp) < 0) errors.yearsExp = 'Enter a whole number of years.';
@@ -45,6 +46,7 @@ function Field({ label, error, full, children }) {
 
 function ProfileForm({ user, guide, variant }) {
   const navigate = useNavigate();
+  const regionAssigned = Boolean(user.region);
   const initial = () => {
     const { first, last } = splitName(user.name);
     return {
@@ -52,6 +54,7 @@ function ProfileForm({ user, guide, variant }) {
       lastName: last,
       email: user.email ?? '',
       phone: phoneDigits(user.phone),
+      location: user.region ?? '',
       businessName: user.businessName ?? '',
       yearsExp: guide ? String(guide.years_exp ?? '') : '',
       languages: guide ? (guide.lang_spoken ?? []).join(', ') : '',
@@ -71,7 +74,7 @@ function ProfileForm({ user, guide, variant }) {
   };
 
   async function save() {
-    const found = validate(values, variant);
+    const found = validate(values, variant, regionAssigned);
     setErrors(found);
     if (Object.keys(found).length) {
       setMessage({ tone: 'error', text: 'Please fix the highlighted fields before saving.' });
@@ -80,6 +83,7 @@ function ProfileForm({ user, guide, variant }) {
     setSaving(true);
     try {
       const body = { name: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(), email: values.email.trim(), phone: `+91 ${values.phone}` };
+      if (!regionAssigned) body.location = values.location.trim();
       if (variant.businessLabel) body.businessName = values.businessName.trim();
       await updatePartnerProfile(user.id, body);
       if (variant.professional) {
@@ -90,10 +94,15 @@ function ProfileForm({ user, guide, variant }) {
         });
       }
       setEditing({ personal: false, professional: false });
-      setMessage({ tone: 'success', text: 'Profile updated successfully.' });
+      setMessage({
+        tone: 'success',
+        text: !regionAssigned && body.location
+          ? 'Profile updated successfully. Log out and back in to pick up your new region everywhere.'
+          : 'Profile updated successfully.',
+      });
     } catch (err) {
       if (err.status === 400 && err.fieldErrors) {
-        const map = { name: 'firstName', email: 'email', phone: 'phone', businessName: 'businessName', years_exp: 'yearsExp', lang_spoken: 'languages', bio: 'bio' };
+        const map = { name: 'firstName', email: 'email', phone: 'phone', businessName: 'businessName', location: 'location', years_exp: 'yearsExp', lang_spoken: 'languages', bio: 'bio' };
         setErrors(Object.fromEntries(Object.entries(err.fieldErrors).map(([field, text]) => [map[field] ?? field, text])));
         setMessage({ tone: 'error', text: 'Please fix the highlighted fields before saving.' });
       } else {
@@ -170,9 +179,14 @@ function ProfileForm({ user, guide, variant }) {
                 <input type="tel" className="input-field" style={{ flex: 1 }} name="phone" aria-label="Phone Number" maxLength={10} placeholder="10-digit mobile number" value={values.phone} onChange={set('phone')} disabled={personalLocked} />
               </div>
             </Field>
-            <Field label="Location" full>
-              {/* The region is assigned by Xploreo (it comes from the session), so it is shown but never editable. */}
-              <input type="text" className="input-field" name="location" aria-label="Location" value={user.region ?? ''} readOnly disabled />
+            <Field label="Location" error={errors.location} full>
+              {/* Once Xploreo has assigned a region it is locked; an account with no region yet
+                  (e.g. registered before this field existed) can set it once here. */}
+              {regionAssigned ? (
+                <input type="text" className="input-field" name="location" aria-label="Location" value={user.region} readOnly disabled />
+              ) : (
+                <input type="text" className="input-field" name="location" aria-label="Location" placeholder="e.g. Goa, Jaipur, Kerala" value={values.location} onChange={set('location')} disabled={personalLocked} />
+              )}
             </Field>
           </div>
         </div>

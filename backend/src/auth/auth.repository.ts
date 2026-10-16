@@ -26,6 +26,7 @@ export class AuthRepository {
       email: 'sreekar@gmail.com',
       phone: '9876543210',
       status: 'active',
+      region: 'Kerala',
     },
     {
       userId: 'SA001',
@@ -78,6 +79,7 @@ export class AuthRepository {
       email: 'experience.partner@xploreo.com',
       phone: '9000000002',
       status: 'active',
+      region: 'Kerala',
     },
   ];
 

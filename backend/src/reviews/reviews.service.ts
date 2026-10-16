@@ -51,13 +51,14 @@ export class ReviewsService {
         );
       }
 
-      // Prevent duplicate reviews per trip
+      // Prevent duplicate reviews per trip — scoped per targetType, since one completed trip
+      // legitimately carries up to one guide review, one hotel review and one experience review.
       const duplicate = existingReviews.find(
-        (r) => r.tripId === dto.tripId && matchesUser(r.userId),
+        (r) => r.tripId === dto.tripId && r.targetType === dto.targetType && matchesUser(r.userId),
       );
       if (duplicate) {
         throw new BadRequestException(
-          'A review for this trip has already been submitted',
+          `You have already submitted a ${dto.targetType} review for this trip`,
         );
       }
     } else {
@@ -74,13 +75,18 @@ export class ReviewsService {
         );
       }
 
-      // Associate with first unreviewed completed trip or reject duplicate
+      // Associate with the first completed trip that doesn't yet have a review of this
+      // targetType from this traveller (one trip can hold a guide review, a hotel review and
+      // an experience review independently).
       const unreviewed = completedTrips.find(
-        (t) => !existingReviews.some((r) => r.tripId === t.id && matchesUser(r.userId)),
+        (t) =>
+          !existingReviews.some(
+            (r) => r.tripId === t.id && r.targetType === dto.targetType && matchesUser(r.userId),
+          ),
       );
       if (!unreviewed) {
         throw new BadRequestException(
-          'A review for your completed trip has already been submitted',
+          `You have already submitted a ${dto.targetType} review for your completed trip(s)`,
         );
       }
       dto.tripId = unreviewed.id;

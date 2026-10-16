@@ -19,7 +19,7 @@ export class TripsRepository {
       ], {
         idPrefix: 'trip-kerala-1',
         originCity: 'Bangalore',
-        destination: 'Alleppey',
+        destination: 'Kerala',
         startDate: '2026-05-12',
         endDate: '2026-05-17',
         includesFlight: true,
@@ -71,7 +71,7 @@ export class TripsRepository {
       ], {
         idPrefix: 'trip-kerala-completed',
         originCity: 'Bangalore',
-        destination: 'Alleppey',
+        destination: 'Kerala',
         startDate: '2026-04-12',
         endDate: '2026-04-17',
         includesFlight: true,
@@ -149,7 +149,7 @@ export class TripsRepository {
       ], {
         idPrefix: 'trip-guide-request-1',
         originCity: 'Bangalore',
-        destination: 'Alleppey',
+        destination: 'Kerala',
         startDate: '2026-06-03',
         endDate: '2026-06-08',
         includesFlight: true,

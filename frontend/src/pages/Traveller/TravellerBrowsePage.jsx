@@ -3,6 +3,7 @@ import {
   BROWSE_CATEGORIES,
   SORT_OPTIONS,
   validateSearchInput,
+  validateDateInput,
   filterHotels,
   filterExperiences,
   filterPlans,
@@ -61,6 +62,7 @@ export default function TravellerBrowsePage({
   const [locationQuery, setLocationQuery] = useState('');
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
+  const [checkInDateError, setCheckInDateError] = useState('');
   const [guestCount, setGuestCount] = useState('2');
   const [roomCount, setRoomCount] = useState('1');
 
@@ -89,9 +91,13 @@ export default function TravellerBrowsePage({
       if (!search) setSearchQuery(loc);
     }
     const checkIn = params.get('checkIn') || params.get('departure') || params.get('date');
-    if (checkIn != null) setCheckInDate(checkIn);
+    if (checkIn != null) {
+      const validation = validateDateInput(checkIn);
+      setCheckInDate(validation.sanitized);
+      setCheckInDateError(validation.isValid ? '' : validation.error);
+    }
     const checkOut = params.get('checkOut');
-    if (checkOut != null) setCheckOutDate(checkOut);
+    if (checkOut != null) setCheckOutDate(validateDateInput(checkOut).sanitized);
     const guests = params.get('guests');
     if (guests != null) setGuestCount(guests);
     const rooms = params.get('rooms');
@@ -204,6 +210,13 @@ export default function TravellerBrowsePage({
     } else {
       setSearchQueryError('');
     }
+  };
+
+  const handleDateChange = (e) => {
+    const val = e.target.value;
+    const validation = validateDateInput(val);
+    setCheckInDate(validation.sanitized);
+    setCheckInDateError(validation.isValid ? '' : validation.error);
   };
 
   const handleResetFilters = () => {
@@ -361,6 +374,13 @@ export default function TravellerBrowsePage({
   };
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Keeps the native date picker's spinner/typed input within a sane travel-booking window
+  // (see validateDateInput in browseUtils.js for why this is needed, not just cosmetic).
+  const maxDateStr = useMemo(() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 2);
+    return d.toISOString().split('T')[0];
+  }, []);
 
   return (
     <div className="trav-browse-page-wrapper">
@@ -473,12 +493,20 @@ export default function TravellerBrowsePage({
               <input
                 id="browse-date-input"
                 type="date"
-                className="trav-browse-input"
+                className={`trav-browse-input ${checkInDateError ? 'input-error' : ''}`}
                 min={todayStr}
+                max={maxDateStr}
                 value={checkInDate}
-                onChange={(e) => setCheckInDate(e.target.value)}
+                onChange={handleDateChange}
+                aria-invalid={Boolean(checkInDateError)}
+                aria-describedby={checkInDateError ? 'browse-date-error' : undefined}
               />
             </div>
+            {checkInDateError && (
+              <p id="browse-date-error" className="trav-browse-field-error" role="alert">
+                {checkInDateError}
+              </p>
+            )}
           </div>
 
           {/* Guests & Rooms */}

@@ -29,6 +29,27 @@ export class HotelsRepository {
       isDeleted: false,
       createdAt: new Date(),
     },
+    {
+      id: 'hotel-hp001-2',
+      partnerId: 'HP001',
+      name: 'Xploreo Backwater Resort',
+      city: 'Alleppey',
+      location: 'Punnamada, Alleppey, Kerala',
+      description: 'A waterfront resort on the Alleppey backwaters with private houseboat transfers.',
+      stars: 4,
+      rating: 5,
+      reviewCount: 1,
+      pricePerNight: 6200,
+      taxesAndFees: 744,
+      totalRooms: 20,
+      availableRooms: 14,
+      image: '',
+      images: [],
+      amenities: ['WiFi', 'Breakfast', 'Pool', 'Houseboat Transfer', 'Air Conditioning'],
+      status: 'active',
+      isDeleted: false,
+      createdAt: new Date('2026-01-10'),
+    },
   ];
 
   create(
