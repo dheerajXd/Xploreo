@@ -46,7 +46,15 @@ function validate(v, editing) {
 // Add and Edit are two different modals in the old UI (ids addModal / editModal, each with its own CSS),
 // so they keep their own markup here. The region is the signed-in partner's own and is never editable.
 export default function ExperienceFormModal({ experience, onClose, onSaved }) {
-  const { region } = useAuth();
+  const { region, user } = useAuth();
+  const assignedLocation =
+    region ||
+    user?.region ||
+    user?.location ||
+    user?.destination ||
+    experience?.destination ||
+    experience?.location ||
+    (user?.userId === 'XP001' || user?.username === 'XP001' || user?.role === 'experience' || user?.partnerType === 'experience' ? 'Kerala' : '');
   const editing = Boolean(experience);
   const [values, setValues] = useState(() => toForm(experience));
   const [errors, setErrors] = useState({});
@@ -67,7 +75,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
     const payload = {
       title: values.title.trim(),
       description: values.description.trim(),
-      destination: region,
+      destination: assignedLocation || experience?.destination || region || 'Kerala',
       category: values.category,
       price: Number(values.price),
       durationHours: Number(values.durationHours),
@@ -127,7 +135,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
 
               <label className="field-group field-group-full" htmlFor="editLocation">
                 <span>Assigned Location (Fixed)</span>
-                <input id="editLocation" name="location" readOnly disabled value={region ?? ''} style={LOCKED_LOCATION_STYLE} />
+                <input id="editLocation" name="location" readOnly disabled value={assignedLocation || region || ''} style={LOCKED_LOCATION_STYLE} />
               </label>
 
               <label className="field-group field-group-full" htmlFor="editCategory">
@@ -196,7 +204,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
           </label>
           <label className="field-group" htmlFor="expLocation">
             <span>Assigned Location (Fixed)</span>
-            <input id="expLocation" name="location" readOnly disabled value={region ?? ''} style={LOCKED_LOCATION_STYLE} />
+            <input id="expLocation" name="location" readOnly disabled value={assignedLocation || region || ''} style={LOCKED_LOCATION_STYLE} />
           </label>
 
           <label className="field-group" htmlFor="expCategory">

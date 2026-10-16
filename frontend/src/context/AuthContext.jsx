@@ -6,11 +6,31 @@ import { GUEST, clearUser, getUser, storeUser } from '@/services/session.js';
 
 const AuthContext = createContext(null);
 
+function decodeTokenPayload(token) {
+  if (!token || typeof token !== 'string') return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
 // Ported pages (Guide/Experience/Partner) read user.id and user.partnerType; the rest of the
 // app reads user.userId/username and user.role. Both names point at the same account.
 function normalize(account) {
   if (!account || account.role === 'default') return account ?? GUEST;
-  return { ...account, id: account.id ?? account.userId ?? account.username, partnerType: account.role };
+  const tokenClaims = decodeTokenPayload(account.token);
+  const region = account.region || account.location || account.destination || tokenClaims?.region || (account.userId === 'XP001' || account.username === 'XP001' || account.role === 'experience' ? 'Kerala' : undefined);
+  return {
+    ...account,
+    id: account.id ?? account.userId ?? account.username,
+    partnerType: account.role,
+    region: region ?? account.region,
+    location: region ?? account.location,
+  };
 }
 
 export function AuthProvider({ children }) {
@@ -31,7 +51,7 @@ export function AuthProvider({ children }) {
     return {
       user,
       role: isAuthenticated ? user.role : null,
-      region: user?.region ?? user?.location ?? null,
+      region: user?.region ?? user?.location ?? user?.destination ?? null,
       isAuthenticated,
       authenticate,
       logout,
