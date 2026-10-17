@@ -20,6 +20,7 @@ export default function BookingSummaryCard({
     date = null,
     time = null,
     guestCount = 1,
+    roomCount = null,
     imageUrl = null,
   } = booking;
 
@@ -74,12 +75,22 @@ export default function BookingSummaryCard({
               {displayPricing.guestCount} {displayPricing.guestCount === 1 ? 'Guest' : 'Guests'}
             </span>
           </div>
+
+          {roomCount != null && (
+            <div className="trav-meta-item">
+              <span className="trav-meta-label">Rooms</span>
+              <span className="trav-meta-value">
+                {roomCount} {roomCount === 1 ? 'Room' : 'Rooms'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="trav-pricing-section">
           <div className="trav-price-row">
             <span>
-              Base Fare ({displayPricing.guestCount} × {formatCurrency(displayPricing.basePrice, currency)})
+              {pricing.fareLabel ||
+                `Base Fare (${displayPricing.guestCount} × ${formatCurrency(displayPricing.basePrice, currency)})`}
             </span>
             <span>{formatCurrency(displayPricing.subtotal, currency)}</span>
           </div>

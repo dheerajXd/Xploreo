@@ -126,7 +126,21 @@ export default function TravellerCheckoutPage({
   const basePrice = Number(
     selectedItem.pricePerNight ?? selectedItem.price ?? selectedItem.basePrice ?? 5000
   );
-  const subtotal = basePrice * guestCount;
+  const isHotelBooking = (selectedItem.type || selectedItem.bookingType || 'hotel') === 'hotel';
+  const roomCount = Math.max(
+    1,
+    parseInt(selectedItem.roomCount ?? location.state?.rooms ?? 1, 10) || 1
+  );
+  const nights = (() => {
+    if (!selectedItem.checkIn || !selectedItem.checkOut) return 1;
+    const diff = (new Date(selectedItem.checkOut) - new Date(selectedItem.checkIn)) / 86400000;
+    return diff > 0 ? Math.ceil(diff) : 1;
+  })();
+  // Hotels are priced per room per night; other bookings per guest
+  const subtotal = isHotelBooking ? basePrice * nights * roomCount : basePrice * guestCount;
+  const fareLabel = isHotelBooking
+    ? `Base Fare (${roomCount} ${roomCount === 1 ? 'room' : 'rooms'} × ${nights} ${nights === 1 ? 'night' : 'nights'} × ${formatCurrency(basePrice)})`
+    : null;
 
   // Guest-dependent taxes or fees when specified, otherwise standard item taxes & fees (fallback 1200)
   const taxPerGuest = selectedItem.taxPerGuest ?? selectedItem.taxesPerGuest ?? selectedItem.feePerGuest ?? null;
@@ -142,6 +156,7 @@ export default function TravellerCheckoutPage({
     location: selectedItem.location || selectedItem.city || selectedItem.destination || 'India',
     date: selectedItem.checkIn ? `${formatDate(selectedItem.checkIn)} → ${formatDate(selectedItem.checkOut)}` : (selectedItem.date || 'Flexible schedule'),
     guestCount: guestCount,
+    roomCount: isHotelBooking ? roomCount : null,
     imageUrl: selectedItem.imageUrl || selectedItem.image || null,
   };
 
@@ -150,6 +165,7 @@ export default function TravellerCheckoutPage({
     guestCount,
     taxesAndFees,
     subtotal,
+    fareLabel,
     total: totalAmount,
   };
 
@@ -778,6 +794,12 @@ export default function TravellerCheckoutPage({
                       {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
                     </strong>
                   </div>
+                  {isHotelBooking && (
+                    <div className="trav-receipt-row">
+                      <span>Rooms:</span>
+                      <strong>{roomCount} {roomCount === 1 ? 'Room' : 'Rooms'}</strong>
+                    </div>
+                  )}
                   <div className="trav-receipt-row">
                     <span>Simulated Amount:</span>
                     <span style={{ color: '#15803d' }}>{formatCurrency(totalAmount)}</span>
