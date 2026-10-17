@@ -10,10 +10,13 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
+import { AuthRepository } from './auth/auth.repository';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const reflector = app.get(Reflector);
+  const authRepository = app.get(AuthRepository);
 
   // Uploaded images are served as plain static files, outside the /api prefix (matches the
   // "/uploads/images/<file>" url the upload endpoints return).
@@ -41,7 +44,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor(), new ResponseInterceptor());
 
   // Global guards
-  app.useGlobalGuards(new AuthGuard(reflector), new RolesGuard(reflector));
+  app.useGlobalGuards(new AuthGuard(reflector, authRepository), new RolesGuard(reflector));
 
   // Swagger
   setupSwagger(app);

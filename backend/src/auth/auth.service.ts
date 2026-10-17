@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -10,6 +11,7 @@ import { AuthRepository } from './auth.repository';
 import { RegisterDto } from './dto/create-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Role } from './entities/auth.entity';
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'xploreo-dev-secret-key-2026';
 
@@ -99,8 +101,50 @@ export class AuthService {
     dto: UpdateAuthDto,
     actor?: { userId?: string; role?: string },
   ) {
-    const isAdmin = actor?.role === 'superadmin';
-    if (!isAdmin) {
+    const isSuperAdmin = actor?.role === 'superadmin';
+    const isTechAdmin = actor?.role === 'techadmin';
+
+    // 1. TechAdmin enforcement
+    if (isTechAdmin) {
+      const targetUser = await this.authRepository.findById(id);
+      if (!targetUser) throw new NotFoundException(`User ${id} not found`);
+
+      // TechAdmin cannot suspend or modify SuperAdmin or TechAdmin (including self)
+      if (targetUser.role === Role.SUPERADMIN || targetUser.role === Role.TECHADMIN) {
+        throw new ForbiddenException(
+          'TechAdmin is not permitted to modify administrator accounts.',
+        );
+      }
+      if (actor?.userId && targetUser.userId === actor.userId) {
+        throw new ForbiddenException('You cannot modify or suspend your own account.');
+      }
+
+      // TechAdmin cannot change user roles, passwords, emails, etc.
+      if (dto.role !== undefined) {
+        throw new ForbiddenException('TechAdmin cannot change user roles.');
+      }
+      if (dto.password !== undefined) {
+        throw new ForbiddenException('TechAdmin cannot change user passwords.');
+      }
+
+      // If updating status
+      if (dto.status !== undefined) {
+        if (dto.status === 'inactive') {
+          const reason = (dto.suspensionReason || dto.reason || '').trim();
+          if (!reason) {
+            throw new BadRequestException('A non-empty suspension reason is required.');
+          }
+          (dto as any).suspensionReason = reason;
+          (dto as any).suspendedAt = new Date().toISOString();
+          (dto as any).suspendedBy = actor.userId || 'techadmin';
+        } else if (dto.status === 'active') {
+          (dto as any).suspensionReason = null;
+          (dto as any).suspendedAt = null;
+          (dto as any).suspendedBy = null;
+        }
+      }
+    } else if (!isSuperAdmin) {
+      // Regular user (or other role)
       if (actor?.userId !== id) {
         throw new ForbiddenException('You can only update your own account.');
       }
@@ -110,7 +154,22 @@ export class AuthService {
       if (dto.status !== undefined) {
         throw new ForbiddenException('Only administrators can change account status.');
       }
+    } else {
+      // SuperAdmin: if setting inactive with reason, capture it
+      if (dto.status === 'inactive') {
+        const reason = (dto.suspensionReason || dto.reason || '').trim();
+        if (reason) {
+          (dto as any).suspensionReason = reason;
+          (dto as any).suspendedAt = new Date().toISOString();
+          (dto as any).suspendedBy = actor?.userId || 'superadmin';
+        }
+      } else if (dto.status === 'active') {
+        (dto as any).suspensionReason = null;
+        (dto as any).suspendedAt = null;
+        (dto as any).suspendedBy = null;
+      }
     }
+
     const updated = await this.authRepository.update(id, dto);
     if (!updated) throw new NotFoundException(`User ${id} not found`);
     const { password: _pw, ...safe } = updated;

@@ -11,9 +11,14 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Role } from '../../auth/entities/auth.entity';
 import { JWT_SECRET } from '../../auth/auth.service';
 
+import { AuthRepository } from '../../auth/auth.repository';
+
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly authRepository?: AuthRepository,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -48,6 +53,17 @@ export class AuthGuard implements CanActivate {
         if (!role) {
           throw new UnauthorizedException('Invalid role claim in token');
         }
+
+        // Live check: reject if user account is suspended/inactive
+        if (this.authRepository && decoded.userId) {
+          const liveUser = this.authRepository.findById(String(decoded.userId));
+          if (liveUser && liveUser.status === 'inactive') {
+            throw new UnauthorizedException(
+              'Account has been restricted. Please contact support.',
+            );
+          }
+        }
+
         request.user = {
           userId: decoded.userId ? String(decoded.userId) : undefined,
           username: decoded.username,
@@ -56,6 +72,9 @@ export class AuthGuard implements CanActivate {
         };
         return true;
       } catch (err) {
+        if (err instanceof UnauthorizedException) {
+          throw err;
+        }
         throw new UnauthorizedException(
           err instanceof Error && err.name === 'TokenExpiredError'
             ? 'Session token expired. Please log in again.'

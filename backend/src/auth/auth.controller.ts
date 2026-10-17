@@ -46,16 +46,16 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Roles(Role.SUPERADMIN)
+  @Roles(Role.SUPERADMIN, Role.TECHADMIN)
   @ApiProtectedResource()
   @Get('users')
-  @ApiOperation({ summary: 'List all users (SuperAdmin only)' })
+  @ApiOperation({ summary: 'List all users (SuperAdmin & TechAdmin)' })
   @ApiReadEndpoint()
   findAll() {
     return this.authService.findAll();
   }
 
-  @Roles(Role.SUPERADMIN)
+  @Roles(Role.SUPERADMIN, Role.TECHADMIN)
   @ApiProtectedResource()
   @Get('users/:id')
   @ApiOperation({ summary: 'Get a user by ID' })

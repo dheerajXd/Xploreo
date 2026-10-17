@@ -9,4 +9,14 @@ export class UpdateAuthDto extends PartialType(RegisterDto) {
   @IsString()
   @IsIn(['active', 'inactive'])
   status?: 'active' | 'inactive';
+
+  @ApiPropertyOptional({ example: 'Suspicious activity reported' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+
+  @ApiPropertyOptional({ example: 'Suspicious activity reported' })
+  @IsOptional()
+  @IsString()
+  suspensionReason?: string;
 }

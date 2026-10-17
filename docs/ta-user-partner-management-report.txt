@@ -1,0 +1,157 @@
+================================================================================
+XPLOREO TECH ADMIN: USER & PARTNER MANAGEMENT & RESTRICTIONS AUDIT REPORT
+================================================================================
+Generated: 2026-10-17
+Module: Tech Admin (TA) Portal - User & Partner Management Module
+Status: Fully Implemented, Tested, and Verified
+
+1. FILES CREATED AND MODIFIED
+--------------------------------------------------------------------------------
+Backend:
+- backend/src/auth/dto/update-auth.dto.ts
+  * Modified: Added optional `reason?: string` and `suspensionReason?: string` fields
+    with class-validator annotations.
+- backend/src/auth/entities/auth.entity.ts
+  * Modified: Added audit properties `suspensionReason?: string`, `suspendedAt?: string`,
+    and `suspendedBy?: string`.
+- backend/src/auth/auth.controller.ts
+  * Modified: Updated `@Roles(Role.SUPERADMIN, Role.TECHADMIN)` on `GET /auth/users`
+    and `GET /auth/users/:id` to allow Tech Admin to view users and partners.
+- backend/src/auth/auth.service.ts
+  * Modified:
+    - Enforced Tech Admin permission boundaries in `update()`:
+      * Tech Admin can only suspend or reactivate eligible accounts (Traveler, Guide,
+        Hotel Partner, Experience Partner).
+      * Tech Admin is rejected with 403 Forbidden when attempting to modify or suspend
+        SuperAdmin accounts, TechAdmin accounts, or their own account.
+      * Tech Admin is rejected with 403 Forbidden when attempting to change user roles
+        or passwords.
+      * For suspension (`status === 'inactive'`), non-empty `suspensionReason` is strictly
+        mandatory (rejects with 400 Bad Request if missing/empty).
+      * Automatically captures `suspendedBy`, `suspendedAt`, and `suspensionReason`.
+      * Clears suspension metadata on reactivation (`status === 'active'`).
+- backend/src/common/guards/auth.guard.ts
+  * Modified: Integrated live account-status verification. Injected `AuthRepository`.
+    When an authenticated token is verified, the user's live status in `AuthRepository`
+    is checked. If the account has been suspended (`status === 'inactive'`), throws
+    401 Unauthorized with "Account has been restricted. Please contact support."
+    This immediately revokes active bearer tokens and sessions on protected endpoints.
+- backend/src/main.ts
+  * Modified: Passed `authRepository` from Nest application context to `AuthGuard`.
+- backend/src/auth/ta-user-management.spec.ts
+  * Created: 12 comprehensive automated test cases verifying listing, suspension with
+    reasons, permission boundaries, self-suspension prevention, admin account protection,
+    login rejection, real-time token/session invalidation, and reactivation.
+
+Frontend:
+- frontend/src/services/techadmin.api.js
+  * Created: Tech Admin API client supporting `getTechAdminUsers(roleFilter)`,
+    `suspendUserAccount(userId, reason)` (with client-side non-empty reason validation),
+    and `reactivateUserAccount(userId)`. Uses trusted session credentials via `identityHeaders()`.
+- frontend/src/pages/TechAdmin/users.jsx
+  * Created: Full-featured Users & Partners management console for Tech Admin:
+    - Summary cards: Total Eligible Accounts, Active Accounts, Suspended Accounts.
+    - Role tabs: All Eligible Accounts, Travelers, Guides, Hotel Partners, Experience Partners.
+    - Search by name, ID/username, email, phone, location/region.
+    - Status filter: All Statuses, Active Only, Suspended (Inactive).
+    - User/partner table using SATable with identity, role badge, contact phone, location,
+      status badge, and permitted actions.
+    - Details modal displaying complete user information and suspension audit trail.
+    - Suspension dialog requiring a non-empty reason before confirming.
+    - Reactivation confirmation dialog.
+    - Loading, empty, validation, and error states.
+- frontend/src/components/techadmin/TechAdminLayout.jsx
+  * Modified: Added "Users & Partners" navigation item to Tech Admin navbar.
+- frontend/src/routes/techadmin.routes.jsx
+  * Modified: Added `/tech-admin/users` route pointing to `TechAdminUsersPage`.
+
+2. FRONTEND ROUTES AND FUNCTIONALITY ADDED
+--------------------------------------------------------------------------------
+- Route: `/tech-admin/users`
+- Accessible via Tech Admin portal navigation bar ("Users & Partners").
+- Protected by existing TechAdmin route guard (`requires: { role: 'techadmin' }`).
+- Features:
+  * Categorized views for Traveler, Guide, Hotel Partner, and Experience Partner.
+  * Live status indicators (Active vs Restricted).
+  * Direct inspection of user account details and restriction reason history.
+  * Modal confirmation for suspension requiring an explicit reason.
+  * Confirmation modal for account reactivation.
+  * Responsive metrics summary dynamically calculated from current data.
+
+3. BACKEND ENDPOINTS AND AUTHORIZATION RULES
+--------------------------------------------------------------------------------
+- GET `/api/auth/users`:
+  * Accessible to SuperAdmin and TechAdmin.
+  * Returns user list without passwords.
+- GET `/api/auth/users/:id`:
+  * Accessible to SuperAdmin and TechAdmin.
+  * Returns specific user record without password.
+- PATCH `/api/auth/users/:id`:
+  * Accessible to SuperAdmin, TechAdmin, and self (for own profile).
+  * TechAdmin rules:
+    - May modify `status` ('active' | 'inactive') for eligible non-admin accounts.
+    - Must supply a non-empty `suspensionReason` when setting status to 'inactive'.
+    - Cannot modify SuperAdmin or TechAdmin accounts (403 Forbidden).
+    - Cannot modify or suspend own account (403 Forbidden).
+    - Cannot change user roles, passwords, or emails (403 Forbidden).
+- Audit Tracking:
+  * Records `suspendedBy` (acting admin userId), `suspendedAt` (ISO timestamp),
+    and `suspensionReason`.
+
+4. HOW ACCOUNT SUSPENSION AFFECTS LOGIN AND EXISTING SESSIONS
+--------------------------------------------------------------------------------
+- Login Enforcement:
+  * In `AuthService.login()`, when user credentials match, `user.status` is checked.
+    If `user.status === 'inactive'`, login is immediately rejected with HTTP 401:
+    "Account has been restricted. Please contact support."
+- Active Session Invalidation:
+  * In `AuthGuard.canActivate()`, upon verifying the signed JWT bearer token,
+    `authRepository.findById(decoded.userId)` is checked.
+    If `liveUser.status === 'inactive'`, the request is immediately rejected with
+    HTTP 401: "Account has been restricted. Please contact support."
+  * This guarantees that existing sessions, cached tokens, and active browser windows
+    cannot continue executing API calls once an account is suspended.
+- Reactivation:
+  * Sets `status = 'active'` and clears suspension audit flags.
+  * Restores login capability and allows newly issued or existing unexpired tokens
+    to access protected endpoints.
+
+5. TESTS EXECUTED AND ACTUAL OUTCOMES
+--------------------------------------------------------------------------------
+- Backend Test Suite: `src/auth/ta-user-management.spec.ts`
+  * 12 tests executed via Jest.
+  * Outcome: 12 passed, 0 failed.
+  * Scenarios verified:
+    1. TA can list eligible users and partners.
+    2. TA can view specific user by ID.
+    3. TA can suspend an eligible account with reason provided.
+    4. Suspension rejected when reason is empty or whitespace.
+    5. TA can reactivate a suspended account.
+    6. TA cannot suspend or modify SuperAdmin accounts.
+    7. TA cannot suspend or modify TechAdmin accounts (including self).
+    8. TA cannot change roles or passwords.
+    9. Unauthenticated callers and non-admins cannot modify user status.
+    10. Suspended account cannot log in.
+    11. Suspended account cannot continue using protected APIs with active token.
+    12. Reactivation restores API token access.
+
+- Security Regression Test Suite: `src/auth/auth-security.spec.ts`
+  * 23 tests executed via Jest.
+  * Outcome: 23 passed, 0 failed.
+  * Confirmed that Phase 4B security fixes, IDOR trip checks, profile privacy,
+    and regional NTA account isolations remain 100% intact.
+
+- Production Builds:
+  * Backend NestJS build (`npm run build` in `backend/`): Succeeded (Exit code 0).
+  * Frontend Vite build (`npm run build` in `frontend/`): Succeeded (Exit code 0).
+
+6. PERSISTENCE LIMITATIONS & REPOSITORY NOTES
+--------------------------------------------------------------------------------
+- The current backend architecture maintains user records in-memory via `AuthRepository`,
+  initialized on startup from `Database/seeds/users.json`.
+- Account suspensions and reactivations persist for the lifetime of the running Node.js
+  process. If the backend process is restarted, accounts reset to their initial seed state
+  in `Database/seeds/users.json` unless persisted to a permanent database or disk store.
+- No parallel mock store was introduced; both SuperAdmin and TechAdmin now query and mutate
+  the authentic backend auth endpoints.
+================================================================================
