@@ -413,12 +413,14 @@ The following team ownership matrix documents the verified individual contributi
 
 #### 1. Hotel Partner Portal Pages
 - `frontend/src/pages/Hotel/HotelDashboard.jsx` — Hotel executive cockpit showing occupancy rates, room revenue, and today's arrivals.
+- `frontend/src/pages/Hotel/HotelProperties.jsx` — Multi-property management dashboard to add, list, and delete hotels and oversee associated room types/services.
 - `frontend/src/pages/Hotel/HotelRooms.jsx` — Room category catalog, pricing per night, and inventory configuration.
 - `frontend/src/pages/Hotel/HotelBookings.jsx` — Guest reservation management, arrival dates, and check-in/check-out actions.
 - `frontend/src/pages/Hotel/HotelEarnings.jsx` — Room revenue statements, payout histories, and platform fee breakdowns.
 - `frontend/src/pages/Hotel/HotelReviews.jsx` — Guest feedback and ratings for hotel properties and amenities.
 - `frontend/src/pages/Hotel/HotelProfile.jsx` — Hotel property details, photos, amenities, and location settings.
 - `frontend/src/pages/Hotel/HotelSupport.jsx` — Hotel partner support ticket submission interface.
+
 
 #### 2. Hotel Components, Styles & Routes
 - `frontend/src/components/hotel/HotelLayout.jsx` — Common sidebar and header layout for hotel views.
