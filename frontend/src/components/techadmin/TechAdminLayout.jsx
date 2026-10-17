@@ -4,7 +4,6 @@ import { Navbar, useAuth } from '@/foundation';
 const LINKS = [
   { to: '/tech-admin/dashboard', label: 'Support Dashboard', icon: 'dashboard.svg' },
   { to: '/tech-admin/tickets', label: 'Ticket Queue', icon: 'support.svg' },
-  { to: '/tech-admin/users', label: 'Users & Partners', icon: 'users.svg' },
 ];
 
 export default function TechAdminLayout() {

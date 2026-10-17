@@ -21,7 +21,4 @@ export class Auth {
   location?: string;
   status!: 'active' | 'inactive';
   region?: string;
-  suspensionReason?: string;
-  suspendedAt?: string;
-  suspendedBy?: string;
 }

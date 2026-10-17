@@ -50,7 +50,7 @@ The platform operates across seven distinct actor roles coordinated via role-bas
 | **Hotel Partner** (`hotel`) | Manages room catalogs, availability, booking check-ins/outs, and earnings. | Partner-scoped: only owns and mutates own hotel property. |
 | **Experience Partner** (`experience`) | Manages activity catalogs, time-slots, capacities, and customer bookings. | Partner-scoped: strictly restricted to assigned operating hub. |
 | **Non-Tech Admin** (`nontechadmin`) | Regional package curator, guide application evaluator, and metrics monitor. | **Strict Regional Scope:** NTA001–NTA005 restricted to their assigned region. |
-| **Tech Admin** (`techadmin`) | Global technical operations, cross-actor support ticket management, user & partner governance, and account restriction enforcement. | Global technical operations, support triage, and eligible account restrictions. |
+| **Tech Admin** (`techadmin`) | Manages operational system logs, technical health, and cross-actor support tickets. | Global technical operations & unified support ticket management. |
 | **SuperAdmin** (`superadmin`) | Global oversight: manages all users, platform partners, disputes, and financial payouts. | Global unrestricted access across all 5 geographical hubs. |
 
 ---
@@ -201,7 +201,7 @@ All seeded development credentials are authenticated server-side against `Databa
 | Role | Username / User ID | Password | Scope / Region | Notes |
 |---|---|---|---|---|
 | **SuperAdmin** | `SA001` | `SA@123` | Global | Unrestricted administrative access across all 5 hubs |
-| **Tech Admin** | `TA001` | `TA@123` | Global | System monitoring, support ticket queue, and user & partner management |
+| **Tech Admin** | `TA001` | `TA@123` | Global | System monitoring and centralized support ticket queue |
 | **NTA (Jaipur)** | `NTA001` | `NTA@123` | Jaipur | Regional plans, guide requests, and dashboard metrics |
 | **NTA (Goa)** | `NTA002` | `NTA@123` | Goa | Regional plans, guide requests, and dashboard metrics |
 | **NTA (Delhi)** | `NTA003` | `NTA@123` | Delhi | Regional plans, guide requests, and dashboard metrics |
@@ -281,7 +281,7 @@ The following team ownership matrix documents the verified individual contributi
 - `frontend/src/components/nta/NtaLayout.jsx` — Dedicated layout wrapper for NTA views.
 - `frontend/src/components/nta/nta.css` — Design system styling for NTA pages.
 
-#### 3. Cross-Actor Support Ticket System & Tech Admin Operations
+#### 3. Cross-Actor Support Ticket System & Tech Admin Management
 - `frontend/src/pages/TechAdmin/tickets.jsx` — Centralized Tech Admin ticket queue with status transitions and resolution notes.
 - `frontend/src/components/tickets/TicketList.jsx` — Multi-role ticket list supporting filtering by status and priority.
 - `frontend/src/components/tickets/TicketCreateForm.jsx` — Standardized ticket creation modal available to all submitting actors.
@@ -295,22 +295,9 @@ The following team ownership matrix documents the verified individual contributi
 - `backend/src/tickets/dto/create-ticket.dto.ts` & `update-ticket.dto.ts` — DTO validation schemas.
 - `Database/seeds/tickets.json` — Seed records covering tickets from Travelers, Guides, Hotels, and Experience Partners.
 
-#### 4. Tech Admin User & Partner Management & Account Restrictions
-- `frontend/src/pages/TechAdmin/users.jsx` — Dedicated Tech Admin management console for viewing, searching, and filtering registered users and service partners (Travelers, Guides, Hotel Partners, Experience Partners), inspecting account details and restriction logs, suspending eligible accounts with mandatory reasons, and reactivating suspended accounts.
-- `frontend/src/services/techadmin.api.js` — API service wrapper for Tech Admin fetching eligible accounts and invoking status update endpoints using authenticated session tokens.
-- `frontend/src/components/techadmin/TechAdminLayout.jsx` — Updated navigation bar adding the "Users & Partners" portal link.
-- `frontend/src/routes/techadmin.routes.jsx` — Route registration for `/tech-admin/users` protected by Tech Admin role guards.
-- `backend/src/auth/ta-user-management.spec.ts` — Automated test suite verifying TA user listing, suspension with mandatory reasons, reactivation, denial of privilege escalation or self-suspension, SuperAdmin/TechAdmin protection, and token invalidation.
-- `docs/ta-user-partner-management-report.txt` — Comprehensive technical implementation report and verification log.
-
-#### 5. Authentication, Authorization & Security Enforcement
-- `backend/src/auth/auth.service.ts` — JWT token generation with signed `userId`, `role`, and `region` claims; permission checks ensuring Tech Admin can only restrict eligible non-admin accounts with mandatory reasons; login rejection for suspended accounts.
-- `backend/src/auth/auth.controller.ts` — Endpoints `GET /api/auth/users` and `GET /api/auth/users/:id` updated with `@Roles(Role.SUPERADMIN, Role.TECHADMIN)` for administrative oversight.
-- `backend/src/auth/dto/update-auth.dto.ts` — DTO validation schema supporting `status` (`'active'` | `'inactive'`), `reason`, and `suspensionReason`.
-- `backend/src/auth/entities/auth.entity.ts` — Auth entity extended with `suspensionReason`, `suspendedAt`, and `suspendedBy` audit fields.
-- `backend/src/common/guards/auth.guard.ts` — Live account-status validation in request pipeline; immediately rejects suspended accounts (`status === 'inactive'`) with `401 Unauthorized`, revoking active tokens and sessions on protected endpoints.
-- `backend/src/main.ts` — Passes `AuthRepository` instance to global `AuthGuard` for live session invalidation.
-- `backend/src/auth/auth.repository.ts` — Authentication repository seeding and verifying all system actors and 5 regional NTA accounts (`NTA001`–`NTA005`).
+#### 4. Authentication, Authorization & Five-Region Isolation
+- `backend/src/auth/auth.service.ts` — JWT token generation with signed `userId`, `role`, and `region` claims.
+- `backend/src/auth/auth.repository.ts` — Authentication repository seeding and verifying all 5 regional NTA accounts (`NTA001`–`NTA005`).
 - `backend/src/auth/auth-security.spec.ts` — Security test suite validating JWT signatures, cross-region mutation denial, and SuperAdmin authority.
 - `backend/src/plans/plans.service.ts` — Enforces destination query scoping and mutation locks to `req.user.region` for NTAs.
 - `backend/src/plans/plans.controller.ts` — REST endpoints for plan curation guarded by `RolesGuard` and `AuthGuard`.
@@ -464,8 +451,8 @@ All modules and integrations across the Xploreo platform have been verified agai
 1. **Compilation & Builds:**
    - **Backend:** `npm run build` (`nest build`) compiles with zero TypeScript errors into `backend/dist/`.
    - **Frontend:** `npm run build` (`vite build`) compiles with zero errors into `frontend/dist/`.
-2. **Automated Security & Governance Tests:**
-   - **Backend:** `npm test` runs all test suites in `backend/src/auth/auth-security.spec.ts` (23 passed) and `backend/src/auth/ta-user-management.spec.ts` (12 passed) validating signed JWT issuance, regional isolation for `NTA001`–`NTA005`, Tech Admin user/partner governance, mandatory suspension reasons, and live session invalidation.
+2. **Automated Security Tests:**
+   - **Backend:** `npm test` runs all test suites in `backend/src/auth/auth-security.spec.ts` validating signed JWT issuance, regional isolation for `NTA001`–`NTA005`, and SuperAdmin authority.
 3. **Live Authentication Verification:**
    - Server-side login tested and verified for all 7 platform roles (`T001`, `G001`, `HP001`, `XP001`, `SA001`, `TA001`, and `NTA001` through `NTA005`).
 4. **Data Integrity:**
