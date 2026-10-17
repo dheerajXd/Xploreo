@@ -59,6 +59,14 @@ export class ReviewsRepository {
     return this.reviews.find((item) => item.id === id);
   }
 
+  /** Average rating (1 decimal) and review count for one reviewed entity. */
+  summaryFor(targetType: ReviewTargetType, targetId: string): { rating: number; reviewCount: number } {
+    const list = this.reviews.filter((r) => r.targetType === targetType && r.targetId === targetId);
+    if (list.length === 0) return { rating: 0, reviewCount: 0 };
+    const total = list.reduce((sum, r) => sum + r.rating, 0);
+    return { rating: Math.round((total / list.length) * 10) / 10, reviewCount: list.length };
+  }
+
   findByTripId(tripId: string): Review | undefined {
     return this.reviews.find((item) => item.tripId === tripId);
   }

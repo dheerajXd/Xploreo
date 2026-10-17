@@ -12,6 +12,10 @@ import { TechadminModule } from './techadmin/techadmin.module';
 import { NontechadminModule } from './nontechadmin/nontechadmin.module';
 import { PlansModule } from './plans/plans.module';
 import { TripsModule } from './trips/trips.module';
+import { GuideApplicationsModule } from './guide-applications/guide-applications.module';
+import { TripGuidesModule } from './trip-guides/trip-guides.module';
+import { FinanceModule } from './finance/finance.module';
+import { ExperienceGuidesModule } from './experience-guides/experience-guides.module';
 import { LocationModule } from './location/location.module';
 import { CitiesModule } from './cities/cities.module';
 import { ReviewsModule } from './reviews/reviews.module';
@@ -35,6 +39,10 @@ import { UploadModule } from './upload/upload.module';
     NontechadminModule,
     PlansModule,
     TripsModule,
+    GuideApplicationsModule,
+    TripGuidesModule,
+    FinanceModule,
+    ExperienceGuidesModule,
     ReviewsModule,
     GuideRequestsModule,
     BookingsModule,

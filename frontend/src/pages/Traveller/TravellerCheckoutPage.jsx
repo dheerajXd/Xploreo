@@ -9,9 +9,10 @@ import {
   DEFAULT_CHECKOUT_STEPS,
   DEFAULT_PAYMENT_METHODS,
 } from '../../components/checkout/index.js';
-import { formatCurrency, formatDate } from '../../utils/checkoutUtils.js';
+import { formatCurrency, formatDate, validateBookingDates } from '../../utils/checkoutUtils.js';
 import { getPaymentAdapter } from '../../services/paymentService.js';
 import { apiRequest, getSavedUser } from '../../services/api.js';
+import ExperienceGuidePanel from './ExperienceGuidePanel.jsx';
 import './travellerCheckout.css';
 
 const DEFAULT_DEMO_ITEM = {
@@ -72,6 +73,7 @@ export default function TravellerCheckoutPage({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [createdExperience, setCreatedExperience] = useState(null);
   const hasPersistedRef = useRef(false);
   const persistenceIdRef = useRef(null);
 
@@ -126,28 +128,51 @@ export default function TravellerCheckoutPage({
   const basePrice = Number(
     selectedItem.pricePerNight ?? selectedItem.price ?? selectedItem.basePrice ?? 5000
   );
-  const subtotal = basePrice * guestCount;
+  const pricingType = (selectedItem.type || selectedItem.bookingType || 'hotel').toLowerCase();
+  const isStay = pricingType === 'hotel';
+  const isExperience = pricingType === 'experience';
+  const TAX_RATE = 0.12; // same rate the server applies, so what is paid is what is recorded
+  // A stay is charged per night per room; an experience (and anything else) per guest.
+  const stayNights = isStay && selectedItem.checkIn && selectedItem.checkOut
+    ? Math.max(1, Math.round((Date.parse(selectedItem.checkOut) - Date.parse(selectedItem.checkIn)) / 86400000))
+    : 1;
+  const roomCount = Math.max(1, parseInt(location.state?.rooms ?? selectedItem.roomCount ?? 1, 10) || 1);
+  const quantity = isStay ? stayNights * roomCount : guestCount;
+  const subtotal = basePrice * quantity;
 
-  // Guest-dependent taxes or fees when specified, otherwise standard item taxes & fees (fallback 1200)
+  // Hotels and experiences: 12% taxes & fees. Other items keep their own figure (fallback 1200).
   const taxPerGuest = selectedItem.taxPerGuest ?? selectedItem.taxesPerGuest ?? selectedItem.feePerGuest ?? null;
-  const taxesAndFees = taxPerGuest != null
-    ? Number(taxPerGuest) * guestCount
-    : Number(selectedItem.taxesAndFees ?? 1200);
+  const taxesAndFees = isStay || isExperience
+    ? Math.round(subtotal * TAX_RATE)
+    : taxPerGuest != null
+      ? Number(taxPerGuest) * guestCount
+      : Number(selectedItem.taxesAndFees ?? 1200);
 
   const totalAmount = subtotal + taxesAndFees;
+
+  const itemType = (selectedItem.type || selectedItem.bookingType || 'hotel').toLowerCase();
+  // Single-day things (an experience session) show one date; stays and packages show a range.
+  const startDate = selectedItem.checkIn || selectedItem.date;
+  const endDate = selectedItem.checkOut;
+  const isSingleDay = itemType === 'experience' || !endDate || endDate === startDate;
+  const dateError = validateBookingDates({ type: itemType, checkIn: startDate, checkOut: endDate });
 
   const cardBooking = {
     title: selectedItem.title || selectedItem.name || 'Demo Reservation',
     type: selectedItem.type || selectedItem.bookingType || 'hotel',
     location: selectedItem.location || selectedItem.city || selectedItem.destination || 'India',
-    date: selectedItem.checkIn ? `${formatDate(selectedItem.checkIn)} → ${formatDate(selectedItem.checkOut)}` : (selectedItem.date || 'Flexible schedule'),
+    date: !startDate
+      ? 'Date not set'
+      : isSingleDay
+        ? formatDate(startDate)
+        : `${formatDate(startDate)} → ${formatDate(endDate)}`,
     guestCount: guestCount,
     imageUrl: selectedItem.imageUrl || selectedItem.image || null,
   };
 
   const cardPricing = {
     basePrice,
-    guestCount,
+    guestCount: quantity,
     taxesAndFees,
     subtotal,
     total: totalAmount,
@@ -161,8 +186,12 @@ export default function TravellerCheckoutPage({
 
   // Step 2: Trigger payment processing via Payment Adapter and persist to backend
   const handleProcessPayment = async () => {
-    setIsProcessing(true);
     setErrorMessage('');
+    if (dateError) {
+      setErrorMessage(dateError);
+      return;
+    }
+    setIsProcessing(true);
 
     // Verify authenticated traveller session
     const savedUser = typeof getSavedUser === 'function' ? getSavedUser() : null;
@@ -258,7 +287,7 @@ export default function TravellerCheckoutPage({
             }),
           });
         } else if (bookingType === 'experience') {
-          await apiRequest('/experience-bookings', {
+          const createdBooking = await apiRequest('/experience-bookings', {
             method: 'POST',
             body: JSON.stringify({
               id: `eb-${stablePaymentId}`,
@@ -270,6 +299,7 @@ export default function TravellerCheckoutPage({
               participants: Number(guestCount) || 1,
             }),
           });
+          setCreatedExperience(createdBooking);
         } else {
           const today = new Date();
           const checkIn = selectedItem.checkIn || today.toISOString().split('T')[0];
@@ -285,7 +315,8 @@ export default function TravellerCheckoutPage({
               checkIn,
               checkOut,
               guests: Number(guestCount) || 1,
-              roomType: selectedItem.roomType || 'Deluxe Room',
+              roomType: selectedItem.roomType || 'Standard Room',
+              rooms: roomCount,
               notes: travellerDetails.specialRequests || 'Booked via checkout',
             }),
           });
@@ -524,6 +555,12 @@ export default function TravellerCheckoutPage({
                     </div>
                   </div>
 
+                  {dateError ? (
+                    <div role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.75rem 1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                      ⚠️ {dateError} Go back and pick valid dates.
+                    </div>
+                  ) : null}
+
                   <div className="trav-checkout-actions">
                     <button
                       type="button"
@@ -535,6 +572,7 @@ export default function TravellerCheckoutPage({
                     <button
                       type="button"
                       className="trav-btn-primary"
+                      disabled={Boolean(dateError)}
                       onClick={() => setCurrentStepIndex(1)}
                       data-testid="btn-proceed-to-details"
                     >
@@ -784,13 +822,19 @@ export default function TravellerCheckoutPage({
                   </div>
                 </div>
 
+                {createdExperience ? (
+                  <div style={{ maxWidth: 520, margin: '1.25rem auto 0', textAlign: 'left' }}>
+                    <ExperienceGuidePanel booking={createdExperience} askFirst />
+                  </div>
+                ) : null}
+
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
                   <button
                     type="button"
                     className="trav-btn-secondary"
-                    onClick={() => navigate('/Traveller/bookings')}
+                    onClick={() => navigate(['plan', 'package', 'trip'].includes(itemType) ? '/Traveller/trips' : '/Traveller/bookings')}
                   >
-                    View in My Bookings
+                    {['plan', 'package', 'trip'].includes(itemType) ? 'View in My Trips' : 'View in My Bookings'}
                   </button>
                   <button
                     type="button"

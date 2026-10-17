@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar/navbar.jsx';
 import { formatCurrency, formatDate } from '../../utils/checkoutUtils.js';
 import { apiRequest } from '../../services/api.js';
 import BookingDetailsView from './BookingDetailsView.jsx';
+import ExperienceGuidePanel from './ExperienceGuidePanel.jsx';
 import './travellerBookings.css';
 
 const DESTINATION_FALLBACK_IMAGES = {
@@ -494,6 +495,9 @@ export default function TravellerBookingsList({
                       <span className="trav-card-price">
                         {formatCurrency(booking.totalAmount)}
                       </span>
+                      {booking.taxesAndFees ? (
+                        <span className="trav-card-price-lbl">incl. {formatCurrency(booking.taxesAndFees)} taxes &amp; fees</span>
+                      ) : null}
                     </div>
 
                     <button
@@ -505,6 +509,16 @@ export default function TravellerBookingsList({
                       View Details →
                     </button>
                   </div>
+
+                  {booking.bookingType === 'experience' ? (
+                    <div className="trav-booking-card-guide">
+                      <ExperienceGuidePanel
+                        key={`${booking.id}-${booking.guideStatus || 'none'}`}
+                        booking={booking}
+                        onChanged={fetchLiveBookings}
+                      />
+                    </div>
+                  ) : null}
                 </article>
               );
             })}

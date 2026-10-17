@@ -32,10 +32,44 @@ function stopsOf(trip) {
 
 const stopIndex = (trip, stops) => Math.max(0, stops.findIndex((s) => s.title === trip.currentStop));
 const progressOf = (index, total) => Math.round((index / (total - 1 || 1)) * 100);
-const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—');
 // Assignments are Trips: there's no top-level "start date"/"fee"/"guests" field, only itinerary
 // dates and totalAmount — see trips/entities/trip.entity.ts.
 const tripDate = (trip, stops) => trip.itinerary?.day1?.hotel?.checkInDate || trip.itinerary?.day1?.flight?.departureAt || stops[0]?.startsAt;
+
+// A tour can be started from START_WINDOW_HOURS before it is due until the end of its last day.
+// The server enforces the same rule; this only keeps the button honest.
+const START_WINDOW_HOURS = 3;
+const asMoment = (value) => {
+  if (!value) return undefined;
+  const text = String(value);
+  const ms = Date.parse(/^d{4}-d{2}-d{2}$/.test(text) ? `${text}T00:00:00` : text);
+  return Number.isNaN(ms) ? undefined : ms;
+};
+function startAtOf(trip) {
+  const day1 = trip.itinerary?.day1;
+  const moments = [
+    asMoment(day1?.transport?.pickupAt),
+    asMoment(day1?.flight?.departureAt),
+    asMoment(day1?.hotel?.checkInDate),
+    ...(trip.itinerary?.days ?? []).flatMap((d) => (d.experiences ?? []).map((e) => asMoment(e.startsAt))),
+  ].filter((m) => m !== undefined);
+  return moments.length ? Math.min(...moments) : undefined;
+}
+function endAtOf(trip) {
+  const dates = [trip.itinerary?.day1?.hotel?.checkOutDate, trip.itinerary?.day1?.hotel?.checkInDate].filter(Boolean);
+  const last = dates.sort().pop();
+  return last ? asMoment(`${String(last).slice(0, 10)}T23:59:59`) : undefined;
+}
+// Returns null when the tour may be started now, otherwise the reason it can't.
+function startBlocker(card) {
+  if (card.startAt === undefined) return 'No start date set for this trip';
+  const opensAt = card.startAt - START_WINDOW_HOURS * 3_600_000;
+  if (Date.now() < opensAt) {
+    return `Opens ${new Date(opensAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} (${START_WINDOW_HOURS}h before start)`;
+  }
+  if (card.endAt !== undefined && Date.now() > card.endAt) return 'Trip dates have passed';
+  return null;
+}
 
 async function loadTours(guideId) {
   const [trips, assignments, plans] = await Promise.all([listMyTrips(guideId), listMyAssignments(guideId), listPlans()]);
@@ -61,7 +95,8 @@ export default function GuideTours() {
   const cards = useMemo(() => {
     if (!data) return [];
     const planById = new Map(data.plans.map((p) => [p.id, p]));
-    return data.trips.map((trip) => {
+    // Pending, declined and refunded trips are not tours the guide can run.
+    return data.trips.filter((trip) => ['confirmed', 'started', 'completed'].includes(trip.status)).map((trip) => {
       const plan = planById.get(trip.planId);
       const t = data.travellers[trip.travellerId];
       const stops = stopsOf(trip);
@@ -75,6 +110,8 @@ export default function GuideTours() {
         phone: t?.phno ? String(t.phno) : '',
         amount: trip.totalAmount,
         date: tripDate(trip, stops),
+        startAt: startAtOf(trip),
+        endAt: endAtOf(trip),
         duration: plan ? `${plan.durationNights + 1} days` : '—',
       };
     });
@@ -101,6 +138,11 @@ export default function GuideTours() {
   }
 
   function start(card) {
+    const blocker = startBlocker(card);
+    if (blocker) {
+      show(blocker, 'warning');
+      return null;
+    }
     const first = card.stops[0];
     return track(card, {
       trackingStatus: 'ongoing',
@@ -222,21 +264,25 @@ function EmptyTours({ tab }) {
 }
 
 function UpcomingCard({ card, busy, onStart, onDetails }) {
+  const blocker = startBlocker(card);
   return (
     <article className="gd-tour-card">
       <span className="gd-chip" style={{ color: '#0284c7', background: '#eff6ff', borderColor: '#bfdbfe', alignSelf: 'flex-start' }}>Confirmed</span>
       <h2 className="gd-tour-card-title">{card.title}</h2>
       <div className="gd-tour-meta-grid">
         <span className="gd-meta-item">👤 {card.customer}</span>
-        <span className="gd-meta-item">📞 {card.phone || 'N/A'}</span>
-        <span className="gd-meta-item">📅 {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-        <span className="gd-meta-item">🕐 {timeOf(card.stops[0]?.startsAt)}</span>
+        <span className="gd-meta-item">📞 {card.phone || 'Phone not provided'}</span>
+        <span className="gd-meta-item">📅 {card.startAt !== undefined ? formatDate(new Date(card.startAt).toISOString(), { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date not set'}</span>
+        <span className="gd-meta-item">🕐 {card.startAt !== undefined ? new Date(card.startAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Time not set'}</span>
         <span className="gd-meta-item">📍 {card.destination}</span>
       </div>
       <div className="gd-tour-card-footer">
-        {card.amount != null ? <p className="gd-tour-amount">{formatCurrency(card.amount)}</p> : <span />}
+        <div>
+          {card.amount != null ? <p className="gd-tour-amount">{formatCurrency(card.amount)}</p> : null}
+          {blocker ? <p style={{ margin: 0, fontSize: '0.75rem', color: '#b45309' }}>{blocker}</p> : null}
+        </div>
         <div className="gd-tour-card-actions">
-          <button type="button" className="gd-btn gd-btn-primary gd-btn-sm" disabled={busy} onClick={onStart}>Start</button>
+          <button type="button" className="gd-btn gd-btn-primary gd-btn-sm" disabled={busy || Boolean(blocker)} title={blocker || 'Start this tour'} onClick={onStart}>Start</button>
           <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" onClick={onDetails}>Details</button>
         </div>
       </div>
@@ -349,7 +395,7 @@ function TourModal({ card, busy, onClose, onStart, onAdvance, onPause, onResume 
             {!done ? (
               <div className="gd-tour-modal-controls">
                 {trip.trackingStatus === 'not_started' ? (
-                  <button type="button" className="gd-btn gd-btn-primary" disabled={busy} onClick={onStart}>Start</button>
+                  <button type="button" className="gd-btn gd-btn-primary" disabled={busy || Boolean(startBlocker(card))} title={startBlocker(card) || "Start this tour"} onClick={onStart}>Start</button>
                 ) : (
                   <>
                     <button type="button" className="gd-btn gd-btn-secondary" disabled={busy || trip.trackingStatus === 'paused'} onClick={onPause}>Pause</button>

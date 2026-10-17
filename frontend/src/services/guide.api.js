@@ -22,16 +22,24 @@ export function applyToPlan({ planId, guidePricePerPerson }) {
 }
 
 // GET /guide-assignments/guide/:guideId
+// Trip assignments plus experience-session jobs (GET /experience-guides/jobs, flagged kind: 'experience').
 export async function listMyAssignments(guideId) {
-  return listOf(await request(`/guide-assignments/guide/${enc(guideId)}`));
+  const [trips, sessions] = await Promise.all([
+    request(`/guide-assignments/guide/${enc(guideId)}`),
+    request('/experience-guides/jobs').catch(() => []),
+  ]);
+  return [...listOf(trips), ...listOf(sessions)];
 }
 
 // PATCH /guide-assignments/:id/confirm | /reject   (no body)
-export function confirmAssignment(id) {
-  return request(`/guide-assignments/${enc(id)}/confirm`, { method: 'PATCH' });
+// Experience jobs live under /experience-guides/:id/confirm|reject.
+export function confirmAssignment(id, kind) {
+  const base = kind === 'experience' ? '/experience-guides' : '/guide-assignments';
+  return request(`${base}/${enc(id)}/confirm`, { method: 'PATCH' });
 }
-export function rejectAssignment(id) {
-  return request(`/guide-assignments/${enc(id)}/reject`, { method: 'PATCH' });
+export function rejectAssignment(id, kind) {
+  const base = kind === 'experience' ? '/experience-guides' : '/guide-assignments';
+  return request(`${base}/${enc(id)}/reject`, { method: 'PATCH' });
 }
 
 // GET /traveller/:id   (the real endpoint lets any guide read any traveller; see MERGE_NOTES)

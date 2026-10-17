@@ -1,11 +1,16 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { TripStatus } from '../trips/entities/trip.entity';
+import { TripsRepository } from '../trips/trips.repository';
 import { TravellerRepository } from './traveller.repository';
 import { CreateTravellerDto } from './dto/create-traveller.dto';
 import { UpdateTravellerDto } from './dto/update-traveller.dto';
 
 @Injectable()
 export class TravellerService {
-  constructor(private readonly travellerRepository: TravellerRepository) {}
+  constructor(
+    private readonly travellerRepository: TravellerRepository,
+    @Optional() private readonly tripsRepository?: TripsRepository,
+  ) {}
 
   create(userId: string, dto: CreateTravellerDto) {
     return this.travellerRepository.create({
@@ -31,8 +36,21 @@ export class TravellerService {
     const isSelf = actor?.userId === id;
     const isAdmin = actor?.role === 'superadmin' || actor?.role === 'nontechadmin';
 
-    // If caller is not self or admin, redact private contact information
-    if (!isSelf && !isAdmin) {
+    // A guide who is running (or about to run) this traveller's trip needs their contact details.
+    const isTripGuide =
+      actor?.role === 'guide' &&
+      Boolean(
+        this.tripsRepository
+          ?.findByGuide(actor.userId ?? '')
+          .some(
+            (trip) =>
+              trip.travellerId === id &&
+              [TripStatus.CONFIRMED, TripStatus.STARTED, TripStatus.COMPLETED].includes(trip.status),
+          ),
+      );
+
+    // If caller is not self, admin or the traveller's guide, redact private contact information
+    if (!isSelf && !isAdmin && !isTripGuide) {
       const { email: _email, phno: _phno, ...publicProfile } = t;
       return publicProfile;
     }

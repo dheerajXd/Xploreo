@@ -17,7 +17,18 @@ export class ExperienceBooking {
   phone!: string;
   date!: string;
   participants!: number;
+  subtotal?: number;
+  taxesAndFees?: number;
   totalAmount!: number;
+  // Optional local guide for this session. The traveller requests an NTA-approved guide for the
+  // experience's region; the guide confirms or declines. The guide fee is separate from totalAmount.
+  guideId?: string;
+  guideName?: string;
+  guideStatus?: 'requested' | 'confirmed' | 'declined';
+  guidePricePerPerson?: number;
+  guideFee?: number;
+  guideNote?: string;
+  declinedGuideIds?: string[];
   status!: ExperienceBookingStatus;
   createdAt!: Date;
   experience?: Experience;

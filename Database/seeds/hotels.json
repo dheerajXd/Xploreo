@@ -446,5 +446,82 @@
     "status": "active",
     "isDeleted": false,
     "createdAt": "2026-03-08T00:00:00.000Z"
+  },
+  {
+    "id": "hotel-goa-1",
+    "partnerId": "HP002",
+    "name": "Calangute Palm Resort",
+    "city": "Goa",
+    "location": "Calangute, North Goa",
+    "description": "Palm-fringed resort a short walk from Calangute beach.",
+    "stars": 4,
+    "rating": 4.4,
+    "reviewCount": 120,
+    "pricePerNight": 8500,
+    "taxesAndFees": 1020,
+    "totalRooms": 24,
+    "availableRooms": 24,
+    "image": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80",
+    "images": [],
+    "amenities": [
+      "Beach Access",
+      "Pool",
+      "Breakfast",
+      "WiFi"
+    ],
+    "status": "active",
+    "isDeleted": false,
+    "createdAt": "2026-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "hotel-goa-2",
+    "partnerId": "HP002",
+    "name": "Baga Beach Retreat",
+    "city": "Goa",
+    "location": "Baga, North Goa",
+    "description": "Relaxed budget retreat steps from Baga nightlife.",
+    "stars": 3,
+    "rating": 4.4,
+    "reviewCount": 120,
+    "pricePerNight": 5200,
+    "taxesAndFees": 624,
+    "totalRooms": 24,
+    "availableRooms": 24,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    "images": [],
+    "amenities": [
+      "Breakfast",
+      "WiFi",
+      "Air Conditioning"
+    ],
+    "status": "active",
+    "isDeleted": false,
+    "createdAt": "2026-02-01T00:00:00.000Z"
+  },
+  {
+    "id": "hotel-delhi-1",
+    "partnerId": "HP003",
+    "name": "Connaught Heritage Hotel",
+    "city": "Delhi",
+    "location": "Connaught Place, New Delhi",
+    "description": "Colonial-era hotel in the heart of Delhi, near the metro.",
+    "stars": 4,
+    "rating": 4.4,
+    "reviewCount": 120,
+    "pricePerNight": 9500,
+    "taxesAndFees": 1140,
+    "totalRooms": 24,
+    "availableRooms": 24,
+    "image": "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80",
+    "images": [],
+    "amenities": [
+      "Metro Access",
+      "Restaurant",
+      "WiFi",
+      "Fitness Center"
+    ],
+    "status": "active",
+    "isDeleted": false,
+    "createdAt": "2026-02-01T00:00:00.000Z"
   }
 ]

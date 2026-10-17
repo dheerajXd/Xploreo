@@ -12,6 +12,7 @@ import { Role } from '../auth/entities/auth.entity';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingsRepository } from './bookings.repository';
 import { BookingStatus } from './entities/booking.entity';
+import { withTaxes } from '../common/utils/pricing';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -29,11 +30,7 @@ export class BookingsService {
       throw new ForbiddenException('x-user-id header is required for TRAVELLER');
     }
 
-    let hotel = this.hotelsRepository.findById(dto.hotelId);
-    if (!hotel) {
-      const allHotels = this.hotelsRepository.findAll();
-      hotel = allHotels.find((h) => h.id === dto.hotelId) || allHotels[0];
-    }
+    const hotel = this.hotelsRepository.findById(dto.hotelId);
     if (!hotel || hotel.status !== 'active') {
       throw new NotFoundException(`Hotel ${dto.hotelId} not found or is unavailable`);
     }
@@ -46,6 +43,12 @@ export class BookingsService {
     if (checkOut <= checkIn) {
       throw new BadRequestException('checkOut must be after checkIn');
     }
+    if (dto.checkIn < new Date().toISOString().slice(0, 10)) {
+      throw new BadRequestException('Check-in cannot be in the past');
+    }
+    if ((checkOut.getTime() - checkIn.getTime()) / 86_400_000 > 30) {
+      throw new BadRequestException('A single stay cannot exceed 30 nights');
+    }
 
     const rooms = dto.rooms ?? 1;
     const roomType = this.hotelsService.findRoomByTypeName(dto.hotelId, dto.roomType);
@@ -55,9 +58,16 @@ export class BookingsService {
       );
     }
 
+    if (roomType && dto.guests > roomType.maxOccupancy * rooms) {
+      throw new BadRequestException(
+        `"${dto.roomType}" fits at most ${roomType.maxOccupancy * rooms} guest(s) for ${rooms} room(s)`,
+      );
+    }
+
     const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / 86_400_000);
-    const nightlyRate = roomType ? roomType.pricePerNight : hotel.pricePerNight + hotel.taxesAndFees;
-    const totalAmount = nights * nightlyRate * rooms;
+    const nightlyRate = roomType ? roomType.pricePerNight : hotel.pricePerNight;
+    // Room rate x nights x rooms, plus taxes & fees (the figure the traveller pays at checkout).
+    const pricing = withTaxes(nights * nightlyRate * rooms);
 
     const booking = this.bookingsRepository.create({
       id: dto.id,
@@ -73,7 +83,9 @@ export class BookingsService {
       rooms,
       guestNames: dto.guestNames ?? [dto.guestName],
       notes: dto.notes,
-      totalAmount,
+      subtotal: pricing.subtotal,
+      taxesAndFees: pricing.taxesAndFees,
+      totalAmount: pricing.total,
     });
 
     this.refreshAvailability(hotel.id, dto.roomType);

@@ -20,8 +20,8 @@ export class BookingsRepository {
 
     const now = new Date();
     const booking: Booking = {
-      id: data.id || randomUUID(),
       ...data,
+      id: data.id || randomUUID(),
       status: BookingStatus.CONFIRMED,
       createdAt: now,
       updatedAt: now,

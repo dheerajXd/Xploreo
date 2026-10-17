@@ -14,7 +14,7 @@ import {
   mapBackendExperience,
   mapBackendPlan,
 } from '../../utils/browseUtils.js';
-import { formatCurrency, formatDate } from '../../utils/checkoutUtils.js';
+import { formatCurrency, formatDate, validateBookingDates } from '../../utils/checkoutUtils.js';
 import './travellerDetail.css';
 
 /**
@@ -81,6 +81,7 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
   const [selectedGuests, setSelectedGuests] = useState(initialGuests);
   const [selectedRooms, setSelectedRooms] = useState(initialRooms);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [bookError, setBookError] = useState('');
 
   // Fetch item data on mount or when id/type changes
   useEffect(() => {
@@ -114,8 +115,9 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
           if (loaded) {
             setItem(loaded);
             if (Array.isArray(loaded.slots) && loaded.slots.length > 0) {
-              const available = loaded.slots.find((s) => s.available && (s.capacity - (s.booked || 0)) > 0);
-              setSelectedSlotId(available ? available.id : loaded.slots[0].id);
+              const today = new Date().toISOString().slice(0, 10);
+              const available = loaded.slots.find((s) => s.available && String(s.date).slice(0, 10) >= today && (s.capacity - (s.booked || 0)) > 0);
+              setSelectedSlotId(available ? available.id : null);
             }
           } else if (!item) {
             setError(`The requested ${effectiveType} (#${id}) could not be found.`);
@@ -186,7 +188,8 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
       : effectiveType === 'package'
       ? startingRate * guestCountNum
       : startingRate * guestCountNum;
-  const taxes = Number(item?.taxesAndFees ?? 1200);
+  // Stays and experiences carry 12% taxes & fees (same rate as the server); packages keep their own figure.
+  const taxes = effectiveType === 'package' ? Number(item?.taxesAndFees ?? 1200) : Math.round(subtotal * 0.12);
   const totalAmount = subtotal + taxes;
 
   // Handle "Book Slot" navigation into existing /Traveller/checkout flow
@@ -197,14 +200,50 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
       ? item.slots.find((s) => s.id === selectedSlotId)
       : null;
 
+    // Dates come from the thing being booked: a hotel's chosen stay, an experience's chosen session,
+    // a package's fixed itinerary — never from a stray search-bar date.
+    let bookingCheckIn = selectedCheckIn;
+    let bookingCheckOut = selectedCheckOut;
+    if (effectiveType === 'experience') {
+      if (Array.isArray(item.slots) && item.slots.length > 0) {
+        if (!selectedSlotObj) {
+          setBookError('Please select a session slot to book.');
+          return;
+        }
+        if (!selectedSlotObj.available || (selectedSlotObj.capacity || 0) - (selectedSlotObj.booked || 0) < guestCountNum) {
+          setBookError('That session does not have enough spots left. Choose another session or fewer guests.');
+          return;
+        }
+        bookingCheckIn = String(selectedSlotObj.date).slice(0, 10);
+      }
+      bookingCheckOut = bookingCheckIn;
+    } else if (effectiveType === 'package') {
+      const hotel = item.itinerary?.day1?.hotel;
+      if (hotel?.checkInDate) {
+        bookingCheckIn = hotel.checkInDate;
+        bookingCheckOut = hotel.checkOutDate || hotel.checkInDate;
+      }
+    }
+    const dateError = validateBookingDates({
+      type: effectiveType === 'hotel' ? 'hotel' : effectiveType,
+      checkIn: bookingCheckIn,
+      checkOut: bookingCheckOut,
+    });
+    if (dateError) {
+      setBookError(dateError);
+      return;
+    }
+    setBookError('');
+
     const checkoutItem = {
       id: item.id || `item-${Date.now()}`,
       title: item.name || item.title || 'Selected Reservation',
       type: effectiveType === 'hotel' ? 'hotel' : effectiveType === 'experience' ? 'experience' : 'plan',
       location: item.location || item.city || item.destination || 'India',
-      date: selectedCheckIn,
-      checkIn: selectedCheckIn,
-      checkOut: selectedCheckOut,
+      date: bookingCheckIn,
+      checkIn: bookingCheckIn,
+      checkOut: bookingCheckOut,
+      itinerary: effectiveType === 'package' ? item.itinerary : undefined,
       guestCount: guestCountNum,
       roomCount: roomCountNum,
       basePrice: startingRate,
@@ -220,8 +259,8 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
         item: checkoutItem,
         guests: guestCountNum,
         rooms: roomCountNum,
-        checkIn: selectedCheckIn,
-        checkOut: selectedCheckOut,
+        checkIn: bookingCheckIn,
+        checkOut: bookingCheckOut,
       },
     });
   };
@@ -575,12 +614,13 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {item.slots.map((slot) => {
-                        const spotsLeft = Math.max(0, (slot.capacity || 10) - (slot.booked || 0));
-                        const isSelected = selectedSlotId === slot.id;
+                        const isPast = String(slot.date).slice(0, 10) < todayStr;
+                        const spotsLeft = isPast ? 0 : Math.max(0, (slot.capacity || 10) - (slot.booked || 0));
+                        const isSelected = selectedSlotId === slot.id && !isPast;
                         return (
                           <div
                             key={slot.id}
-                            onClick={() => setSelectedSlotId(slot.id)}
+                            onClick={() => !isPast && spotsLeft > 0 && setSelectedSlotId(slot.id)}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -589,7 +629,8 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                               borderRadius: '10px',
                               border: isSelected ? '2px solid #0d9488' : '1px solid #e2e8f0',
                               backgroundColor: isSelected ? '#f0fdfa' : '#ffffff',
-                              cursor: 'pointer',
+                              cursor: isPast || spotsLeft === 0 ? 'not-allowed' : 'pointer',
+                              opacity: isPast ? 0.55 : 1,
                               transition: 'all 0.15s ease',
                             }}
                           >
@@ -604,7 +645,7 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                                 fontWeight: 700,
                               }}
                             >
-                              {spotsLeft > 0 ? `${spotsLeft} spots available` : 'Sold out'}
+                              {isPast ? 'Session passed' : spotsLeft > 0 ? `${spotsLeft} spots available` : 'Sold out'}
                             </span>
                           </div>
                         );
@@ -822,6 +863,12 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                 <span style={{ color: '#0d9488' }}>{formatCurrency(totalAmount)}</span>
               </div>
             </div>
+
+            {bookError ? (
+              <div role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '10px 12px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '12px' }}>
+                {bookError}
+              </div>
+            ) : null}
 
             {/* Clear "Book Slot" Primary CTA Button */}
             <button

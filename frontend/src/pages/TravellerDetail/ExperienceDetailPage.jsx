@@ -44,7 +44,8 @@ export default function ExperienceDetailPage() {
 
       // Auto-select first available slot if present
       if (expData?.slots?.length) {
-        const firstAvailable = expData.slots.find((s) => s.available && (s.capacity - (s.booked || 0)) > 0);
+        const today = new Date().toISOString().slice(0, 10);
+        const firstAvailable = expData.slots.find((s) => s.available && String(s.date).slice(0, 10) >= today && (s.capacity - (s.booked || 0)) > 0);
         if (firstAvailable) {
           setSelectedSlotId(firstAvailable.id);
         } else {
@@ -285,7 +286,8 @@ export default function ExperienceDetailPage() {
                 <div className="trav-slots-grid">
                   {slots.map((slot) => {
                     const spotsLeft = slot.capacity - (slot.booked || 0);
-                    const isFull = spotsLeft <= 0 || !slot.available;
+                    const isPast = String(slot.date).slice(0, 10) < new Date().toISOString().slice(0, 10);
+                    const isFull = spotsLeft <= 0 || !slot.available || isPast;
                     const isSelected = slot.id === selectedSlotId;
 
                     return (
@@ -308,7 +310,7 @@ export default function ExperienceDetailPage() {
                         </div>
                         <div className="trav-slot-capacity">
                           {isFull ? (
-                            <span style={{ color: 'var(--trav-error)', fontWeight: 700 }}>● Sold Out</span>
+                            <span style={{ color: 'var(--trav-error)', fontWeight: 700 }}>{isPast ? '● Session passed' : '● Sold Out'}</span>
                           ) : (
                             <span style={{ color: 'var(--trav-success)', fontWeight: 600 }}>● {spotsLeft} spots available</span>
                           )}

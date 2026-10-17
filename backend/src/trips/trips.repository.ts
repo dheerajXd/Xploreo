@@ -83,6 +83,20 @@ export class TripsRepository {
     return this.trips[index];
   }
 
+  clearGuide(id: string): Trip | undefined {
+    const index = this.trips.findIndex((trip) => trip.id === id);
+    if (index === -1) return undefined;
+    const {
+      guideId: _guide,
+      guideName: _name,
+      guidePricePerPerson: _price,
+      guideRequestedAt: _at,
+      ...rest
+    } = this.trips[index];
+    this.trips[index] = rest as Trip;
+    return this.trips[index];
+  }
+
   delete(id: string): boolean {
     const index = this.trips.findIndex((trip) => trip.id === id);
     if (index === -1) return false;

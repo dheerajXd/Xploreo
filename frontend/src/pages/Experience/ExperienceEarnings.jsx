@@ -4,6 +4,7 @@ import { getExperienceEarnings } from '@/services/schedule.api.js';
 import { formatCurrency, formatDate } from '@/lib/datetime.js';
 import ExperiencePage from '@/components/experience/ExperiencePage.jsx';
 import { ErrorNotice, LoadingBlock } from '@/components/experience/Feedback.jsx';
+import RefundBreakdown from '@/components/finance/RefundBreakdown.jsx';
 import './experienceShared.css';
 
 // Earnings are READ-ONLY here. Every amount below comes from the server; the app never calculates money.
@@ -113,6 +114,7 @@ export default function ExperienceEarnings() {
                 </div>
               </section>
 
+              <div className="rb-grid">
               <section className="ep-panel">
                 <h3>Revenue Sources</h3>
                 {data.byExperience.map((row, index) => {
@@ -141,6 +143,14 @@ export default function ExperienceEarnings() {
                   <span>{formatCurrency(summary.net)}</span>
                 </div>
               </section>
+
+              <RefundBreakdown
+                refundedAmount={summary.refunded}
+                refundPercent={summary.refundPercent ?? 0}
+                refundedCount={(data.transactions ?? []).filter((t) => t.status === 'refunded').length}
+                totalCount={(data.transactions ?? []).length}
+              />
+              </div>
 
               <section className="gd-card">
                 <div className="gd-section-header" style={{ marginBottom: '1rem' }}>

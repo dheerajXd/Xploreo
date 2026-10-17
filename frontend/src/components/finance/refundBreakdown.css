@@ -1,0 +1,21 @@
+.rb-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.35rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.rb-panel h3 { margin: 0 0 1rem 0; font-size: 1rem; font-weight: 800; color: #0f172a; }
+.rb-amount-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 0.75rem; margin-bottom: 0.75rem; }
+.rb-label { display: block; font-size: 0.8rem; color: #64748b; }
+.rb-amount { display: block; font-size: 1.6rem; font-weight: 800; color: #0f172a; }
+.rb-badge { padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+.rb-badge.none { background: #dcfce7; color: #166534; }
+.rb-badge.some { background: #fef3c7; color: #92400e; }
+.rb-badge.high { background: #fee2e2; color: #991b1b; }
+.rb-track { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; margin-bottom: 1rem; }
+.rb-fill { height: 100%; border-radius: 999px; }
+.rb-fill.none { background: #22c55e; }
+.rb-fill.some { background: #f59e0b; }
+.rb-fill.high { background: #ef4444; }
+.rb-rate-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; padding-top: 0.75rem; border-top: 1px solid #e2e8f0; }
+.rb-rate-row strong { color: #0f172a; }
+.rb-note { margin: 0.75rem 0 0; padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.8rem; }
+.rb-note.none { background: #f0fdf4; color: #166534; }
+.rb-note.some { background: #fffbeb; color: #92400e; }
+.rb-note.high { background: #fef2f2; color: #991b1b; }
+.rb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; align-items: start; }

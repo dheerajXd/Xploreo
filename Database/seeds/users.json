@@ -98,8 +98,8 @@
     "email": "sreekar@gmail.com",
     "phone": "9876543210",
     "status": "active",
-    "region": "Mumbai",
-    "location": "Mumbai"
+    "region": "Kerala",
+    "location": "Kerala"
   },
   {
     "userId": "G012",
@@ -135,7 +135,7 @@
     "phone": "9822334455",
     "status": "active",
     "region": "Kerala",
-    "location": "Kochi"
+    "location": "Kerala"
   },
   {
     "userId": "G014",
@@ -147,7 +147,7 @@
     "phone": "9847001122",
     "status": "active",
     "region": "Kerala",
-    "location": "Alleppey"
+    "location": "Kerala"
   },
   {
     "userId": "G015",
@@ -159,7 +159,7 @@
     "phone": "9847001123",
     "status": "active",
     "region": "Kerala",
-    "location": "Munnar"
+    "location": "Kerala"
   },
   {
     "userId": "G003",
@@ -344,7 +344,7 @@
     "email": "experience.partner@xploreo.com",
     "phone": "9000000002",
     "status": "active",
-    "region": "Jaipur",
+    "region": "Kerala",
     "location": "Jaipur"
   },
   {
@@ -396,7 +396,7 @@
     "email": "exp.kerala@xploreo.com",
     "phone": "9000000025",
     "status": "active",
-    "region": "Kerala",
+    "region": "Jaipur",
     "location": "Kerala"
   }
 ]

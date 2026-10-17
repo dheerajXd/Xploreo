@@ -8,6 +8,7 @@ import { apiRequest, getSavedUser } from '../../services/api.js';
 const sampleTripsList = [];
 import TripLiveTrackerWidget from './TripLiveTrackerWidget.jsx';
 import TravellerTripDetailsView from './TravellerTripDetailsView.jsx';
+import TripGuidePanel from './TripGuidePanel.jsx';
 import './travellerTrips.css';
 
 const DESTINATION_TRIP_IMAGES = {
@@ -590,8 +591,12 @@ export default function TravellerTripsList({
                     <div className="trav-trip-card-body">
                       <div className="trav-trip-badge-group">
                         <span className="trav-booking-id">#{trip.id}</span>
-                        <span className="trav-status-badge is-confirmed">
-                          {(trip.status || 'draft').toUpperCase()}
+                        <span className={`trav-status-badge ${trip.status === 'rejected_by_guide' ? 'is-warning' : trip.status === 'pending_guide_confirm' ? 'is-pending' : 'is-confirmed'}`}>
+                          {trip.status === 'rejected_by_guide'
+                            ? 'GUIDE NEEDED'
+                            : trip.status === 'pending_guide_confirm'
+                              ? 'AWAITING GUIDE'
+                              : (trip.status || 'draft').toUpperCase()}
                         </span>
                         {isOngoing && (
                           <span className="trav-live-indicator">
@@ -612,10 +617,10 @@ export default function TravellerTripsList({
                           <span className="trav-meta-icon" aria-hidden="true">💳</span>
                           Total: {formatCurrency(trip.totalAmount)}
                         </span>
-                        {trip.guideId && (
+                        {trip.guideId && trip.status !== 'rejected_by_guide' && (
                           <span className="trav-meta-item">
                             <span className="trav-meta-icon" aria-hidden="true">🧑‍🌾</span>
-                            Guide Assigned: #{trip.guideId}
+                            {trip.status === 'confirmed' || trip.status === 'started' || trip.status === 'completed' ? 'Guide' : 'Guide requested'}: {trip.guideName || `#${trip.guideId}`}
                           </span>
                         )}
                       </div>
@@ -654,6 +659,8 @@ export default function TravellerTripsList({
                       )}
                     </div>
                   </div>
+
+                  <TripGuidePanel trip={trip} onChanged={refreshLiveTrips} />
 
                   {/* Visual Timeline & Live Progress Bar Component */}
                   <div className="trav-trip-card-tracking-section">

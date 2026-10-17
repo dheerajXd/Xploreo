@@ -7,20 +7,25 @@ import {
 import { StructuredItinerary } from '../common/entities/itinerary.entity';
 import { mergeStructuredItineraryPatch } from '../common/utils/itinerary-mapper';
 import { PlansRepository } from '../plans/plans.repository';
-import { GuideApplicationsRepository } from '../guide-applications/guide-applications.repository';
-import { GuideApplicationStatus } from '../guide-applications/entities/guide-application.entity';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripTrackingDto } from './dto/update-trip-tracking.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { Trip, TripStatus, TripTrackingStatus } from './entities/trip.entity';
 import { TripsRepository } from './trips.repository';
+import {
+  findGuideConflicts,
+  rangesOverlap,
+  START_WINDOW_HOURS,
+  tripDateRange,
+  tripEndAt,
+  tripStartAt,
+} from './trip-dates';
 
 @Injectable()
 export class TripsService {
   constructor(
     private readonly tripsRepository: TripsRepository,
     private readonly plansRepository: PlansRepository,
-    private readonly guideApplicationsRepository: GuideApplicationsRepository,
   ) {}
 
   create(dto: CreateTripDto, actor?: { userId?: string; role?: string; region?: string }) {
@@ -45,6 +50,10 @@ export class TripsService {
       }
     }
 
+    if (!tripDateRange({ itinerary: (dto.itinerary || plan.itinerary) as StructuredItinerary }).start) {
+      throw new BadRequestException('A trip needs a start date before it can be booked');
+    }
+
     const effectiveTravellerId =
       actor?.role === 'traveller' && actor.userId ? actor.userId : dto.travellerId;
 
@@ -65,22 +74,27 @@ export class TripsService {
       lastUpdatedAt: new Date().toISOString(),
     });
 
-    // If a guide already applied (and was auto-accepted) to lead this plan, offer them the
-    // job as a pending assignment instead of leaving the trip unassigned.
-    const candidate = this.guideApplicationsRepository
-      .findAll()
-      .find((a) => a.planId === dto.planId && a.status === GuideApplicationStatus.ACCEPTED);
-    if (candidate) {
-      return this.assignPendingGuide(trip.id, candidate.guideId);
-    }
     return trip;
   }
 
-  // ── Guide-assignment lifecycle (a trip offered to a guide, pending their response) ──
-  assignPendingGuide(tripId: string, guideId: string): Trip {
+  // ── Guide-assignment lifecycle ──
+  // A booked trip starts without a guide. The traveller requests an NTA-approved guide
+  // (see TripGuidesService) -> PENDING_GUIDE_CONFIRM; the guide confirms -> CONFIRMED, or declines
+  // -> REJECTED_BY_GUIDE, which keeps the trip (no refund) and lets the traveller pick someone else.
+  assignPendingGuide(
+    tripId: string,
+    guideId: string,
+    guidePricePerPerson?: number,
+    guideName?: string,
+  ): Trip {
     const updated = this.tripsRepository.update(tripId, {
       guideId,
       status: TripStatus.PENDING_GUIDE_CONFIRM,
+      guideName,
+      guidePricePerPerson,
+      guideRequestedAt: new Date().toISOString(),
+      guideNote: '',
+      lastUpdatedAt: new Date().toISOString(),
     });
     if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
     return updated;
@@ -96,8 +110,32 @@ export class TripsService {
         `Only pending assignments can be confirmed (current: ${trip.status})`,
       );
     }
-    const updated = this.tripsRepository.update(tripId, { status: TripStatus.CONFIRMED });
+    // A guide cannot be double-booked: another confirmed trip on overlapping dates blocks this.
+    if (findGuideConflicts(trip, guideId, this.tripsRepository.findAll()).length > 0) {
+      throw new BadRequestException(
+        'You already have a confirmed trip on these dates. Decline this request instead.',
+      );
+    }
+    const updated = this.tripsRepository.update(tripId, {
+      status: TripStatus.CONFIRMED,
+      guideNote: '',
+      lastUpdatedAt: new Date().toISOString(),
+    });
     if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
+
+    // Now that the guide is taken for these dates, other travellers' pending requests for the same
+    // guide and dates can no longer be honoured — send them back so those travellers re-pick.
+    const range = tripDateRange(updated);
+    for (const other of this.tripsRepository.findAll()) {
+      if (
+        other.id !== tripId &&
+        other.guideId === guideId &&
+        other.status === TripStatus.PENDING_GUIDE_CONFIRM &&
+        rangesOverlap(range, tripDateRange(other))
+      ) {
+        this.declineGuide(other, 'Guide is no longer available on your travel dates.');
+      }
+    }
     return updated;
   }
 
@@ -109,26 +147,58 @@ export class TripsService {
     if (trip.status !== TripStatus.PENDING_GUIDE_CONFIRM && trip.status !== TripStatus.CONFIRMED) {
       throw new BadRequestException(`Cannot reject at this stage (current: ${trip.status})`);
     }
-    const updated = this.tripsRepository.update(tripId, {
+    return this.declineGuide(trip, 'Guide not confirmed — the guide could not take this trip.');
+  }
+
+  /** Marks the current guide as having declined; the trip itself stays booked. */
+  declineGuide(trip: Trip, note: string): Trip {
+    const declined = new Set(trip.declinedGuideIds ?? []);
+    if (trip.guideId) declined.add(trip.guideId);
+    const updated = this.tripsRepository.update(trip.id, {
       status: TripStatus.REJECTED_BY_GUIDE,
-      refundAmount: trip.totalAmount,
+      guideNote: note,
+      declinedGuideIds: [...declined],
+      lastUpdatedAt: new Date().toISOString(),
     });
-    if (!updated) throw new NotFoundException(`Trip ${tripId} not found`);
+    if (!updated) throw new NotFoundException(`Trip ${trip.id} not found`);
     return updated;
   }
 
-  findAssignmentsForGuide(guideId: string): Trip[] {
+  /** NTA withdrew a guide's approval for a plan: send back open requests; count confirmed ones. */
+  releaseGuideForPlan(guideId: string, planId: string): { released: number } {
+    let released = 0;
+    for (const trip of this.tripsRepository.findAll()) {
+      if (trip.guideId !== guideId || trip.planId !== planId) continue;
+      if (trip.status === TripStatus.PENDING_GUIDE_CONFIRM) {
+        this.declineGuide(trip, 'Guide is no longer approved for this plan.');
+        released += 1;
+      }
+    }
+    return { released };
+  }
+
+  confirmedTripsForGuidePlan(guideId: string, planId: string): number {
     return this.tripsRepository
       .findByGuide(guideId)
-      .filter((t) =>
-        [
-          TripStatus.PENDING_GUIDE_CONFIRM,
-          TripStatus.CONFIRMED,
-          TripStatus.STARTED,
-          TripStatus.COMPLETED,
-          TripStatus.REJECTED_BY_GUIDE,
-        ].includes(t.status),
-      );
+      .filter((t) => t.planId === planId && t.status === TripStatus.CONFIRMED).length;
+  }
+
+  findAssignmentsForGuide(guideId: string): Trip[] {
+    const visible = [
+      TripStatus.PENDING_GUIDE_CONFIRM,
+      TripStatus.CONFIRMED,
+      TripStatus.STARTED,
+      TripStatus.COMPLETED,
+      TripStatus.REJECTED_BY_GUIDE,
+    ];
+    const own = this.tripsRepository.findByGuide(guideId).filter((t) => visible.includes(t.status));
+    // Trips this guide declined but the traveller has since re-assigned stay visible as "Rejected".
+    const ownIds = new Set(own.map((t) => t.id));
+    const declined = this.tripsRepository
+      .findAll()
+      .filter((t) => !ownIds.has(t.id) && (t.declinedGuideIds ?? []).includes(guideId))
+      .map((t) => ({ ...t, guideId, status: TripStatus.REJECTED_BY_GUIDE }));
+    return [...own, ...declined];
   }
 
   findAll(actor?: { userId?: string; role?: string; region?: string }) {
@@ -195,8 +265,15 @@ export class TripsService {
       this.assertStatusTransition(trip, dto.status, actor);
     }
 
-    if (dto.guideId && actor?.role === 'guide' && dto.guideId !== actor.userId) {
-      throw new ForbiddenException('Guide can only assign their own guideId');
+    // Guides are attached through the request/confirm flow (approval + date checks), never by a
+    // direct edit of the trip.
+    if (
+      dto.guideId &&
+      dto.guideId !== trip.guideId &&
+      actor?.role !== 'superadmin' &&
+      actor?.role !== 'nontechadmin'
+    ) {
+      throw new ForbiddenException('Use the guide request flow to choose a guide');
     }
 
     const itinerary = dto.itinerary
@@ -238,6 +315,10 @@ export class TripsService {
       throw new ForbiddenException('Only the assigned guide can update tracking');
     }
 
+    if (role === 'guide') {
+      this.assertGuideMayTrack(trip, dto);
+    }
+
     const trackingStatus = dto.trackingStatus ?? trip.trackingStatus;
     const progressPercentage =
       trackingStatus === TripTrackingStatus.COMPLETED
@@ -263,6 +344,46 @@ export class TripsService {
 
     if (!updated) throw new NotFoundException(`Trip ${id} not found`);
     return updated;
+  }
+
+  // Tracking rules for the assigned guide: only a confirmed trip can be run, a tour can only be
+  // started shortly before it is due (and not after its last day), and it moves strictly
+  // not_started -> ongoing/paused -> completed.
+  private assertGuideMayTrack(trip: Trip, dto: UpdateTripTrackingDto) {
+    if (trip.status !== TripStatus.CONFIRMED && trip.status !== TripStatus.STARTED) {
+      throw new BadRequestException(
+        `This trip is not confirmed (current: ${trip.status}), so it cannot be run yet.`,
+      );
+    }
+    const next = dto.trackingStatus;
+    if (!next || next === trip.trackingStatus) return;
+
+    if (trip.trackingStatus === TripTrackingStatus.NOT_STARTED) {
+      if (next !== TripTrackingStatus.ONGOING) {
+        throw new BadRequestException('A tour must be started before it can be paused or completed.');
+      }
+      const startAt = tripStartAt(trip);
+      const endAt = tripEndAt(trip);
+      if (startAt === undefined) {
+        throw new BadRequestException('This trip has no start date, so it cannot be started.');
+      }
+      const opensAt = startAt - START_WINDOW_HOURS * 3_600_000;
+      if (Date.now() < opensAt) {
+        throw new BadRequestException(
+          `Too early to start. This tour can be started from ${new Date(opensAt).toISOString()} (${START_WINDOW_HOURS} hours before its start time).`,
+        );
+      }
+      if (endAt !== undefined && Date.now() > endAt) {
+        throw new BadRequestException('The dates of this trip have passed, so it can no longer be started.');
+      }
+      return;
+    }
+    if (trip.trackingStatus === TripTrackingStatus.COMPLETED) {
+      throw new BadRequestException('This tour is already completed.');
+    }
+    if (next === TripTrackingStatus.NOT_STARTED) {
+      throw new BadRequestException('A started tour cannot be reset.');
+    }
   }
 
   experienceExistsOnTrip(tripId: string, experienceId: string): boolean {

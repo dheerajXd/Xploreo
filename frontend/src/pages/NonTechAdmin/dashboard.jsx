@@ -10,6 +10,7 @@ import {
   getNtaRecentBookings,
   getNtaPricingDistribution,
 } from '../../services/nta.api.js';
+import LiveFinancePanel from '../../components/finance/LiveFinancePanel.jsx';
 import '../../components/superadmin/superadmin.css';
 import '../../components/tickets/tickets.css';
 import '../../components/nta/nta.css';
@@ -146,6 +147,9 @@ export default function NtaDashboardPage({ user = null, onNavigatePlans = null }
           </div>
         </div>
       </header>
+
+      {/* Live money for this region, from real bookings */}
+      <LiveFinancePanel showCities={false} />
 
       {/* 2. Error Banner */}
       {errorMessage && (

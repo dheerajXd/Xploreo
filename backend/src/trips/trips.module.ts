@@ -7,7 +7,7 @@ import { GuideApplicationsModule } from '../guide-applications/guide-application
 import { GuideAssignmentsController } from './guide-assignments.controller';
 
 @Module({
-  imports: [PlansModule, GuideApplicationsModule],
+  imports: [PlansModule],
   controllers: [TripsController, GuideAssignmentsController],
   providers: [TripsService, TripsRepository],
   exports: [TripsService, TripsRepository],

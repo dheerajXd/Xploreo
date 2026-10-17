@@ -11,6 +11,7 @@ import {
   getPayouts,
   processPayoutAction,
 } from '../../services/superadmin.api.js';
+import LiveFinancePanel from '../../components/finance/LiveFinancePanel.jsx';
 import '../../components/superadmin/superadmin.css';
 
 /**
@@ -306,6 +307,9 @@ Authorized By    : SuperAdmin Console (Mock Sandbox)
           </div>
         </div>
       </div>
+
+      {/* Live money roll-up from real bookings (all cities) */}
+      <LiveFinancePanel />
 
       {/* Alerts */}
       {feedbackMessage && (

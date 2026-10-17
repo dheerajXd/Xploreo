@@ -68,7 +68,7 @@ export default function GuideDashboard() {
   async function onConfirm(id) {
     setBusy(true);
     try {
-      await confirmAssignment(id);
+      await confirmAssignment(id, assignments.find((a) => a.id === id)?.kind);
       show('Confirmed! Traveller has been notified.', 'success');
       reload();
     } catch (err) {
@@ -82,8 +82,8 @@ export default function GuideDashboard() {
     const id = rejecting;
     setBusy(true);
     try {
-      await rejectAssignment(id);
-      show('Rejected job. Traveller notified.', 'info');
+      await rejectAssignment(id, assignments.find((a) => a.id === id)?.kind);
+      show('Declined. The traveller was told and can choose another guide.', 'info');
       setRejecting(null);
       reload();
     } catch (err) {
@@ -167,19 +167,18 @@ export default function GuideDashboard() {
         <ApplyModal
           plan={applying}
           onClose={() => setApplying(null)}
-          onDone={(application) => {
+          onDone={() => {
             setApplying(null);
-            if (application.status === 'accepted') show('Application accepted — you can now be matched to travellers.', 'success');
-            else show(application.autoDecisionReason || 'Application was not accepted.', 'warning');
+            show('Application submitted — the regional NTA will review it. Travellers can pick you once it is accepted.', 'success');
             reload();
           }}
         />
       ) : null}
       {rejecting ? (
         <ConfirmDialog
-          title="Reject Job"
-          text="Are you sure you want to reject this job? The traveller will be notified."
-          confirmLabel="Reject Job"
+          title="Decline Job"
+          text="Are you sure you want to decline this job? The traveller will be told and can choose another guide."
+          confirmLabel="Decline Job"
           busy={busy}
           onConfirm={onReject}
           onClose={() => setRejecting(null)}
@@ -350,21 +349,22 @@ function JobsTab({ assignments, planById, busy, onConfirm, onReject, onDetails }
       <div id="gd-assignments-list">
         {rows.length === 0 ? <div className="gd-empty">No jobs found for this filter.</div> : null}
         {rows.map((job) => {
+          const isExperience = job.kind === 'experience';
           const p = planById.get(job.planId);
           const awaiting = job.status === 'pending_guide_confirm';
           return (
             <div className={`gd-assignment-card${awaiting ? ' gd-asgn-pending' : ''}`} key={job.id}>
               <div className="gd-asgn-top">
                 <div>
-                  <h3>{p?.title || job.planId}</h3>
-                  <p className="gd-asgn-dest">📍 {p?.destination || ''}</p>
+                  <h3>{isExperience ? `🎟 ${job.title}` : p?.title || job.planId}</h3>
+                  <p className="gd-asgn-dest">📍 {isExperience ? job.destination : p?.destination || ''}</p>
                 </div>
                 <StatusChip status={job.status} />
               </div>
               <div className="gd-asgn-meta">
-                <span>👤 Traveller: <code>{job.travellerId}</code></span>
-                <span>💰 {job.status === 'rejected_by_guide' ? 'Refunded' : 'Trip Amount'}: ₹{(job.status === 'rejected_by_guide' ? job.refundAmount : job.totalAmount) || 0}</span>
-                <span>📅 Travel Date: {shortDate(tripDate(job))}</span>
+                <span>👤 Traveller: {isExperience ? `${job.guestName} (${job.participants} guests)` : <code>{job.travellerId}</code>}</span>
+                <span>💰 {isExperience ? `Your guide fee: ₹${job.guideFee || 0}` : `Trip Amount: ₹${job.totalAmount || 0}`}</span>
+                <span>📅 {isExperience ? 'Session Date' : 'Travel Date'}: {shortDate(isExperience ? job.date : tripDate(job))}</span>
               </div>
               <div className="gd-asgn-actions">
                 {awaiting ? (
@@ -373,7 +373,7 @@ function JobsTab({ assignments, planById, busy, onConfirm, onReject, onDetails }
                     <button type="button" className="gd-btn gd-btn-danger gd-btn-sm" disabled={busy} onClick={() => onReject(job.id)}>✗ Not Available</button>
                   </>
                 ) : null}
-                {job.status === 'confirmed' ? (
+                {job.status === 'confirmed' && !isExperience ? (
                   <button type="button" className="gd-btn gd-btn-primary gd-btn-sm" onClick={() => onDetails(job)}>View Details</button>
                 ) : null}
               </div>

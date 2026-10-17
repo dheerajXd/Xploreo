@@ -166,6 +166,24 @@ export class ExperienceBookingsRepository {
     return booking ? { ...booking } : undefined;
   }
 
+  patch(id: string, data: Partial<ExperienceBooking>): ExperienceBooking | undefined {
+    const index = this.bookings.findIndex((b) => b.id === id);
+    if (index === -1) return undefined;
+    this.bookings[index] = { ...this.bookings[index], ...data };
+    return { ...this.bookings[index] };
+  }
+
+  clearGuide(id: string): ExperienceBooking | undefined {
+    const booking = this.bookings.find((b) => b.id === id);
+    if (!booking) return undefined;
+    delete booking.guideId;
+    delete booking.guideName;
+    delete booking.guideStatus;
+    delete booking.guidePricePerPerson;
+    delete booking.guideFee;
+    return { ...booking };
+  }
+
   setStatus(id: string, status: ExperienceBookingStatus): ExperienceBooking | undefined {
     const booking = this.bookings.find((b) => b.id === id);
     if (!booking) return undefined;
