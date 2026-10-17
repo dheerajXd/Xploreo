@@ -1,7 +1,8 @@
 // Port of front_end/pages/hotels/hotelprofile.html + js/modules/hotelprofile.js: block-by-block
 // edit with the original validation rules, now persisted through /hotels/partner/profile.
 import { useCallback, useState } from 'react';
-import { getPartnerProfile, updatePartnerProfile } from '@/services/hotels.api.js';
+import { Link } from 'react-router-dom';
+import { getPartnerProfile, listHotels, updatePartnerProfile } from '@/services/hotels.api.js';
 import HotelPage, { LoadState, PageHeader } from '@/components/hotel/HotelPage.jsx';
 import { useHotelData, useToast } from '@/components/hotel/hotelKit.jsx';
 
@@ -49,7 +50,10 @@ const BLOCKS = [
 
 export default function HotelProfile() {
   const [toast, notify] = useToast();
-  const load = useCallback(() => getPartnerProfile(), []);
+  const load = useCallback(async () => {
+    const [profile, hotels] = await Promise.all([getPartnerProfile(), listHotels().catch(() => [])]);
+    return { ...profile, hotels };
+  }, []);
   const { data, loading, error, reload } = useHotelData(load);
   const [saved, setSaved] = useState(null); // latest server copy after a save
   const profile = saved ?? data;
@@ -89,7 +93,8 @@ export default function HotelProfile() {
     setBusy(true);
     try {
       const body = Object.fromEntries(block.fields.filter((f) => !f.readOnly).map((f) => [f.name, String(draft[f.name] ?? '').trim()]));
-      setSaved(await updatePartnerProfile(body));
+      const updated = await updatePartnerProfile(body);
+      setSaved({ ...updated, hotels: profile.hotels });
       setEditing(null);
       notify('Profile saved');
     } catch (err) {
@@ -115,6 +120,22 @@ export default function HotelProfile() {
                   <p className="location-text"><span className="loc-pin" /> {profile.location || '—'}</p>
                 </div>
               </div>
+            </div>
+
+            <div className="hotel-content-card section-card">
+              <div className="section-header-flex">
+                <h3>My Properties ({profile.hotels?.length ?? 0})</h3>
+                <Link to="/hotel/properties" className="edit-block-btn">Manage</Link>
+              </div>
+              {profile.hotels?.length ? (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {profile.hotels.map((h) => (
+                    <li key={h.id}>{h.name} <span className="hotel-sub-text">— {h.location || h.city}</span></li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="hotel-sub-text">No properties yet.</p>
+              )}
             </div>
 
             {BLOCKS.map((block, index) => {

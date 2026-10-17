@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar/navbar.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { getHotel } from '../../services/hotels.api.js';
+import { getHotel, listRooms } from '../../services/hotels.api.js';
 import { getExperience } from '../../services/partners.api.js';
 import { getPlanById } from '../../services/plans.api.js';
 import { apiRequest } from '../../services/api.js';
@@ -81,6 +81,8 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
   const [selectedGuests, setSelectedGuests] = useState(initialGuests);
   const [selectedRooms, setSelectedRooms] = useState(initialRooms);
   const [selectedSlotId, setSelectedSlotId] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [bookError, setBookError] = useState('');
 
   // Fetch item data on mount or when id/type changes
@@ -139,6 +141,34 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
     };
   }, [id, effectiveType]);
 
+  // Room types the hotel partner added to this property (active ones only)
+  useEffect(() => {
+    if (effectiveType !== 'hotel' || !id) return undefined;
+    let cancelled = false;
+    listRooms(id)
+      .then((list) => {
+        if (cancelled) return;
+        const active = (list || []).filter((r) => r.status !== 'inactive');
+        setRooms(active);
+        setSelectedRoomId((prev) => (active.some((r) => r.id === prev) ? prev : (active.find((r) => r.availableRooms > 0) || active[0])?.id ?? null));
+      })
+      .catch(() => { if (!cancelled) setRooms([]); });
+    return () => { cancelled = true; };
+  }, [id, effectiveType]);
+
+  const selectedRoom = rooms.find((r) => r.id === selectedRoomId) || null;
+
+  // For a hotel with a chosen room type, the room count is capped at what is left of that type.
+  const roomOptions = useMemo(() => {
+    if (effectiveType !== 'hotel' || !selectedRoom) return null;
+    const max = Math.max(1, Number(selectedRoom.availableRooms) || 0);
+    return Array.from({ length: max }, (_, i) => i + 1);
+  }, [effectiveType, selectedRoom]);
+
+  useEffect(() => {
+    if (roomOptions && Number(selectedRooms) > roomOptions.length) setSelectedRooms(String(roomOptions.length));
+  }, [roomOptions, selectedRooms]);
+
   // Photo gallery calculation (safe, no invented URLs)
   const images = useMemo(() => {
     if (!item) return [];
@@ -181,7 +211,9 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
   const nights = calculateNights();
   const guestCountNum = Math.max(1, Number(selectedGuests) || 2);
   const roomCountNum = Math.max(1, Number(selectedRooms) || 1);
-  const startingRate = Number(item?.pricePerNight ?? item?.price ?? item?.pricePerPerson ?? 5000);
+  const startingRate = Number(
+    (effectiveType === 'hotel' ? selectedRoom?.pricePerNight : undefined) ?? item?.pricePerNight ?? item?.price ?? item?.pricePerPerson ?? 5000,
+  );
   const subtotal =
     effectiveType === 'hotel'
       ? startingRate * nights * roomCountNum
@@ -224,6 +256,16 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
         bookingCheckOut = hotel.checkOutDate || hotel.checkInDate;
       }
     }
+    if (effectiveType === 'hotel' && rooms.length > 0) {
+      if (!selectedRoom) {
+        setBookError('Please select a room type to book.');
+        return;
+      }
+      if (selectedRoom.availableRooms < roomCountNum) {
+        setBookError(`Only ${selectedRoom.availableRooms} "${selectedRoom.type}" room(s) left. Choose another room type or fewer rooms.`);
+        return;
+      }
+    }
     const dateError = validateBookingDates({
       type: effectiveType === 'hotel' ? 'hotel' : effectiveType,
       checkIn: bookingCheckIn,
@@ -246,6 +288,7 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
       itinerary: effectiveType === 'package' ? item.itinerary : undefined,
       guestCount: guestCountNum,
       roomCount: roomCountNum,
+      roomType: effectiveType === 'hotel' ? selectedRoom?.type : undefined,
       basePrice: startingRate,
       taxesAndFees: taxes,
       total: totalAmount,
@@ -566,6 +609,45 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                   </section>
                 )}
 
+                <section className="trav-card" data-testid="room-types-section">
+                  <h2 className="trav-card-title">Room Types</h2>
+                  {rooms.length === 0 ? (
+                    <p className="trav-card-desc">No room types are listed for this property yet.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {rooms.map((room) => {
+                        const soldOut = room.availableRooms <= 0;
+                        const chosen = room.id === selectedRoomId;
+                        return (
+                          <button
+                            key={room.id}
+                            type="button"
+                            disabled={soldOut}
+                            onClick={() => setSelectedRoomId(room.id)}
+                            aria-pressed={chosen}
+                            style={{
+                              display: 'flex', gap: '14px', alignItems: 'center', textAlign: 'left', padding: '12px',
+                              borderRadius: '12px', background: '#fff', cursor: soldOut ? 'not-allowed' : 'pointer',
+                              border: chosen ? '2px solid #0d9488' : '1px solid #e2e8f0', opacity: soldOut ? 0.6 : 1,
+                            }}
+                          >
+                            {room.images?.[0] ? (
+                              <img src={room.images[0]} alt="" style={{ width: 84, height: 64, objectFit: 'cover', borderRadius: 8 }} />
+                            ) : null}
+                            <span style={{ flex: 1 }}>
+                              <strong style={{ display: 'block', color: '#0f172a' }}>{room.type}</strong>
+                              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                Up to {room.maxOccupancy} guests · {soldOut ? 'Sold out' : `${room.availableRooms} left`}
+                              </span>
+                            </span>
+                            <strong style={{ color: '#0f172a' }}>{formatCurrency(room.pricePerNight)}<small style={{ color: '#64748b', fontWeight: 500 }}> / night</small></strong>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
                 <section className="trav-card">
                   <h2 className="trav-card-title">Property Policies</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '0.95rem' }}>
@@ -836,10 +918,16 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                       backgroundColor: '#ffffff',
                     }}
                   >
-                    <option value="1">1 Room</option>
-                    <option value="2">2 Rooms</option>
-                    <option value="3">3 Rooms</option>
-                    <option value="4+">4+ Rooms</option>
+                    {roomOptions ? (
+                      roomOptions.map((n) => <option key={n} value={String(n)}>{n} {n === 1 ? 'Room' : 'Rooms'}</option>)
+                    ) : (
+                      <>
+                        <option value="1">1 Room</option>
+                        <option value="2">2 Rooms</option>
+                        <option value="3">3 Rooms</option>
+                        <option value="4+">4+ Rooms</option>
+                      </>
+                    )}
                   </select>
                 </div>
               )}

@@ -106,6 +106,12 @@ const GUIDE_DROPDOWN_LINKS = [
 const HOTEL_NAV_LINKS = [
   { to: "/hotel/dashboard", label: "Dashboard", icon: GUIDE_NAV_LINKS[0].icon, icon2: GUIDE_NAV_LINKS[0].icon2 },
   {
+    to: "/hotel/properties",
+    label: "Properties",
+    icon: <path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14" />,
+    icon2: <path d="M3 21h18M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4" />,
+  },
+  {
     to: "/hotel/rooms",
     label: "Services",
     icon: <path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14" />,

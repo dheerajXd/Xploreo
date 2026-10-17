@@ -1,6 +1,7 @@
 // Port of front_end/pages/hotels/hotelRooms.html ("Services"): room types with availability,
 // add / edit / delete. All data comes from /hotels/:id/rooms on the backend.
 import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createRoomType, deleteRoomType, listHotels, listRooms, updateRoomType } from '@/services/hotels.api.js';
 import ImageUploader from '@/components/common/ImageUploader.jsx';
 import HotelPage, { EmptyState, HotelModal, LoadState, PageHeader } from '@/components/hotel/HotelPage.jsx';
@@ -10,7 +11,8 @@ const EMPTY_FORM = { hotelId: '', type: '', pricePerNight: '', maxOccupancy: '',
 
 export default function HotelRooms() {
   const [toast, notify] = useToast();
-  const [filter, setFilter] = useState('all');
+  const [searchParams] = useSearchParams();
+  const [filter, setFilter] = useState(searchParams.get('hotel') || 'all');
   const [form, setForm] = useState(null); // null = closed; { id? , ...fields }
   const [availability, setAvailability] = useState(null); // { room, value }
   const [removing, setRemoving] = useState(null);

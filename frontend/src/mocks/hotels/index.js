@@ -380,7 +380,7 @@ registerMock('POST', '/bookings', (ctx) => {
     roomType: body.roomType.trim(),
     notes: body.notes ?? '',
     rooms: body.rooms ?? 1,
-    totalAmount: body.totalAmount ?? (hotel.pricePerNight * nights * (body.rooms ?? 1)),
+    totalAmount: body.totalAmount ?? ((rt?.pricePerNight ?? hotel.pricePerNight) * nights * (body.rooms ?? 1)),
     guestNames: body.guestNames ?? [body.guestName.trim()],
     status: 'CONFIRMED',
     createdAt: nowIso(),

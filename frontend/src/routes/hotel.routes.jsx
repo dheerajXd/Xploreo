@@ -6,6 +6,7 @@ import { Navigate } from 'react-router-dom';
 
 import HotelLayout    from '@/components/hotel/HotelLayout.jsx';
 import HotelDashboard from '@/pages/Hotel/HotelDashboard.jsx';
+import HotelProperties from '@/pages/Hotel/HotelProperties.jsx';
 import HotelRooms     from '@/pages/Hotel/HotelRooms.jsx';
 import HotelBookings  from '@/pages/Hotel/HotelBookings.jsx';
 import HotelEarnings  from '@/pages/Hotel/HotelEarnings.jsx';
@@ -21,6 +22,7 @@ export const hotelPortal = {
   routes: [
     { index: true,       element: <Navigate to="dashboard" replace /> },
     { path: 'dashboard', element: <HotelDashboard /> },
+    { path: 'properties', element: <HotelProperties /> },
     { path: 'rooms',     element: <HotelRooms /> },
     { path: 'bookings',  element: <HotelBookings /> },
     { path: 'earnings',  element: <HotelEarnings /> },

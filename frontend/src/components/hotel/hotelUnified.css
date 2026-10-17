@@ -38,3 +38,19 @@ main.dashboard-wrapper.hotel-unified .hotel-content-card {
   main#main.dashboard-wrapper.hotel-unified { padding: 100px 1rem 3rem; }
   main.dashboard-wrapper.hotel-unified .hotel-page-header h1 { font-size: 1.75rem !important; }
 }
+
+/* Modal textarea: match the text inputs (full width, same border/padding). */
+.hotel-modal-body textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font: inherit;
+  color: #0f172a;
+  resize: vertical;
+  min-height: 90px;
+}
+.hotel-modal-body textarea:focus { outline: none; border-color: #14b8a6; }
