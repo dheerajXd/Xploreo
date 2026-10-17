@@ -31,4 +31,12 @@ export class Trip {
   progressPercentage!: number;
   lastUpdatedAt!: string;
   refundAmount?: number;
+  // Guide selection: the traveller picks an NTA-approved guide, who then confirms or declines.
+  guideName?: string;
+  guidePricePerPerson?: number;
+  guideRequestedAt?: string;
+  // Shown to the traveller (in red) when the requested guide could not confirm.
+  guideNote?: string;
+  // Guides who already declined this trip; never offered again for it.
+  declinedGuideIds?: string[];
 }

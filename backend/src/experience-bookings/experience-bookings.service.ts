@@ -10,6 +10,19 @@ import { CreateExperienceBookingDto } from './dto/create-experience-booking.dto'
 import { ExperienceBookingsRepository } from './experience-bookings.repository';
 import { ExperienceBookingStatus } from './entities/experience-booking.entity';
 import { Role } from '../auth/entities/auth.entity';
+import { withTaxes } from '../common/utils/pricing';
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+// Host: CONFIRMED -> CHECKED_IN -> END_REQUESTED -> traveller COMPLETED. A booking can only be
+// cancelled before check-in; finished and cancelled bookings are final.
+const ALLOWED_TRANSITIONS: Record<ExperienceBookingStatus, ExperienceBookingStatus[]> = {
+  [ExperienceBookingStatus.CONFIRMED]: [ExperienceBookingStatus.CHECKED_IN, ExperienceBookingStatus.CANCELLED],
+  [ExperienceBookingStatus.CHECKED_IN]: [ExperienceBookingStatus.END_REQUESTED, ExperienceBookingStatus.COMPLETED],
+  [ExperienceBookingStatus.END_REQUESTED]: [ExperienceBookingStatus.COMPLETED],
+  [ExperienceBookingStatus.COMPLETED]: [],
+  [ExperienceBookingStatus.CANCELLED]: [],
+};
 
 @Injectable()
 export class ExperienceBookingsService {
@@ -25,33 +38,46 @@ export class ExperienceBookingsService {
       );
     }
 
-    let experience = this.experiencesRepository.findById(dto.experienceId);
-    if (!experience) {
-      const allExp = this.experiencesRepository.findAll();
-      experience =
-        allExp.find(
-          (e) =>
-            e.id === dto.experienceId ||
-            e.destination.toLowerCase() === dto.experienceId.toLowerCase(),
-        ) || allExp[0];
-    }
+    const experience = this.experiencesRepository.findById(dto.experienceId);
     if (!experience) {
       throw new NotFoundException(`Experience ${dto.experienceId} not found`);
     }
     if (experience.availability !== ExperienceAvailability.AVAILABLE) {
       throw new BadRequestException('Experience is not available for booking');
     }
-    if (experience.booked + dto.participants > experience.capacity) {
-      throw new BadRequestException('Experience capacity exceeded');
+
+    const date = String(dto.date).slice(0, 10);
+    if (date < todayIso()) {
+      throw new BadRequestException('Experiences cannot be booked for a past date');
+    }
+    // Capacity is per session (per date): a booking needs a scheduled session with room left.
+    if (experience.slots?.length) {
+      const slot = experience.slots.find((s) => String(s.date).slice(0, 10) === date);
+      if (!slot) {
+        throw new BadRequestException(`No session of this experience is scheduled on ${date}`);
+      }
+    }
+    const left = experience.capacity - this.activeParticipantsOn(experience.id, date);
+    if (left <= 0) {
+      throw new BadRequestException(`This experience is fully booked on ${date}`);
+    }
+    if (dto.participants > left) {
+      throw new BadRequestException(`Only ${left} spot(s) left on ${date}`);
+    }
+    const duplicate = this.bookingsRepository
+      .findByTravellerId(travellerId)
+      .some(
+        (b) =>
+          b.experienceId === experience.id &&
+          String(b.date).slice(0, 10) === date &&
+          b.status !== ExperienceBookingStatus.CANCELLED,
+      );
+    if (duplicate) {
+      throw new BadRequestException('You already have a booking for this experience on that date');
     }
 
-    const updated = this.experiencesRepository.update(experience.id, {
-      booked: experience.booked + dto.participants,
-      availability:
-        experience.booked + dto.participants >= experience.capacity
-          ? ExperienceAvailability.NOT_AVAILABLE
-          : ExperienceAvailability.AVAILABLE,
-    });
+    // Price x guests, plus taxes & fees (the figure the traveller pays at checkout).
+    const pricing = withTaxes(experience.price * dto.participants);
 
     const booking = this.bookingsRepository.create({
       id: dto.id,
@@ -62,12 +88,16 @@ export class ExperienceBookingsService {
       phone: dto.phone,
       date: dto.date,
       participants: dto.participants,
-      totalAmount: experience.price * dto.participants,
+      subtotal: pricing.subtotal,
+      taxesAndFees: pricing.taxesAndFees,
+      totalAmount: pricing.total,
     });
+
+    this.syncExperience(experience.id);
 
     return {
       ...booking,
-      experience: updated ?? experience,
+      experience: this.experiencesRepository.findById(experience.id) ?? experience,
     };
   }
 
@@ -125,6 +155,12 @@ export class ExperienceBookingsService {
     if (!booking) throw new NotFoundException(`Booking ${id} not found`);
     const experience = this.experiencesRepository.findById(booking.experienceId);
 
+    if (status !== booking.status && !ALLOWED_TRANSITIONS[booking.status].includes(status)) {
+      throw new BadRequestException(
+        `A ${booking.status.toLowerCase().replace('_', ' ')} booking cannot become ${status.toLowerCase().replace('_', ' ')}`,
+      );
+    }
+
     if (status === ExperienceBookingStatus.COMPLETED) {
       if (actor?.role !== Role.TRAVELLER || booking.travellerId !== actor.userId) {
         throw new ForbiddenException('Only the traveller can complete the booking.');
@@ -140,7 +176,7 @@ export class ExperienceBookingsService {
     }
 
     const updated = this.bookingsRepository.setStatus(id, status);
-    if (experience) this.refreshExperienceCapacity(experience.id);
+    if (experience) this.syncExperience(experience.id);
 
     return {
       ...updated,
@@ -230,19 +266,29 @@ export class ExperienceBookingsService {
     };
   }
 
-  private refreshExperienceCapacity(experienceId: string) {
+  private activeParticipantsOn(experienceId: string, date: string): number {
+    return this.bookingsRepository
+      .findByExperienceIds([experienceId])
+      .filter((b) => b.status !== ExperienceBookingStatus.CANCELLED && String(b.date).slice(0, 10) === date)
+      .reduce((sum, b) => sum + b.participants, 0);
+  }
+
+  // Keeps each session's booked/available figures (and the headline "booked" for the next session)
+  // equal to what the bookings say. The partner's own availability switch is never touched here.
+  private syncExperience(experienceId: string) {
     const experience = this.experiencesRepository.findById(experienceId);
     if (!experience) return;
-    const active = this.bookingsRepository
-      .findByExperienceIds([experienceId])
-      .filter((b) => b.status !== ExperienceBookingStatus.CANCELLED);
-    const booked = active.reduce((sum, b) => sum + b.participants, 0);
+    const slots = (experience.slots ?? []).map((slot) => {
+      const booked = this.activeParticipantsOn(experienceId, String(slot.date).slice(0, 10));
+      return { ...slot, booked, available: booked < slot.capacity };
+    });
+    const today = todayIso();
+    const next = [...slots]
+      .filter((slot) => String(slot.date).slice(0, 10) >= today)
+      .sort((x, y) => String(x.date).localeCompare(String(y.date)))[0];
     this.experiencesRepository.update(experienceId, {
-      booked,
-      availability:
-        booked >= experience.capacity
-          ? ExperienceAvailability.NOT_AVAILABLE
-          : ExperienceAvailability.AVAILABLE,
+      slots,
+      booked: next ? next.booked : 0,
     });
   }
 }

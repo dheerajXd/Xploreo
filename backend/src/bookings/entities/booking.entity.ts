@@ -21,6 +21,8 @@ export class Booking {
   rooms!: number;
   guestNames!: string[];
   notes?: string;
+  subtotal?: number;
+  taxesAndFees?: number;
   totalAmount!: number;
   status!: BookingStatus;
   createdAt!: Date;

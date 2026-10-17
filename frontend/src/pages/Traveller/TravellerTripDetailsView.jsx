@@ -142,7 +142,7 @@ export default function TravellerTripDetailsView({
                         : 'Scheduled Sightseeing & Activities'}
                     </h4>
                     <p className="trav-timeline-detail">
-                      Assigned Guide: {guideId ? `Guide #${guideId}` : 'Unassigned / Self-guided'}
+                      Assigned Guide: {guideId && status !== 'rejected_by_guide' ? (trip.guideName || `Guide #${guideId}`) : 'Not assigned yet'}
                     </p>
                   </div>
                 );

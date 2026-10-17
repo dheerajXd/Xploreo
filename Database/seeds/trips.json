@@ -14,15 +14,15 @@
           "vehicleType": "SUV",
           "pickupLocation": "Kochi Airport",
           "dropoffLocation": "Alleppey Resort",
-          "pickupAt": "2026-05-12T09:00:00.000Z",
+          "pickupAt": "2026-12-10T09:00:00.000Z",
           "status": "confirmed"
         },
         "hotel": {
           "id": "ht-kerala-1",
           "hotelId": "hotel-hp001-2",
           "name": "Xploreo Backwater Resort",
-          "checkInDate": "2026-05-12",
-          "checkOutDate": "2026-05-17",
+          "checkInDate": "2026-12-10",
+          "checkOutDate": "2026-12-15",
           "roomType": "Backwater Villa",
           "status": "confirmed"
         }
@@ -40,8 +40,8 @@
               "experienceId": "exp-2",
               "title": "Alleppey Sunrise Kayaking & Canal Walk",
               "location": "Alleppey",
-              "startsAt": "2026-05-13T06:00:00.000Z",
-              "endsAt": "2026-05-13T09:00:00.000Z",
+              "startsAt": "2026-12-11T06:00:00.000Z",
+              "endsAt": "2026-12-11T09:00:00.000Z",
               "status": "confirmed"
             }
           ]
@@ -54,13 +54,13 @@
     "currentLocation": "Bangalore",
     "trackingStatus": "not_started",
     "progressPercentage": 0,
-    "lastUpdatedAt": "2026-05-10T12:00:00.000Z"
+    "lastUpdatedAt": "2026-10-01T12:00:00.000Z"
   },
   {
     "id": "trip-jaipur-1",
     "travellerId": "20002",
     "planId": "plan-2",
-    "guideId": "G001",
+    "guideId": "G003",
     "status": "started",
     "itinerary": {
       "day1": {
@@ -116,17 +116,37 @@
   {
     "id": "trip-goa-completed",
     "travellerId": "T001",
-    "planId": "plan-2",
+    "planId": "plan-kerala-backwaters-03",
     "guideId": "G001",
     "status": "completed",
     "itinerary": {
-      "day1": {},
+      "day1": {
+        "flight": null,
+        "transport": {
+          "id": "tr-goa-comp",
+          "provider": "Xploreo Cabs",
+          "vehicleType": "SUV",
+          "pickupLocation": "Kochi Airport",
+          "dropoffLocation": "Alleppey Resort",
+          "pickupAt": "2026-03-02T09:00:00.000Z",
+          "status": "completed"
+        },
+        "hotel": {
+          "id": "ht-goa-comp",
+          "hotelId": "hotel-hp001-2",
+          "name": "Xploreo Backwater Resort",
+          "checkInDate": "2026-03-02",
+          "checkOutDate": "2026-03-05",
+          "roomType": "Backwater Villa",
+          "status": "completed"
+        }
+      },
       "days": []
     },
     "totalAmount": 32000,
     "currentDay": 4,
     "currentStop": "Completed",
-    "currentLocation": "Goa",
+    "currentLocation": "Kerala",
     "trackingStatus": "completed",
     "progressPercentage": 100,
     "lastUpdatedAt": "2026-03-05T18:00:00.000Z"
@@ -134,7 +154,7 @@
   {
     "id": "trip-manali-refunded",
     "travellerId": "T001",
-    "planId": "plan-1",
+    "planId": "plan-kerala-backwaters-03",
     "guideId": "G001",
     "status": "refunded",
     "itinerary": {
@@ -144,7 +164,7 @@
     "totalAmount": 26000,
     "currentDay": 1,
     "currentStop": "Cancelled",
-    "currentLocation": "Manali",
+    "currentLocation": "Kerala",
     "trackingStatus": "not_started",
     "progressPercentage": 0,
     "lastUpdatedAt": "2026-02-15T10:00:00.000Z"
@@ -153,7 +173,7 @@
     "id": "trip-guide-request-1",
     "travellerId": "20004",
     "planId": "plan-1",
-    "status": "draft",
+    "status": "confirmed",
     "itinerary": {
       "day1": {
         "flight": null,
@@ -163,15 +183,15 @@
           "vehicleType": "Sedan",
           "pickupLocation": "Bangalore",
           "dropoffLocation": "Kerala",
-          "pickupAt": "2026-06-03T10:00:00.000Z",
+          "pickupAt": "2026-12-10T10:00:00.000Z",
           "status": "confirmed"
         },
         "hotel": {
           "id": "ht-trip-guide-request-1",
           "hotelId": "hotel-hp001-2",
           "name": "Xploreo Backwater Resort",
-          "checkInDate": "2026-06-03",
-          "checkOutDate": "2026-06-08",
+          "checkInDate": "2026-12-10",
+          "checkOutDate": "2026-12-15",
           "roomType": "Standard Room",
           "status": "confirmed"
         }
@@ -181,9 +201,46 @@
     "totalAmount": 47000,
     "currentDay": 1,
     "currentStop": "Not started",
-    "currentLocation": "Bangalore",
+    "currentLocation": "Kerala",
     "trackingStatus": "not_started",
     "progressPercentage": 0,
-    "lastUpdatedAt": "2026-05-10T12:00:00.000Z"
+    "lastUpdatedAt": "2026-10-01T12:00:00.000Z"
+  },
+  {
+    "id": "trip-kerala-open",
+    "travellerId": "T001",
+    "planId": "plan-1",
+    "status": "confirmed",
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "transport": {
+          "id": "tr-trip-kerala-open",
+          "provider": "Standard Transfer",
+          "vehicleType": "Sedan",
+          "pickupLocation": "Bangalore",
+          "dropoffLocation": "Kerala",
+          "pickupAt": "2027-01-10T10:00:00.000Z",
+          "status": "confirmed"
+        },
+        "hotel": {
+          "id": "ht-trip-kerala-open",
+          "hotelId": "hotel-hp001-2",
+          "name": "Xploreo Backwater Resort",
+          "checkInDate": "2027-01-10",
+          "checkOutDate": "2027-01-15",
+          "roomType": "Standard Room",
+          "status": "confirmed"
+        }
+      },
+      "days": []
+    },
+    "totalAmount": 47000,
+    "currentDay": 1,
+    "currentStop": "Not started",
+    "currentLocation": "Kerala",
+    "trackingStatus": "not_started",
+    "progressPercentage": 0,
+    "lastUpdatedAt": "2026-10-01T12:00:00.000Z"
   }
 ]

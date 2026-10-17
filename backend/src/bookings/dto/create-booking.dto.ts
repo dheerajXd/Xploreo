@@ -8,6 +8,7 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
+import { IsPhone } from '../../common/validators/is-phone';
 
 export class CreateBookingDto {
   @ApiPropertyOptional({ example: 'b-001' })
@@ -30,8 +31,7 @@ export class CreateBookingDto {
   email!: string;
 
   @ApiProperty({ example: '+91 9876543210' })
-  @IsString()
-  @MaxLength(40)
+  @IsPhone()
   phone!: string;
 
   @ApiProperty({ example: '2026-06-10' })

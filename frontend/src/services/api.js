@@ -58,7 +58,11 @@ export async function fetchData(url, options = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const payload = await response.json().catch(() => ({}));
+    const message = Array.isArray(payload.message)
+      ? payload.message[0]
+      : payload.message || `HTTP error! status: ${response.status}`;
+    throw new Error(message);
   }
 
   const json = await response.json();

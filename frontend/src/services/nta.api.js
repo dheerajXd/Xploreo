@@ -445,50 +445,9 @@ export async function getGuideApplications(filters = {}, session = {}) {
 
   try {
     const headers = buildNtaHeaders(session);
-    // GET /guide-requests on backend
-    const requestsRes = await fetchData(`${BASE_URL}/guide-requests`, { headers });
-    const requestsList = Array.isArray(requestsRes) ? requestsRes : [];
-
-    // Optionally join with /guide to enhance applicant profile
-    let guidesMap = {};
-    try {
-      const guidesRes = await fetchData(`${BASE_URL}/guide`, { headers });
-      if (Array.isArray(guidesRes)) {
-        guidesRes.forEach((g) => {
-          guidesMap[g.userId] = g;
-        });
-      }
-    } catch {
-      // Non-blocking if /guide is unavailable
-    }
-
-    let items = requestsList.map((req) => {
-      const guideProfile = req.guideId ? guidesMap[req.guideId] : null;
-      return {
-        id: req.id,
-        travellerId: req.travellerId,
-        travellerName: req.travellerName || req.travellerId,
-        tripId: req.tripId,
-        experienceId: req.experienceId,
-        experienceTitle: req.experienceId,
-        destination: req.destination || 'Unassigned',
-        packageTitle: req.itinerarySummary?.[0] || 'Travel Experience',
-        submittedAt: req.createdAt || new Date().toISOString(),
-        status: req.status || 'pending',
-        guideId: req.guideId || null,
-        guideName: guideProfile ? `${guideProfile.fname} ${guideProfile.lname}` : (req.guideId || 'Applicant Guide'),
-        guideEmail: guideProfile?.email || 'N/A',
-        guidePhone: guideProfile?.phone || 'N/A',
-        guideLocation: guideProfile?.location || req.destination || 'India',
-        yearsExp: guideProfile?.years_exp || 3,
-        rating: 4.8,
-        languages: guideProfile?.lang_spoken || ['English', 'Hindi'],
-        certifications: guideProfile?.certifications || ['Certified Guide'],
-        bio: guideProfile?.bio || 'Experienced local guide.',
-        decisionNotes: null,
-        decidedAt: null,
-      };
-    });
+    // GET /guide-applications — the server already scopes an NTA to plans in their own region.
+    const res = await fetchData(`${BASE_URL}/guide-applications`, { headers });
+    let items = (Array.isArray(res) ? res : []).map(mapLiveApplication);
 
     if (filters.status && filters.status !== 'all') {
       items = items.filter((item) => String(item.status).toLowerCase() === String(filters.status).toLowerCase());
@@ -498,30 +457,58 @@ export async function getGuideApplications(filters = {}, session = {}) {
       items = items.filter((item) => String(item.destination).toLowerCase() === String(filters.destination).toLowerCase());
     }
 
+    if (filters.packageId && filters.packageId !== 'all') {
+      items = items.filter((item) => item.packageId === filters.packageId);
+    }
+
     if (filters.search) {
       const q = String(filters.search).toLowerCase().trim();
       items = items.filter((item) =>
         (item.guideName && item.guideName.toLowerCase().includes(q)) ||
-        (item.experienceTitle && item.experienceTitle.toLowerCase().includes(q)) ||
+        (item.packageTitle && item.packageTitle.toLowerCase().includes(q)) ||
         (item.guideLocation && item.guideLocation.toLowerCase().includes(q))
       );
     }
 
     return items;
   } catch (err) {
-    const status = parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
+    const status = err.status || parseInt(err.message?.match(/status:\s*(\d+)/)?.[1], 10) || 500;
     throw new ApiError(err.message || 'Failed to load guide applications.', status);
   }
 }
 
+/** Maps a backend GuideApplication (+ guide/plan details) to the NTA table/modal shape. */
+function mapLiveApplication(app) {
+  const guide = app.guide || {};
+  const plan = app.plan || {};
+  return {
+    id: app.id,
+    guideId: app.guideId,
+    packageId: app.planId,
+    packageTitle: plan.title || app.planId,
+    experienceTitle: plan.title || app.planId,
+    destination: plan.destination || 'Unassigned',
+    pricePerPerson: app.guidePricePerPerson,
+    submittedAt: app.createdAt,
+    status: app.status || 'pending',
+    guideName: guide.name || app.guideId,
+    guideEmail: guide.email || 'N/A',
+    guidePhone: guide.phone != null ? String(guide.phone) : 'N/A',
+    guideLocation: guide.location || '',
+    yearsExp: guide.yearsExp,
+    rating: guide.reviewCount ? guide.rating : null,
+    reviewCount: guide.reviewCount || 0,
+    languages: guide.languages || [],
+    certifications: guide.certifications || [],
+    bio: guide.bio || '',
+    decisionNotes: app.autoDecisionReason || null,
+    decidedAt: app.decidedAt || null,
+  };
+}
+
 /**
  * Updates a guide application's status (Accept or Reject).
- * In live mode, calls PATCH /guide-requests/:id.
- * 
- * IMPORTANT LIMITATION:
- * The live backend GuideRequest entity only persists { status: 'accepted' | 'rejected', guideId }.
- * The 'decisionNotes' parameter is stored in-memory on the client and is NOT persisted
- * to the backend database.
+ * In live mode, calls PATCH /guide-applications/:id/decision.
  * 
  * @param {string} applicationId - Guide request ID
  * @param {Object} payload - { status: 'accepted'|'rejected', reason: string, guideId?: string }
@@ -584,26 +571,23 @@ export async function updateGuideApplicationStatus(applicationId, payload, sessi
 
   try {
     const headers = buildNtaHeaders(session);
-    const body = {
-      status,
-      ...(guideId ? { guideId } : {}),
-    };
-
-    const res = await fetchData(`${BASE_URL}/guide-requests/${applicationId}`, {
+    // PATCH /guide-applications/:id/decision — persists the reason. An accepted application can
+    // later be rejected (the server returns any unconfirmed traveller requests for that guide).
+    const res = await fetchData(`${BASE_URL}/guide-applications/${applicationId}/decision`, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify({ status, reason }),
     });
 
     return {
       success: true,
-      application: res,
+      application: mapLiveApplication(res),
       isMock: false,
-      persistedNotes: false, // Documented limitation: backend does not persist rejection notes
+      persistedNotes: true,
     };
   } catch (err) {
     throw new ApiError(
-      err.message || `Failed to update guide request ${applicationId} on backend.`,
+      err.message || `Failed to update guide application ${applicationId} on backend.`,
       err.status || 500,
       err
     );

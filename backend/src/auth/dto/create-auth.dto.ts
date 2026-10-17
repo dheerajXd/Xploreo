@@ -9,6 +9,8 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../entities/auth.entity';
 
+import { IsPhone } from '../../common/validators/is-phone';
+
 export class RegisterDto {
   @ApiProperty({ example: 'john_doe' })
   @IsString()
@@ -32,8 +34,7 @@ export class RegisterDto {
   email!: string;
 
   @ApiProperty({ example: '9123456780' })
-  @IsString()
-  @IsNotEmpty()
+  @IsPhone()
   phone!: string;
 
   @ApiProperty({ enum: Role, example: Role.TRAVELLER })

@@ -643,7 +643,7 @@ export default function GuidesPage({
                           style={{ padding: '5px 12px', fontSize: 12 }}
                           onClick={() => handleOpenReview(item)}
                         >
-                          View Details
+                          {item.status === 'accepted' ? 'Manage' : 'View Details'}
                         </button>
                       )}
                     </td>
@@ -663,7 +663,7 @@ export default function GuidesPage({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <h3 className="nta-modal-title" style={{ margin: 0 }}>
-                    {selectedApp.status === 'pending' ? 'Review Guide Application' : 'Guide Application Details'}
+                    {selectedApp.status === 'pending' ? 'Review Guide Application' : selectedApp.status === 'accepted' ? 'Manage Approved Guide' : 'Guide Application Details'}
                   </h3>
                   <SABadge status={selectedApp.status} />
                 </div>
@@ -690,7 +690,7 @@ export default function GuidesPage({
                 </div>
               )}
 
-              {/* Informational Limitation Banner */}
+              {/* Workflow note */}
               <div
                 style={{
                   padding: '10px 12px',
@@ -702,7 +702,9 @@ export default function GuidesPage({
                   lineHeight: 1.4,
                 }}
               >
-                ℹ️ <strong>Mock Sandbox Review:</strong> Status changes and decision reasons update this isolated preview session in memory. In live mode, backend updates status but does not persist rejection notes.
+                ℹ️ Accepted guides become selectable by travellers booking this package. You can withdraw an
+                approval later; the guide's unconfirmed traveller requests are returned to the travellers,
+                and a guide with confirmed trips on this package cannot be withdrawn until those are resolved.
               </div>
 
               {/* Guide Profile Card */}
@@ -728,10 +730,12 @@ export default function GuidesPage({
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#d97706' }}>
-                      ★ {Number(selectedApp.rating || 4.8).toFixed(1)} / 5.0
+                      {selectedApp.rating
+                        ? `★ ${Number(selectedApp.rating).toFixed(1)} / 5.0 (${selectedApp.reviewCount} reviews)`
+                        : 'No reviews yet'}
                     </div>
                     <div style={{ fontSize: 11, color: '#64748b' }}>
-                      {selectedApp.yearsExp || 3}+ years guiding experience
+                      {selectedApp.yearsExp ? `${selectedApp.yearsExp}+ years guiding experience` : 'Experience not listed'}
                     </div>
                   </div>
                 </div>
@@ -853,10 +857,10 @@ export default function GuidesPage({
               )}
 
               {/* Rejection Reason Form (when rejecting) */}
-              {isRejecting && selectedApp.status === 'pending' && (
+              {isRejecting && (selectedApp.status === 'pending' || selectedApp.status === 'accepted') && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label htmlFor="rejection-reason" style={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>
-                    Rejection Reason <span style={{ color: '#ef4444' }}>*</span>
+                    {selectedApp.status === 'accepted' ? 'Reason for withdrawing approval' : 'Rejection Reason'} <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <textarea
                     id="rejection-reason"
@@ -921,7 +925,19 @@ export default function GuidesPage({
                 </>
               )}
 
-              {selectedApp.status === 'pending' && isRejecting && (
+              {selectedApp.status === 'accepted' && !isRejecting && (
+                <button
+                  type="button"
+                  className="sa-btn-danger"
+                  style={{ background: '#ef4444', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                  onClick={() => setIsRejecting(true)}
+                  disabled={isSubmittingDecision}
+                >
+                  Withdraw Approval
+                </button>
+              )}
+
+              {(selectedApp.status === 'pending' || selectedApp.status === 'accepted') && isRejecting && (
                 <>
                   <button
                     type="button"
@@ -940,7 +956,7 @@ export default function GuidesPage({
                     onClick={() => handleExecuteDecision('rejected')}
                     disabled={isSubmittingDecision}
                   >
-                    {isSubmittingDecision ? 'Rejecting...' : 'Confirm Rejection'}
+                    {isSubmittingDecision ? 'Saving...' : selectedApp.status === 'accepted' ? 'Confirm Withdrawal' : 'Confirm Rejection'}
                   </button>
                 </>
               )}

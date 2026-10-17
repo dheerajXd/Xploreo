@@ -53,8 +53,8 @@ export function isValidEmail(email) {
 export function isValidPhone(phone) {
   if (!phone || typeof phone !== 'string') return false;
   const cleaned = phone.replace(/[\s\-()]/g, '');
-  // Accepts 10 digits or 10-14 digits with optional leading '+'
-  const phoneRegex = /^(\+?\d{1,4})?\d{10}$/;
+  // Indian mobile: 10 digits starting 6-9, optionally prefixed with +91 / 91 / 0 (same rule as the API).
+  const phoneRegex = /^(?:\+?91|0)?[6-9]\d{9}$/;
   return phoneRegex.test(cleaned);
 }
 
@@ -91,7 +91,7 @@ export function validateTravellerForm(formData = {}) {
   if (!formData.phone || !formData.phone.trim()) {
     errors.phone = 'Phone number is required';
   } else if (!isValidPhone(formData.phone)) {
-    errors.phone = 'Please enter a valid 10-digit phone number';
+    errors.phone = 'Enter a valid 10-digit mobile number (starts with 6-9)';
   }
 
   return {
@@ -141,4 +141,22 @@ export function calculateDisplayPricing(pricing = {}) {
     discount,
     total,
   };
+}
+
+/**
+ * Validate the dates of a booking before checkout.
+ * Hotels need check-out after check-in; every type needs a start date that is not in the past.
+ * @returns {string} error message, or '' when the dates are fine
+ */
+export function validateBookingDates({ type, checkIn, checkOut, today = new Date().toISOString().slice(0, 10) } = {}) {
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  if (!checkIn || !iso.test(checkIn)) return 'Please choose a valid start date.';
+  if (checkIn < today) return 'The start date cannot be in the past.';
+  if (type === 'hotel') {
+    if (!checkOut || !iso.test(checkOut)) return 'Please choose a check-out date.';
+    if (checkOut <= checkIn) return 'Check-out must be after check-in.';
+    const nights = (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000;
+    if (nights > 30) return 'A single stay cannot exceed 30 nights.';
+  }
+  return '';
 }

@@ -338,5 +338,146 @@
       "Houseboat Ride"
     ],
     "images": []
+  },
+  {
+    "id": "room-hotel-goa-1-std",
+    "hotelId": "hotel-goa-1",
+    "type": "Standard Room",
+    "description": "Comfortable room with all essentials.",
+    "pricePerNight": 8500,
+    "maxOccupancy": 2,
+    "totalRooms": 14,
+    "availableRooms": 14,
+    "amenities": [
+      "WiFi",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-goa-1-dlx",
+    "hotelId": "hotel-goa-1",
+    "type": "Deluxe Room",
+    "description": "Spacious room with premium bedding and a view.",
+    "pricePerNight": 10625,
+    "maxOccupancy": 3,
+    "totalRooms": 8,
+    "availableRooms": 8,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-goa-1-ste",
+    "hotelId": "hotel-goa-1",
+    "type": "Family Suite",
+    "description": "Two-room suite for families.",
+    "pricePerNight": 16150,
+    "maxOccupancy": 5,
+    "totalRooms": 2,
+    "availableRooms": 2,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Living Area"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-goa-2-std",
+    "hotelId": "hotel-goa-2",
+    "type": "Standard Room",
+    "description": "Comfortable room with all essentials.",
+    "pricePerNight": 5200,
+    "maxOccupancy": 2,
+    "totalRooms": 14,
+    "availableRooms": 14,
+    "amenities": [
+      "WiFi",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-goa-2-dlx",
+    "hotelId": "hotel-goa-2",
+    "type": "Deluxe Room",
+    "description": "Spacious room with premium bedding and a view.",
+    "pricePerNight": 6500,
+    "maxOccupancy": 3,
+    "totalRooms": 8,
+    "availableRooms": 8,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-goa-2-ste",
+    "hotelId": "hotel-goa-2",
+    "type": "Family Suite",
+    "description": "Two-room suite for families.",
+    "pricePerNight": 9880,
+    "maxOccupancy": 5,
+    "totalRooms": 2,
+    "availableRooms": 2,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Living Area"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-delhi-1-std",
+    "hotelId": "hotel-delhi-1",
+    "type": "Standard Room",
+    "description": "Comfortable room with all essentials.",
+    "pricePerNight": 9500,
+    "maxOccupancy": 2,
+    "totalRooms": 14,
+    "availableRooms": 14,
+    "amenities": [
+      "WiFi",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-delhi-1-dlx",
+    "hotelId": "hotel-delhi-1",
+    "type": "Deluxe Room",
+    "description": "Spacious room with premium bedding and a view.",
+    "pricePerNight": 11875,
+    "maxOccupancy": 3,
+    "totalRooms": 8,
+    "availableRooms": 8,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Air Conditioning"
+    ],
+    "images": []
+  },
+  {
+    "id": "room-hotel-delhi-1-ste",
+    "hotelId": "hotel-delhi-1",
+    "type": "Family Suite",
+    "description": "Two-room suite for families.",
+    "pricePerNight": 18050,
+    "maxOccupancy": 5,
+    "totalRooms": 2,
+    "availableRooms": 2,
+    "amenities": [
+      "WiFi",
+      "Breakfast",
+      "Living Area"
+    ],
+    "images": []
   }
 ]
