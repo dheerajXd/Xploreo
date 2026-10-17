@@ -50,6 +50,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    if (user.status === 'inactive') {
+      throw new UnauthorizedException('Account has been restricted. Please contact support.');
+    }
+
     const { password: _pw, ...safe } = user;
     const region = this.authRepository.findRegionForUser(user.userId);
     const token = this.generateToken({ ...safe, region });
@@ -102,6 +106,9 @@ export class AuthService {
       }
       if (dto.role !== undefined) {
         throw new ForbiddenException('You cannot change your account type.');
+      }
+      if (dto.status !== undefined) {
+        throw new ForbiddenException('Only administrators can change account status.');
       }
     }
     const updated = await this.authRepository.update(id, dto);
