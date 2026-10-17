@@ -7,7 +7,9 @@
     "name": "Anjali Sharma",
     "email": "anjali@xploreo.com",
     "phone": "9123456780",
-    "status": "active"
+    "status": "active",
+    "region": "Delhi",
+    "location": "New Delhi"
   },
   {
     "userId": "SA001",

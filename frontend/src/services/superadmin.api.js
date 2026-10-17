@@ -81,10 +81,15 @@ export function resetSuperAdminMockStore() {
 function buildAdminHeaders(session = {}) {
   const userId = session.userId || session.userid || 'SA001';
   const role = session.role || 'superadmin';
-  return {
+  const headers = {
     'x-user-role': role,
     'x-user-id': String(userId),
   };
+  const token = session.token || session.user?.token;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 // ============================================================================
@@ -309,20 +314,30 @@ export async function getUsersAndPartners(roleFilter = '', session = {}) {
     const headers = buildAdminHeaders(session);
     const users = await fetchData(`${BASE_URL}/auth/users`, { headers });
     if (Array.isArray(users)) {
-      let mapped = users.map((u) => ({
-        userId: u.userId || u.id,
-        username: u.username,
-        name: u.name,
-        email: u.email,
-        phone: u.phone,
-        role: u.role,
-        status: u.status || 'active',
-        location: u.role === 'guide' ? 'Jaipur' : 'India',
-        rating: 4.8,
-        joinedAt: '2025-06-01',
-        totalTripsOrBookings: 12,
-        verified: u.status === 'active',
-      }));
+      let mapped = users.map((u) => {
+        const resolvedLocation =
+          (typeof u.location === 'string' && u.location.trim()) ||
+          (typeof u.region === 'string' && u.region.trim()) ||
+          (typeof u.city === 'string' && u.city.trim()) ||
+          (typeof u.businessLocation === 'string' && u.businessLocation.trim()) ||
+          (u.role === 'guide' ? 'Regional Guide' : 'India');
+
+        return {
+          userId: u.userId || u.id,
+          username: u.username,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          role: u.role,
+          status: u.status || 'active',
+          location: resolvedLocation,
+          region: u.region || resolvedLocation,
+          rating: u.rating ?? 4.8,
+          joinedAt: u.joinedAt || '2025-06-01',
+          totalTripsOrBookings: u.totalTripsOrBookings ?? 12,
+          verified: u.verified !== undefined ? u.verified : (u.status === 'active'),
+        };
+      });
 
       if (roleFilter && roleFilter !== 'all') {
         mapped = mapped.filter((u) => u.role === roleFilter);
@@ -405,6 +420,7 @@ export async function updateUserProfile(userId, data = {}, session = {}) {
         name: data.name,
         email: data.email,
         phone: data.phone,
+        location: data.location,
       }),
     });
     return updated;

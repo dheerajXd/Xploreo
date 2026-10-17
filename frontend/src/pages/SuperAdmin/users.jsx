@@ -174,7 +174,7 @@ export default function SuperAdminUsersPage({ user = null }) {
       const matchEmail = String(u.email || '').toLowerCase().includes(q);
       const matchPhone = String(u.phone || '').toLowerCase().includes(q);
       const matchUsername = String(u.username || u.userId || '').toLowerCase().includes(q);
-      const matchLocation = String(u.location || '').toLowerCase().includes(q);
+      const matchLocation = String(u.location || u.region || u.city || '').toLowerCase().includes(q);
 
       return matchName || matchEmail || matchPhone || matchUsername || matchLocation;
     });
@@ -352,7 +352,7 @@ export default function SuperAdminUsersPage({ user = null }) {
     {
       key: 'location',
       label: 'Location',
-      render: (val) => val || 'Not specified',
+      render: (val, row) => val || row?.location || row?.region || row?.city || 'Not specified',
     },
     {
       key: 'totalTripsOrBookings',
