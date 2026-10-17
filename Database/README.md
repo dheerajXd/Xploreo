@@ -60,17 +60,35 @@ Database/
 
 ## 3. Canonical Identity Conventions & Role Directory
 
-All platform roles have one canonical operational account established across backend and frontend:
+All platform roles have canonical operational accounts established across backend and frontend, with complete 5-region coverage across Jaipur, Goa, Delhi, Mumbai, and Kerala:
 
-| Role | Canonical User ID | Username / Email | Default Password | Primary Name / Entity |
-| :--- | :--- | :--- | :--- | :--- |
-| **Traveller** | `T001` | `anjali@xploreo.com` | `TRA@123` | Anjali Sharma (legacy: `20001`) |
-| **Guide** | `G001` | `sreekar@gmail.com` | `GUD@123` | Sreekar Sharma |
-| **Hotel Partner** | `HP001` | `hotel.partner@xploreo.com` | `HP@123` | The Heritage Haveli & Spa / Heritage Stays Pvt Ltd |
-| **Experience Partner** | `XP001` | `experience.partner@xploreo.com` | `XP@123` | Pink City Days / Jaipur Royal Walking Tours |
-| **Non-Tech Admin** | `NTA001` | `nontech.admin@xploreo.com` | `NTA@123` | Neha Mehra (Jaipur / Regional Ops) |
-| **Tech Admin** | `TA001` | `dev@xploreo.com` | `TA@123` | Dev Mehta (legacy: `seed-tech-1`) |
-| **Super Admin** | `SA001` | `raj@xploreo.com` | `SA@123` | Raj Sharma (legacy: `seed-superadmin-1`) |
+| Role | Canonical User ID | Username / Email | Default Password | Primary Name / Entity | Region |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Traveller** | `T001` | `anjali@xploreo.com` | `TRA@123` | Anjali Sharma (legacy: `20001`) | Global |
+| **Super Admin** | `SA001` | `raj@xploreo.com` | `SA@123` | Raj Sharma (legacy: `seed-superadmin-1`) | Global |
+| **Tech Admin** | `TA001` | `dev@xploreo.com` | `TA@123` | Dev Mehta (legacy: `seed-tech-1`) | Global |
+| **Non-Tech Admin (Jaipur)** | `NTA001` | `nontech.admin@xploreo.com` | `NTA@123` | Neha Mehra | Jaipur |
+| **Non-Tech Admin (Goa)** | `NTA002` | `nta.goa@xploreo.com` | `NTA@123` | Rohan D Souza | Goa |
+| **Non-Tech Admin (Delhi)** | `NTA003` | `nta.delhi@xploreo.com` | `NTA@123` | Sunita Verma | Delhi |
+| **Non-Tech Admin (Mumbai)** | `NTA004` | `nta.mumbai@xploreo.com` | `NTA@123` | Aakash Kulkarni | Mumbai |
+| **Non-Tech Admin (Kerala)** | `NTA005` | `nta.kerala@xploreo.com` | `NTA@123` | Ananya Nair | Kerala |
+| **Hotel Partner (Jaipur)** | `HP001` | `hotel.partner@xploreo.com` | `HP@123` | Heritage Stays Pvt Ltd | Jaipur |
+| **Hotel Partner (Goa)** | `HP002` | `hotel.goa@xploreo.com` | `HP@123` | Goa Coastal Resorts & Stays Ltd | Goa |
+| **Hotel Partner (Delhi)** | `HP003` | `hotel.delhi@xploreo.com` | `HP@123` | Capital Heritage Stays Pvt Ltd | Delhi |
+| **Hotel Partner (Mumbai)** | `HP004` | `hotel.mumbai@xploreo.com` | `HP@123` | Marine Bay Hotels & Suites | Mumbai |
+| **Hotel Partner (Kerala)** | `HP005` | `hotel.kerala@xploreo.com` | `HP@123` | Malabar Coast Retreats Pvt Ltd | Kerala |
+| **Exp Partner (Jaipur)** | `XP001` | `experience.partner@xploreo.com`| `XP@123` | Pink City Days & Heritage Trails | Jaipur |
+| **Exp Partner (Goa)** | `XP002` | `exp.goa@xploreo.com` | `XP@123` | Goa Coastal Adventures Ltd | Goa |
+| **Exp Partner (Delhi)** | `XP003` | `exp.delhi@xploreo.com` | `XP@123` | Dilli Walking Tours & Trails | Delhi |
+| **Exp Partner (Mumbai)** | `XP004` | `exp.mumbai@xploreo.com` | `XP@123` | Bombay Heritage Expeditions | Mumbai |
+| **Exp Partner (Kerala)** | `XP005` | `exp.kerala@xploreo.com` | `XP@123` | Kerala Backwaters Kayaking & Tours | Kerala |
+| **Lead Guide (Mumbai)** | `G001` | `sreekar@gmail.com` | `GUD@123` | Sreekar Sharma | Mumbai |
+| **Lead Guide (Kerala)** | `G002` | `arjun.nair@example.com` | `GUD@123` | Arjun Nair | Kerala |
+| **Lead Guide (Jaipur)** | `G003` | `priya.rathore@example.com` | `GUD@123` | Priya Rathore | Jaipur |
+| **Lead Guide (Goa)** | `G006` | `carlos.fernandes@example.com` | `GUD@123` | Carlos Fernandes | Goa |
+| **Lead Guide (Delhi)** | `G009` | `amitav.sengupta@example.com` | `GUD@123` | Amitav Sengupta | Delhi |
+
+*(Total of 15 regional guides: G001, G012, G013 for Mumbai; G002, G014, G015 for Kerala; G003, G004, G005 for Jaipur; G006, G007, G008 for Goa; G009, G010, G011 for Delhi)*
 
 ### Identity Resolution & Alias Handling:
 - **Traveller:** Canonical `T001` is used across active live flows. Legacy numeric identifier `20001` is maintained as a `legacyId` property on `T001` in `travellers.json` and documented in `Database/fixtures/legacy/legacy_identities.json`.
