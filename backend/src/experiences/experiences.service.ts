@@ -18,13 +18,17 @@ export class ExperiencesService {
       );
     }
 
+    const slots = dto.slots ?? [];
     return this.expRepository.create(partnerId, {
       ...dto,
       availability: dto.availability ?? undefined,
+      // Capacity is never set directly — it's the sum of each slot's own capacity. With no slots
+      // yet, there's nothing to book, so it starts at 0 until slots are added via update().
+      capacity: slots.reduce((sum, s) => sum + s.capacity, 0),
       booked: dto.booked ?? 0,
       image: dto.image ?? '',
       nextSlot: dto.nextSlot ?? '',
-      slots: dto.slots ?? [],
+      slots,
     });
   }
 
@@ -64,7 +68,12 @@ export class ExperiencesService {
 
   async update(id: string, dto: UpdateExperienceDto, actor?: { userId?: string; role?: string }) {
     await this.ownExperience(id, actor);
-    const updated = await this.expRepository.update(id, dto);
+    // Capacity stays a live derived total of slot capacities — recomputed any time slots change,
+    // never accepted directly from the request body.
+    const patch = dto.slots
+      ? { ...dto, capacity: dto.slots.reduce((sum, s) => sum + s.capacity, 0) }
+      : dto;
+    const updated = await this.expRepository.update(id, patch);
     if (!updated) throw new NotFoundException(`Experience ${id} not found`);
     return updated;
   }

@@ -77,18 +77,17 @@ export default function TravellerCheckoutPage({
   const hasPersistedRef = useRef(false);
   const persistenceIdRef = useRef(null);
 
-  // Guest count limits: min 1 (backend validation), max based on capacity/inventory (fallback 10)
+  // Guest count limits: min 1 (backend validation), max is whatever capacity the item actually
+  // has — no artificial ceiling. Only when nothing reports a real capacity do we fall back to a
+  // generous default so the selector still has a reasonable range to offer.
   const minGuests = 1;
-  const maxGuests = Math.min(
-    10,
-    Math.max(
-      1,
-      Number(
-        selectedItem.capacity ||
-        selectedItem.maxGuests ||
-        selectedItem.availableSeats ||
-        10
-      )
+  const maxGuests = Math.max(
+    1,
+    Number(
+      selectedItem.capacity ||
+      selectedItem.maxGuests ||
+      selectedItem.availableSeats ||
+      20
     )
   );
 

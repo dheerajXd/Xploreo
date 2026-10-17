@@ -16,7 +16,8 @@ export class GuideApplicationsRepository {
 
   create(data: {
     guideId: string;
-    planId: string;
+    planId?: string;
+    experienceId?: string;
     guidePricePerPerson: number;
     status: GuideApplicationStatus;
     autoDecisionReason?: string | null;
@@ -68,6 +69,34 @@ export class GuideApplicationsRepository {
       (a) =>
         a.guideId === guideId &&
         a.planId === planId &&
+        a.status !== GuideApplicationStatus.REJECTED,
+    );
+  }
+
+  // Experience-targeted applications — same shape as the plan ones above, exact-experience match
+  // only (never region-wide), so a guide only becomes selectable for an experience they actually
+  // applied to and were approved for.
+  findAcceptedByExperience(experienceId: string): GuideApplication[] {
+    return this.applications
+      .filter((a) => a.experienceId === experienceId && a.status === GuideApplicationStatus.ACCEPTED)
+      .map((a) => ({ ...a }));
+  }
+
+  findAcceptedForExperience(guideId: string, experienceId: string): GuideApplication | undefined {
+    const found = this.applications.find(
+      (a) =>
+        a.guideId === guideId &&
+        a.experienceId === experienceId &&
+        a.status === GuideApplicationStatus.ACCEPTED,
+    );
+    return found ? { ...found } : undefined;
+  }
+
+  existsActiveForExperience(guideId: string, experienceId: string): boolean {
+    return this.applications.some(
+      (a) =>
+        a.guideId === guideId &&
+        a.experienceId === experienceId &&
         a.status !== GuideApplicationStatus.REJECTED,
     );
   }

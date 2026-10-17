@@ -159,6 +159,7 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
   const selectedRoom = rooms.find((r) => r.id === selectedRoomId) || null;
 
   // For a hotel with a chosen room type, the room count is capped at what is left of that type.
+  // No hardcoded ceiling — the list always goes exactly as far as real inventory allows.
   const roomOptions = useMemo(() => {
     if (effectiveType !== 'hotel' || !selectedRoom) return null;
     const max = Math.max(1, Number(selectedRoom.availableRooms) || 0);
@@ -168,6 +169,22 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
   useEffect(() => {
     if (roomOptions && Number(selectedRooms) > roomOptions.length) setSelectedRooms(String(roomOptions.length));
   }, [roomOptions, selectedRooms]);
+
+  // Guest count is capped at real spots left (the chosen session's own slot capacity for an
+  // experience, or the item's own capacity otherwise) — never a fixed "5+" sentinel that silently
+  // misreports how many guests are actually being booked.
+  const guestOptions = useMemo(() => {
+    let max = Number(item?.capacity) || 10;
+    if (effectiveType === 'experience' && Array.isArray(item?.slots)) {
+      const slot = item.slots.find((s) => s.id === selectedSlotId);
+      if (slot) max = Math.max(1, (Number(slot.capacity) || 0) - (Number(slot.booked) || 0));
+    }
+    return Array.from({ length: Math.max(1, max) }, (_, i) => i + 1);
+  }, [item, effectiveType, selectedSlotId]);
+
+  useEffect(() => {
+    if (Number(selectedGuests) > guestOptions.length) setSelectedGuests(String(guestOptions.length));
+  }, [guestOptions, selectedGuests]);
 
   // Photo gallery calculation (safe, no invented URLs)
   const images = useMemo(() => {
@@ -890,11 +907,9 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                     backgroundColor: '#ffffff',
                   }}
                 >
-                  <option value="1">1 Guest</option>
-                  <option value="2">2 Guests</option>
-                  <option value="3">3 Guests</option>
-                  <option value="4">4 Guests</option>
-                  <option value="5+">5+ Guests</option>
+                  {guestOptions.map((n) => (
+                    <option key={n} value={String(n)}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
+                  ))}
                 </select>
               </div>
 
@@ -918,16 +933,9 @@ export default function TravellerItemDetailPage({ user: propUser, defaultType })
                       backgroundColor: '#ffffff',
                     }}
                   >
-                    {roomOptions ? (
-                      roomOptions.map((n) => <option key={n} value={String(n)}>{n} {n === 1 ? 'Room' : 'Rooms'}</option>)
-                    ) : (
-                      <>
-                        <option value="1">1 Room</option>
-                        <option value="2">2 Rooms</option>
-                        <option value="3">3 Rooms</option>
-                        <option value="4+">4+ Rooms</option>
-                      </>
-                    )}
+                    {(roomOptions ?? Array.from({ length: 10 }, (_, i) => i + 1)).map((n) => (
+                      <option key={n} value={String(n)}>{n} {n === 1 ? 'Room' : 'Rooms'}</option>
+                    ))}
                   </select>
                 </div>
               )}

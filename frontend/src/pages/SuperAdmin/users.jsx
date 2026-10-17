@@ -10,6 +10,7 @@ import {
   updateUserProfile,
   createUserOrPartner,
 } from '../../services/superadmin.api.js';
+import { getUser } from '../../services/session.js';
 import '../../components/superadmin/superadmin.css';
 
 const ROLE_TABS = [
@@ -26,9 +27,15 @@ const ROLE_TABS = [
  * @param {Object} [props.user] - Optional user identity from router
  */
 export default function SuperAdminUsersPage({ user = null }) {
-  const session = useMemo(() => {
-    return user || { userId: 'SA001', role: 'superadmin' };
-  }, [user]);
+  // No `user` prop is ever passed down through the route table (the routes are built once at
+  // module load, before any session exists) — fall back to the real signed-in session instead of
+  // a hardcoded Super Admin stand-in, so this page actually authenticates against the real
+  // backend, whoever (Super Admin or, via Tech Admin's reuse of this page, Tech Admin) is signed in.
+  const session = useMemo(() => user || getUser(), [user]);
+  // Tech Admin shares this page (see techadmin.routes.jsx) but only to view and suspend/restore
+  // an account — creating and editing stay Super Admin-only. The server enforces this too; these
+  // just keep the UI honest about what Tech Admin can actually do.
+  const isSuperAdmin = session.role === 'superadmin';
 
   const [activeTab, setActiveTab] = useState('guide');
   const [usersList, setUsersList] = useState([]);
@@ -563,15 +570,17 @@ export default function SuperAdminUsersPage({ user = null }) {
           </span>
         </div>
 
-        <div className="sa-users-toolbar-right">
-          <button
-            type="button"
-            className="sa-btn-primary"
-            onClick={handleOpenCreate}
-          >
-            <span>+</span> Add {currentTabLabel.slice(0, -1)}
-          </button>
-        </div>
+        {isSuperAdmin && (
+          <div className="sa-users-toolbar-right">
+            <button
+              type="button"
+              className="sa-btn-primary"
+              onClick={handleOpenCreate}
+            >
+              <span>+</span> Add {currentTabLabel.slice(0, -1)}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Data Table */}
@@ -588,13 +597,15 @@ export default function SuperAdminUsersPage({ user = null }) {
         }
         actions={(row) => (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-            <button
-              type="button"
-              className="sa-table-btn-action"
-              onClick={() => handleOpenEdit(row)}
-            >
-              Edit
-            </button>
+            {isSuperAdmin && (
+              <button
+                type="button"
+                className="sa-table-btn-action"
+                onClick={() => handleOpenEdit(row)}
+              >
+                Edit
+              </button>
+            )}
 
             {row.status === 'active' ? (
               <button

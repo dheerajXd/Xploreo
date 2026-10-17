@@ -4,6 +4,7 @@ import { Navbar, useAuth } from '@/foundation';
 const LINKS = [
   { to: '/superadmin/dashboard', label: 'Executive Overview', icon: 'dashboard.svg' },
   { to: '/superadmin/users', label: 'Users & Partners', icon: 'user.svg' },
+  { to: '/superadmin/admins', label: 'Admin Management', icon: 'user.svg' },
   { to: '/superadmin/finance', label: 'Finance & Reports', icon: 'earnings.svg' },
   { to: '/superadmin/operations', label: 'Operations & Ledger', icon: 'schedule.svg' },
 ];

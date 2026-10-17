@@ -583,10 +583,8 @@ export default function GuidesPage({
                     {/* Target Package & Experience */}
                     <td style={{ padding: '12px 14px', borderBottom: '1px solid #f1f5f9' }}>
                       <div style={{ fontWeight: 600, color: '#1e293b', fontSize: 13 }}>
+                        {item.targetKind === 'experience' ? '🎟 ' : '📦 '}
                         {item.experienceTitle}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                        📦 {item.packageTitle}
                       </div>
                       <div style={{ fontSize: 11, color: '#2563eb', marginTop: 2, fontWeight: 500 }}>
                         📍 {item.destination}
@@ -818,16 +816,17 @@ export default function GuidesPage({
                 }}
               >
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                  Target Experience & Package
+                  {selectedApp.targetKind === 'experience' ? 'Target Experience' : 'Target Package'}
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                  {selectedApp.targetKind === 'experience' ? '🎟 ' : '📦 '}
                   {selectedApp.experienceTitle}
                 </div>
                 <div style={{ fontSize: 12, color: '#475569' }}>
-                  Part of package: <strong>{selectedApp.packageTitle}</strong> (#{selectedApp.packageId || 'N/A'})
+                  #{selectedApp.targetKind === 'experience' ? selectedApp.experienceId : selectedApp.packageId || 'N/A'}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, paddingTop: 6, borderTop: '1px dashed #e2e8f0' }}>
-                  <span style={{ fontSize: 12, color: '#64748b' }}>Package Price: ₹{Number(selectedApp.pricePerPerson || 0).toLocaleString()} / person</span>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Price: ₹{Number(selectedApp.pricePerPerson || 0).toLocaleString()} / person</span>
                   <span style={{ fontSize: 12, color: '#64748b' }}>Submitted: {formatDate(selectedApp.submittedAt)}</span>
                 </div>
               </div>

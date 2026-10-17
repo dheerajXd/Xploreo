@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { GuideApplicationsRepository } from '../guide-applications/guide-applications.repository';
-import { PlansRepository } from '../plans/plans.repository';
 import { ExperienceBookingStatus } from '../experience-bookings/entities/experience-booking.entity';
 import { ExperienceBookingsRepository } from '../experience-bookings/experience-bookings.repository';
 import { ExperiencesRepository } from '../experiences/experiences.repository';
@@ -17,13 +16,14 @@ import { TripsRepository } from '../trips/trips.repository';
 
 type Actor = { userId?: string; role?: string };
 
-const norm = (v: unknown) => String(v ?? '').trim().toLowerCase();
 const day = (v: unknown) => String(v ?? '').slice(0, 10);
 
 /**
  * Optional guide for an experience booking. The traveller is asked after booking whether they
- * want one. Guides offered: approved by the regional NTA for a plan in the experience's region,
- * free on the session date, and not already declined for this booking.
+ * want one. Guides offered: approved by the regional NTA specifically for THIS experience (a
+ * guide applies per-experience, the same way they apply per-plan for a trip — see
+ * GuideApplicationsService#create), free on the session date, and not already declined for this
+ * booking.
  */
 @Injectable()
 export class ExperienceGuidesService {
@@ -31,7 +31,6 @@ export class ExperienceGuidesService {
     private readonly bookings: ExperienceBookingsRepository,
     private readonly experiences: ExperiencesRepository,
     private readonly applications: GuideApplicationsRepository,
-    private readonly plans: PlansRepository,
     private readonly guides: GuideRepository,
     private readonly reviews: ReviewsRepository,
     private readonly trips: TripsRepository,
@@ -75,21 +74,14 @@ export class ExperienceGuidesService {
     const date = day(booking.date);
     const declined = new Set(booking.declinedGuideIds ?? []);
 
-    // Cheapest approved price per guide across plans in the experience's region.
-    const priceByGuide = new Map<string, number>();
-    for (const app of this.applications.findAll()) {
-      if (app.status !== 'accepted') continue;
-      const plan = this.plans.findById(app.planId);
-      if (!plan || norm(plan.destination) !== norm(experience.destination)) continue;
-      const current = priceByGuide.get(app.guideId);
-      if (current === undefined || app.guidePricePerPerson < current) {
-        priceByGuide.set(app.guideId, app.guidePricePerPerson);
-      }
-    }
-
-    return [...priceByGuide.entries()]
-      .filter(([guideId]) => !declined.has(guideId) && !this.isBusy(guideId, date, booking.id))
-      .flatMap(([guideId, pricePerPerson]) => {
+    // Only guides who specifically applied to (and were approved for) THIS experience — not every
+    // guide approved for some plan that merely happens to be in the same region.
+    return this.applications
+      .findAcceptedByExperience(experience.id)
+      .filter((app) => !declined.has(app.guideId) && !this.isBusy(app.guideId, date, booking.id))
+      .flatMap((app) => {
+        const guideId = app.guideId;
+        const pricePerPerson = app.guidePricePerPerson;
         const guide = this.guides.findById(guideId);
         if (!guide) return [];
         const { rating, reviewCount } = this.reviews.summaryFor(ReviewTargetType.GUIDE, guideId);
@@ -161,8 +153,15 @@ export class ExperienceGuidesService {
           kind: 'experience' as const,
           travellerId: b.travellerId,
           guestName: b.guestName,
+          // Straight from the booking (what the traveller entered at checkout), not a traveller
+          // profile lookup — the guide is legitimately assigned to this specific booking even
+          // when there is no Trip linking the two of them (TravellerService's own contact-sharing
+          // rule only knows about Trips, so it would otherwise redact a traveller with no trip).
+          guestEmail: b.email,
+          guestPhone: b.phone,
           participants: b.participants,
           date: b.date,
+          createdAt: b.createdAt,
           title: experience?.title ?? b.experienceId,
           destination: experience?.destination ?? '',
           guidePricePerPerson: b.guidePricePerPerson,

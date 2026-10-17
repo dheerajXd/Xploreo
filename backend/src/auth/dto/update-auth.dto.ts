@@ -9,4 +9,11 @@ export class UpdateAuthDto extends PartialType(RegisterDto) {
   @IsString()
   @IsIn(['active', 'inactive'])
   status?: 'active' | 'inactive';
+
+  // Not on RegisterDto (self-signup never sets it) — only a Super Admin reassigns a regional
+  // admin's region, through Admin Management.
+  @ApiPropertyOptional({ example: 'Kerala' })
+  @IsOptional()
+  @IsString()
+  region?: string;
 }

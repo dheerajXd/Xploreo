@@ -7,7 +7,10 @@ export enum GuideApplicationStatus {
 export class GuideApplication {
   id!: string;
   guideId!: string;
-  planId!: string;
+  // Exactly one of these is set — an application targets either a travel plan or a single
+  // experience, never both. See GuideApplicationsService#create.
+  planId?: string;
+  experienceId?: string;
   guidePricePerPerson!: number;
   status!: GuideApplicationStatus;
   // Reason recorded with the latest decision (NTA accept/reject/revoke), or null while pending.

@@ -11,7 +11,7 @@ const CATEGORIES = [
   ['adventure', 'Adventure'], ['culture', 'Culture'], ['culinary', 'Culinary'],
   ['wellness', 'Wellness'], ['wildlife', 'Wildlife'], ['photography', 'Photography'],
 ];
-const FORM_FIELDS = ['title', 'description', 'category', 'price', 'durationHours', 'capacity', 'availability', 'image'];
+const FORM_FIELDS = ['title', 'description', 'category', 'price', 'durationHours', 'availability', 'image'];
 const LOCKED_LOCATION_STYLE = { backgroundColor: '#f1f5f9', cursor: 'not-allowed', fontWeight: 600, color: '#1e293b' };
 
 function toForm(exp) {
@@ -20,14 +20,13 @@ function toForm(exp) {
     category: exp?.category ?? '',
     price: exp ? String(exp.price) : '',
     durationHours: exp ? String(exp.durationHours) : '',
-    capacity: exp?.capacity ? String(exp.capacity) : '',
     description: exp?.description ?? '',
     availability: exp?.availability ?? 'available',
     image: exp?.image ?? '',
   };
 }
 
-function validate(v, editing) {
+function validate(v) {
   const errors = {};
   if (v.title.trim().length < 3) errors.title = 'Enter a name with at least 3 characters.';
   if (!v.category) errors.category = 'Select a category.';
@@ -36,10 +35,6 @@ function validate(v, editing) {
   if (v.price === '' || !Number.isFinite(price) || price <= 0) errors.price = 'Enter a valid price greater than 0.';
   const hours = Number(v.durationHours);
   if (v.durationHours === '' || !Number.isFinite(hours) || hours <= 0) errors.durationHours = 'Enter a valid duration in hours greater than 0.';
-  if (!editing) {
-    const capacity = Number(v.capacity);
-    if (v.capacity === '' || !Number.isInteger(capacity) || capacity < 1) errors.capacity = 'Capacity must be a whole number of 1 or more.';
-  }
   return errors;
 }
 
@@ -66,7 +61,7 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
   async function submit(event) {
     event.preventDefault();
     setFormError('');
-    const found = validate(values, editing);
+    const found = validate(values);
     setErrors(found);
     if (Object.keys(found).length) {
       setFormError('Please fix the highlighted fields before saving.');
@@ -82,7 +77,6 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
       availability: values.availability,
     };
     if (values.image) payload.image = values.image;
-    if (!editing) payload.capacity = Number(values.capacity);
     setSaving(true);
     try {
       const saved = editing ? await updateExperience(experience.id, payload) : await createExperience(payload);
@@ -227,11 +221,6 @@ export default function ExperienceFormModal({ experience, onClose, onSaved }) {
             <FieldError>{errors.durationHours}</FieldError>
           </label>
 
-          <label className="field-group" htmlFor="expCapacity">
-            <span>Capacity per Slot</span>
-            <input id="expCapacity" name="capacity" type="number" min="1" step="1" required value={values.capacity} onChange={set('capacity')} />
-            <FieldError>{errors.capacity}</FieldError>
-          </label>
         </div>
 
         <div className="section form-grid">

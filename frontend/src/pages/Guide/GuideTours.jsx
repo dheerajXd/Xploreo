@@ -20,7 +20,13 @@ const TABS = [
 
 // The old page kept tours in localStorage with three statuses. A trip's tracking status is the source here:
 //   not_started -> Upcoming, ongoing / paused -> Ongoing, completed -> Completed.
-const tabOf = (trip) => (trip.trackingStatus === 'completed' ? 'completed' : trip.trackingStatus === 'not_started' ? 'pending' : 'ongoing');
+const tabOf = (card) => {
+  if (card.kind === 'experience') return card.job.bookingStatus === 'COMPLETED' ? 'completed' : 'pending';
+  const trip = card.trip;
+  return trip.trackingStatus === 'completed' ? 'completed' : trip.trackingStatus === 'not_started' ? 'pending' : 'ongoing';
+};
+
+const EXPERIENCE_STATUS_LABEL = { confirmed: 'Confirmed', completed: 'Completed' };
 
 // Flatten itinerary.days[].experiences[] into the ordered list of stops the guide walks through.
 function stopsOf(trip) {
@@ -42,7 +48,7 @@ const START_WINDOW_HOURS = 3;
 const asMoment = (value) => {
   if (!value) return undefined;
   const text = String(value);
-  const ms = Date.parse(/^d{4}-d{2}-d{2}$/.test(text) ? `${text}T00:00:00` : text);
+  const ms = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T00:00:00` : text);
   return Number.isNaN(ms) ? undefined : ms;
 };
 function startAtOf(trip) {
@@ -80,6 +86,8 @@ async function loadTours(guideId) {
   settled.forEach((r, i) => {
     if (r.status === 'fulfilled') travellers[ids[i]] = r.value;
   });
+  // assignments merges Trip-guide assignments and Experience-session jobs (see guide.api.js); only
+  // the experience-session ones are used here — Trip tours come from the richer /trips/guide fetch above.
   return { trips, assignments, plans, travellers };
 }
 
@@ -96,11 +104,13 @@ export default function GuideTours() {
     if (!data) return [];
     const planById = new Map(data.plans.map((p) => [p.id, p]));
     // Pending, declined and refunded trips are not tours the guide can run.
-    return data.trips.filter((trip) => ['confirmed', 'started', 'completed'].includes(trip.status)).map((trip) => {
+    const tripCards = data.trips.filter((trip) => ['confirmed', 'started', 'completed'].includes(trip.status)).map((trip) => {
       const plan = planById.get(trip.planId);
       const t = data.travellers[trip.travellerId];
       const stops = stopsOf(trip);
       return {
+        kind: 'trip',
+        id: trip.id,
         trip,
         stops,
         plan,
@@ -115,15 +125,33 @@ export default function GuideTours() {
         duration: plan ? `${plan.durationNights + 1} days` : '—',
       };
     });
+    // Experience-session jobs the guide is confirmed for — no itinerary to track, just the single
+    // session, so they only ever land in "Upcoming" or "Completed".
+    const expCards = (data.assignments ?? [])
+      .filter((job) => job.kind === 'experience' && job.status === 'confirmed')
+      .map((job) => ({
+        kind: 'experience',
+        id: job.id,
+        job,
+        title: job.title,
+        destination: job.destination,
+        customer: job.guestName || 'Guest',
+        phone: job.guestPhone ? String(job.guestPhone) : '',
+        amount: job.guideFee,
+        date: job.date,
+        startAt: asMoment(job.date),
+        endAt: asMoment(job.date) !== undefined ? asMoment(job.date) + 86_399_000 : undefined,
+      }));
+    return [...tripCards, ...expCards];
   }, [data]);
 
-  const counts = Object.fromEntries(TABS.map((t) => [t.key, cards.filter((c) => tabOf(c.trip) === t.key).length]));
-  const shown = cards.filter((c) => tabOf(c.trip) === tab);
-  const open = cards.find((c) => c.trip.id === openId);
+  const counts = Object.fromEntries(TABS.map((t) => [t.key, cards.filter((c) => tabOf(c) === t.key).length]));
+  const shown = cards.filter((c) => tabOf(c) === tab);
+  const open = cards.find((c) => c.id === openId);
 
   // Every change is a PATCH; the page then shows exactly what the server answered with.
   async function track(card, changes, message) {
-    setBusyId(card.trip.id);
+    setBusyId(card.id);
     try {
       const updated = await updateTripTracking(card.trip.id, changes);
       mutate((d) => ({ ...d, trips: d.trips.map((t) => (t.id === updated.id ? updated : t)) }));
@@ -213,35 +241,49 @@ export default function GuideTours() {
             {tab === 'pending' && shown.length > 0 ? (
               <div className="gd-tours-grid">
                 {shown.map((c) => (
-                  <UpcomingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onStart={() => start(c)} onDetails={() => setOpenId(c.trip.id)} />
+                  c.kind === 'experience' ? (
+                    <ExperienceTourCard key={c.id} card={c} onDetails={() => setOpenId(c.id)} />
+                  ) : (
+                    <UpcomingCard key={c.id} card={c} busy={busyId === c.id} onStart={() => start(c)} onDetails={() => setOpenId(c.id)} />
+                  )
                 ))}
               </div>
             ) : null}
             {tab === 'ongoing' ? (
               <div className="gd-tours-list-vertical">
                 {shown.map((c) => (
-                  <OngoingCard key={c.trip.id} card={c} busy={busyId === c.trip.id} onAdvance={() => advance(c)} onDetails={() => setOpenId(c.trip.id)} />
+                  <OngoingCard key={c.id} card={c} busy={busyId === c.id} onAdvance={() => advance(c)} onDetails={() => setOpenId(c.id)} />
                 ))}
               </div>
             ) : null}
             {tab === 'completed' && shown.length > 0 ? (
               <div className="gd-tours-list-vertical">
-                {shown.map((c) => <CompletedCard key={c.trip.id} card={c} onDetails={() => setOpenId(c.trip.id)} />)}
+                {shown.map((c) => (
+                  c.kind === 'experience' ? (
+                    <ExperienceTourCard key={c.id} card={c} onDetails={() => setOpenId(c.id)} completed />
+                  ) : (
+                    <CompletedCard key={c.id} card={c} onDetails={() => setOpenId(c.id)} />
+                  )
+                ))}
               </div>
             ) : null}
           </>
         ) : null}
 
         {open ? (
-          <TourModal
-            card={open}
-            busy={busyId === open.trip.id}
-            onClose={() => setOpenId(null)}
-            onStart={() => start(open)}
-            onAdvance={() => advance(open)}
-            onPause={() => track(open, { trackingStatus: 'paused' }, 'Tracking paused.')}
-            onResume={() => track(open, { trackingStatus: 'ongoing' }, 'Tracking resumed.')}
-          />
+          open.kind === 'experience' ? (
+            <ExperienceDetailsOverlay card={open} onClose={() => setOpenId(null)} />
+          ) : (
+            <TourModal
+              card={open}
+              busy={busyId === open.id}
+              onClose={() => setOpenId(null)}
+              onStart={() => start(open)}
+              onAdvance={() => advance(open)}
+              onPause={() => track(open, { trackingStatus: 'paused' }, 'Tracking paused.')}
+              onResume={() => track(open, { trackingStatus: 'ongoing' }, 'Tracking resumed.')}
+            />
+          )
         ) : null}
         {toast}
       </main>
@@ -337,6 +379,56 @@ function OngoingCard({ card, busy, onAdvance, onDetails }) {
         </button>
       </div>
     </article>
+  );
+}
+
+// A confirmed experience session: single day, no stops to track, so it just shows the booking's
+// own details and nothing to start/advance — the guide's only action is showing up.
+function ExperienceTourCard({ card, onDetails, completed }) {
+  return (
+    <article className={completed ? 'gd-completed-card' : 'gd-tour-card'}>
+      <span className="gd-chip" style={{ color: '#0284c7', background: '#eff6ff', borderColor: '#bfdbfe', alignSelf: 'flex-start' }}>
+        🎟 {EXPERIENCE_STATUS_LABEL[completed ? 'completed' : 'confirmed']}
+      </span>
+      <h2 className="gd-tour-card-title">{card.title}</h2>
+      <div className="gd-tour-meta-grid">
+        <span className="gd-meta-item">👤 {card.customer}</span>
+        <span className="gd-meta-item">📞 {card.phone || 'Phone not provided'}</span>
+        <span className="gd-meta-item">📅 {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        <span className="gd-meta-item">📍 {card.destination}</span>
+      </div>
+      <div className="gd-tour-card-footer">
+        <div>{card.amount != null ? <p className="gd-tour-amount">{formatCurrency(card.amount)}</p> : null}</div>
+        <div className="gd-tour-card-actions">
+          <button type="button" className="gd-btn gd-btn-secondary gd-btn-sm" onClick={onDetails}>Details</button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ExperienceDetailsOverlay({ card, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div className="gc-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="gc-dialog" style={{ width: 480, maxWidth: '95vw' }} role="dialog" aria-modal="true" aria-labelledby="exp-tour-modal-title">
+        <h2 id="exp-tour-modal-title">🎟 {card.title}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '12px 0' }}>
+          <div><strong>👤 Guest:</strong> {card.customer}</div>
+          <div><strong>📞 Phone:</strong> {card.phone || 'Not provided'}</div>
+          <div><strong>📍 Destination:</strong> {card.destination}</div>
+          <div><strong>🗓️ Session Date:</strong> {formatDate(card.date, { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+          {card.amount != null ? <div><strong>💰 Guide Fee:</strong> {formatCurrency(card.amount)}</div> : null}
+        </div>
+        <div className="gd-modal-footer">
+          <button type="button" className="gd-btn gd-btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
   );
 }
 

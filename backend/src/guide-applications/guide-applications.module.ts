@@ -6,9 +6,11 @@ import { GuideModule } from '../guide/guide.module';
 import { PlansModule } from '../plans/plans.module';
 import { TripsModule } from '../trips/trips.module';
 import { ReviewsModule } from '../reviews/reviews.module';
+import { ExperiencesModule } from '../experiences/experiences.module';
+import { ExperienceBookingsModule } from '../experience-bookings/experience-bookings.module';
 
 @Module({
-  imports: [GuideModule, PlansModule, TripsModule, ReviewsModule],
+  imports: [GuideModule, PlansModule, TripsModule, ReviewsModule, ExperiencesModule, ExperienceBookingsModule],
   controllers: [GuideApplicationsController],
   providers: [GuideApplicationsService, GuideApplicationsRepository],
   exports: [GuideApplicationsRepository],

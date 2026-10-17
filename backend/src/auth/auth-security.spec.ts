@@ -95,7 +95,7 @@ describe('Phase 4B Security Fixes Specification', () => {
       tripsRepo = new TripsRepository();
       plansRepo = new PlansRepository();
       guideAppsRepo = new GuideApplicationsRepository();
-      tripsService = new TripsService(tripsRepo, plansRepo);
+      tripsService = new TripsService(tripsRepo, plansRepo, new GuideRepository());
     });
 
     it('should prevent traveler from viewing another traveler trip (Horizontal IDOR)', () => {

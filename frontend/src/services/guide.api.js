@@ -11,14 +11,25 @@ export async function listPlans() {
   return listOf(await request('/plans'));
 }
 
-// GET /guide-applications/guide/:guideId
+// GET /experiences — a guide applies to lead a specific experience the same way they apply to
+// lead a specific plan; they only become selectable by a traveller booking THAT experience once
+// the regional NTA approves it (see ExperienceGuidesService#availableGuides on the backend).
+export async function listExperiences() {
+  return listOf(await request('/experiences'));
+}
+
+// GET /guide-applications/guide/:guideId — applications to lead a plan and applications to guide
+// an experience both come back here, distinguished by whether `planId` or `experienceId` is set.
 export async function listMyApplications(guideId) {
   return listOf(await request(`/guide-applications/guide/${enc(guideId)}`));
 }
 
-// POST /guide-applications   CreateGuideApplicationDto { planId, guidePricePerPerson }
+// POST /guide-applications   CreateGuideApplicationDto { planId | experienceId, guidePricePerPerson }
 export function applyToPlan({ planId, guidePricePerPerson }) {
   return request('/guide-applications', { method: 'POST', body: { planId, guidePricePerPerson } });
+}
+export function applyToExperience({ experienceId, guidePricePerPerson }) {
+  return request('/guide-applications', { method: 'POST', body: { experienceId, guidePricePerPerson } });
 }
 
 // GET /guide-assignments/guide/:guideId

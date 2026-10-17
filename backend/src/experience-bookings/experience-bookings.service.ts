@@ -6,9 +6,10 @@ import {
 } from '@nestjs/common';
 import { ExperienceAvailability } from '../experiences/entities/experience.entity';
 import { ExperiencesRepository } from '../experiences/experiences.repository';
+import { GuideRepository } from '../guide/guide.repository';
 import { CreateExperienceBookingDto } from './dto/create-experience-booking.dto';
 import { ExperienceBookingsRepository } from './experience-bookings.repository';
-import { ExperienceBookingStatus } from './entities/experience-booking.entity';
+import { ExperienceBooking, ExperienceBookingStatus } from './entities/experience-booking.entity';
 import { Role } from '../auth/entities/auth.entity';
 import { withTaxes } from '../common/utils/pricing';
 
@@ -29,7 +30,27 @@ export class ExperienceBookingsService {
   constructor(
     private readonly bookingsRepository: ExperienceBookingsRepository,
     private readonly experiencesRepository: ExperiencesRepository,
+    private readonly guideRepository: GuideRepository,
   ) {}
+
+  // Once a guideId is attached to a booking (the traveller legitimately picked that guide),
+  // expose their contact info on the booking itself — bypasses TravellerService's stricter
+  // contact-redaction rule, which only knows about Trip relationships, not Experience bookings.
+  private guideContactFor(booking: ExperienceBooking) {
+    if (!booking.guideId) return undefined;
+    const guide = this.guideRepository.findById(booking.guideId);
+    if (!guide) return undefined;
+    return {
+      userId: guide.userId,
+      name: `${guide.fname} ${guide.lname}`.trim(),
+      phone: guide.phone,
+      email: guide.email,
+      profTitle: guide.prof_title,
+      yearsExp: guide.years_exp,
+      languages: guide.lang_spoken,
+      bio: guide.bio,
+    };
+  }
 
   create(travellerId: string | undefined, dto: CreateExperienceBookingDto) {
     if (!travellerId) {
@@ -50,14 +71,17 @@ export class ExperienceBookingsService {
     if (date < todayIso()) {
       throw new BadRequestException('Experiences cannot be booked for a past date');
     }
-    // Capacity is per session (per date): a booking needs a scheduled session with room left.
+    // Capacity is per session (per date): a booking needs a scheduled session with room left,
+    // checked against that specific slot's own capacity, never the experience-wide aggregate.
+    let sessionCapacity = experience.capacity;
     if (experience.slots?.length) {
       const slot = experience.slots.find((s) => String(s.date).slice(0, 10) === date);
       if (!slot) {
         throw new BadRequestException(`No session of this experience is scheduled on ${date}`);
       }
+      sessionCapacity = slot.capacity;
     }
-    const left = experience.capacity - this.activeParticipantsOn(experience.id, date);
+    const left = sessionCapacity - this.activeParticipantsOn(experience.id, date);
     if (left <= 0) {
       throw new BadRequestException(`This experience is fully booked on ${date}`);
     }
@@ -98,6 +122,7 @@ export class ExperienceBookingsService {
     return {
       ...booking,
       experience: this.experiencesRepository.findById(experience.id) ?? experience,
+      guide: this.guideContactFor(booking),
     };
   }
 
@@ -105,6 +130,7 @@ export class ExperienceBookingsService {
     return this.bookingsRepository.findAll().map((booking) => ({
       ...booking,
       experience: this.experiencesRepository.findById(booking.experienceId),
+      guide: this.guideContactFor(booking),
     }));
   }
 
@@ -120,6 +146,7 @@ export class ExperienceBookingsService {
       .map((booking) => ({
         ...booking,
         experience: this.experiencesRepository.findById(booking.experienceId),
+        guide: this.guideContactFor(booking),
       }));
   }
 
@@ -181,6 +208,7 @@ export class ExperienceBookingsService {
     return {
       ...updated,
       experience: this.experiencesRepository.findById(booking.experienceId),
+      guide: updated ? this.guideContactFor(updated) : undefined,
     };
   }
 

@@ -7,6 +7,7 @@ import {
 import { StructuredItinerary } from '../common/entities/itinerary.entity';
 import { mergeStructuredItineraryPatch } from '../common/utils/itinerary-mapper';
 import { PlansRepository } from '../plans/plans.repository';
+import { GuideRepository } from '../guide/guide.repository';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripTrackingDto } from './dto/update-trip-tracking.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
@@ -26,7 +27,31 @@ export class TripsService {
   constructor(
     private readonly tripsRepository: TripsRepository,
     private readonly plansRepository: PlansRepository,
+    private readonly guideRepository: GuideRepository,
   ) {}
+
+  // Once a guideId is attached to a trip (the traveller legitimately picked that guide), expose
+  // their contact info on the trip itself — bypasses the stricter traveller-contact redaction
+  // rule since this relationship is already established through the trip's own guide-request flow.
+  private guideContactFor(trip: Trip) {
+    if (!trip.guideId) return undefined;
+    const guide = this.guideRepository.findById(trip.guideId);
+    if (!guide) return undefined;
+    return {
+      userId: guide.userId,
+      name: `${guide.fname} ${guide.lname}`.trim(),
+      phone: guide.phone,
+      email: guide.email,
+      profTitle: guide.prof_title,
+      yearsExp: guide.years_exp,
+      languages: guide.lang_spoken,
+      bio: guide.bio,
+    };
+  }
+
+  private withGuide<T extends Trip>(trip: T): T & { guide?: ReturnType<TripsService['guideContactFor']> } {
+    return { ...trip, guide: this.guideContactFor(trip) };
+  }
 
   create(dto: CreateTripDto, actor?: { userId?: string; role?: string; region?: string }) {
     let plan = this.plansRepository.findById(dto.planId);
@@ -206,13 +231,15 @@ export class TripsService {
     if (actor?.role === 'nontechadmin') {
       const ntaRegion = (actor.region || '').trim().toLowerCase();
       if (!ntaRegion) return [];
-      return allTrips.filter((t) => {
-        const plan = this.plansRepository.findById(t.planId);
-        const destination = plan?.destination || t.currentLocation || '';
-        return destination.trim().toLowerCase() === ntaRegion;
-      });
+      return allTrips
+        .filter((t) => {
+          const plan = this.plansRepository.findById(t.planId);
+          const destination = plan?.destination || t.currentLocation || '';
+          return destination.trim().toLowerCase() === ntaRegion;
+        })
+        .map((t) => this.withGuide(t));
     }
-    return allTrips;
+    return allTrips.map((t) => this.withGuide(t));
   }
 
   findOne(id: string, actor?: { userId?: string; role?: string; region?: string }) {
@@ -239,21 +266,21 @@ export class TripsService {
       }
     }
 
-    return trip;
+    return this.withGuide(trip);
   }
 
   findByTraveller(travellerId: string, actor?: { userId?: string; role?: string }) {
     if (actor?.role === 'traveller' && actor.userId !== travellerId) {
       throw new ForbiddenException('You can only view your own trips.');
     }
-    return this.tripsRepository.findByTraveller(travellerId);
+    return this.tripsRepository.findByTraveller(travellerId).map((t) => this.withGuide(t));
   }
 
   findByGuide(guideId: string, actor?: { userId?: string; role?: string }) {
     if (actor?.role === 'guide' && actor.userId !== guideId) {
       throw new ForbiddenException('You can only view your own guide trips.');
     }
-    return this.tripsRepository.findByGuide(guideId);
+    return this.tripsRepository.findByGuide(guideId).map((t) => this.withGuide(t));
   }
 
   update(id: string, dto: UpdateTripDto, actor?: { userId?: string; role?: string; region?: string }) {

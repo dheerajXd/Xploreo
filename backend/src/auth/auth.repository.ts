@@ -292,6 +292,7 @@ export class AuthRepository {
       phone: data.phone!,
       location: data.location,
       status: data.status ?? 'active',
+      region: data.region,
     };
     this.users.push(user);
     return user;

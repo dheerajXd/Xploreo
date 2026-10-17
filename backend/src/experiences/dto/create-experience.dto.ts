@@ -89,10 +89,13 @@ export class CreateExperienceDto {
   @Min(1)
   durationHours!: number;
 
-  @ApiProperty({ example: 12 })
+  // Not set at creation — it's a derived total of each slot's own capacity, recomputed whenever
+  // slots are saved (see ExperiencesService#update). Capacity only exists once slots do.
+  @ApiPropertyOptional({ example: 12 })
+  @IsOptional()
   @IsNumber()
-  @Min(1)
-  capacity!: number;
+  @Min(0)
+  capacity?: number;
 
   @ApiPropertyOptional({ example: 8 })
   @IsOptional()

@@ -4,10 +4,11 @@ import { TripsController } from './trips.controller';
 import { TripsRepository } from './trips.repository';
 import { PlansModule } from '../plans/plans.module';
 import { GuideApplicationsModule } from '../guide-applications/guide-applications.module';
+import { GuideModule } from '../guide/guide.module';
 import { GuideAssignmentsController } from './guide-assignments.controller';
 
 @Module({
-  imports: [PlansModule],
+  imports: [PlansModule, GuideModule],
   controllers: [TripsController, GuideAssignmentsController],
   providers: [TripsService, TripsRepository],
   exports: [TripsService, TripsRepository],

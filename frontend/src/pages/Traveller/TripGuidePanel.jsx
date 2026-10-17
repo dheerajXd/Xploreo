@@ -60,9 +60,18 @@ export default function TripGuidePanel({ trip, onChanged }) {
       ) : null}
 
       {hasGuide && !pending ? (
-        <div className="trav-guide-note is-ok">
-          ✅ Guide confirmed: <strong>{guideLabel}</strong>
-        </div>
+        <>
+          <div className="trav-guide-note is-ok">
+            ✅ Guide confirmed: <strong>{guideLabel}</strong>
+          </div>
+          {trip.guide ? (
+            <div className="trav-guide-note is-neutral">
+              {trip.guide.phone ? <>📞 {trip.guide.phone}</> : null}
+              {trip.guide.phone && trip.guide.email ? ' · ' : null}
+              {trip.guide.email ? <>✉️ <a href={`mailto:${trip.guide.email}`}>{trip.guide.email}</a></> : null}
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {!declined && !pending && !hasGuide && SELECTABLE.has(status) ? (

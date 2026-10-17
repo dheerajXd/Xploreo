@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/create-auth.dto';
+import { CreateStaffDto } from './dto/create-staff.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Public } from '../common/decorators/public.decorator';
@@ -46,13 +47,32 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Roles(Role.SUPERADMIN)
+  @Roles(Role.SUPERADMIN, Role.TECHADMIN)
   @ApiProtectedResource()
   @Get('users')
-  @ApiOperation({ summary: 'List all users (SuperAdmin only)' })
+  @ApiOperation({ summary: 'List all users (SuperAdmin: everyone; Tech Admin: operational accounts only)' })
   @ApiReadEndpoint()
-  findAll() {
-    return this.authService.findAll();
+  findAll(@Req() req: any) {
+    return this.authService.findAll(req.user);
+  }
+
+  // ── Admin Management (Super Admin only) ──
+  @Roles(Role.SUPERADMIN)
+  @ApiProtectedResource()
+  @Get('staff')
+  @ApiOperation({ summary: 'List regional (NonTechAdmin) and Tech Admin accounts' })
+  @ApiReadEndpoint()
+  findStaff() {
+    return this.authService.findStaff();
+  }
+
+  @Roles(Role.SUPERADMIN)
+  @ApiProtectedResource()
+  @Post('staff')
+  @ApiOperation({ summary: 'Create a regional (NonTechAdmin) or Tech Admin account' })
+  @ApiCreateEndpoint(CreateStaffDto)
+  createStaff(@Body() dto: CreateStaffDto) {
+    return this.authService.createStaff(dto);
   }
 
   @Roles(Role.SUPERADMIN)
@@ -75,7 +95,10 @@ export class AuthController {
   )
   @ApiProtectedResource()
   @Patch('users/:id')
-  @ApiOperation({ summary: 'Update a user (self, or any user if SuperAdmin)' })
+  @ApiOperation({
+    summary:
+      'Update a user — self; any account if Super Admin (never another Super Admin); status only, on operational accounts, if Tech Admin',
+  })
   @ApiUpdateEndpoint(UpdateAuthDto)
   update(
     @Param('id', NonEmptyStringPipe) id: string,
@@ -88,9 +111,9 @@ export class AuthController {
   @Roles(Role.SUPERADMIN)
   @ApiProtectedResource()
   @Delete('users/:id')
-  @ApiOperation({ summary: 'Delete a user' })
+  @ApiOperation({ summary: 'Delete a user (never a Super Admin account)' })
   @ApiDeleteEndpoint()
-  remove(@Param('id', NonEmptyStringPipe) id: string) {
-    return this.authService.remove(id);
+  remove(@Param('id', NonEmptyStringPipe) id: string, @Req() req: any) {
+    return this.authService.remove(id, req.user);
   }
 }

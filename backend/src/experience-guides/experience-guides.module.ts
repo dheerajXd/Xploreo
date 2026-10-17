@@ -3,7 +3,6 @@ import { ExperienceBookingsModule } from '../experience-bookings/experience-book
 import { ExperiencesModule } from '../experiences/experiences.module';
 import { GuideApplicationsModule } from '../guide-applications/guide-applications.module';
 import { GuideModule } from '../guide/guide.module';
-import { PlansModule } from '../plans/plans.module';
 import { ReviewsModule } from '../reviews/reviews.module';
 import { TripsModule } from '../trips/trips.module';
 import { ExperienceGuidesController } from './experience-guides.controller';
@@ -15,7 +14,6 @@ import { ExperienceGuidesService } from './experience-guides.service';
     ExperiencesModule,
     GuideApplicationsModule,
     GuideModule,
-    PlansModule,
     ReviewsModule,
     TripsModule,
   ],

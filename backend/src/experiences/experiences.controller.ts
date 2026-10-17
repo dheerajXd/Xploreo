@@ -56,7 +56,7 @@ export class ExperiencesController {
   }
 
   @Get()
-  @Roles(Role.TRAVELLER, Role.EXPERIENCE)
+  @Roles(Role.TRAVELLER, Role.EXPERIENCE, Role.GUIDE)
   @ApiOperation({ summary: 'Get all experiences' })
   @ApiReadEndpoint()
   findAll(@Req() req: any) {

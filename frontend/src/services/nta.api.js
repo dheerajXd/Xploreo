@@ -477,17 +477,20 @@ export async function getGuideApplications(filters = {}, session = {}) {
   }
 }
 
-/** Maps a backend GuideApplication (+ guide/plan details) to the NTA table/modal shape. */
+/** Maps a backend GuideApplication (+ guide/plan/experience details) to the NTA table/modal shape. */
 function mapLiveApplication(app) {
   const guide = app.guide || {};
-  const plan = app.plan || {};
+  const isExperience = Boolean(app.experienceId);
+  const target = (isExperience ? app.experience : app.plan) || {};
   return {
     id: app.id,
     guideId: app.guideId,
+    targetKind: isExperience ? 'experience' : 'plan',
     packageId: app.planId,
-    packageTitle: plan.title || app.planId,
-    experienceTitle: plan.title || app.planId,
-    destination: plan.destination || 'Unassigned',
+    experienceId: app.experienceId,
+    packageTitle: target.title || app.planId || app.experienceId,
+    experienceTitle: target.title || app.planId || app.experienceId,
+    destination: target.destination || 'Unassigned',
     pricePerPerson: app.guidePricePerPerson,
     submittedAt: app.createdAt,
     status: app.status || 'pending',

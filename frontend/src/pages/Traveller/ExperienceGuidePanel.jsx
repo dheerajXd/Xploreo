@@ -27,7 +27,10 @@ export default function ExperienceGuidePanel({ booking: initial, askFirst = fals
   const upcoming = String(booking.date).slice(0, 10) >= new Date().toISOString().slice(0, 10);
   if (booking.status !== 'CONFIRMED' || !upcoming) {
     return booking.guideName && status === 'confirmed' ? (
-      <div className="trav-guide-panel"><div className="trav-guide-note is-ok">✅ Guide: <strong>{booking.guideName}</strong></div></div>
+      <div className="trav-guide-panel">
+        <div className="trav-guide-note is-ok">✅ Guide: <strong>{booking.guideName}</strong></div>
+        <GuideContactLine guide={booking.guide} />
+      </div>
     ) : null;
   }
 
@@ -63,10 +66,13 @@ export default function ExperienceGuidePanel({ booking: initial, askFirst = fals
         </div>
       ) : null}
       {status === 'confirmed' ? (
-        <div className="trav-guide-note is-ok">
-          ✅ Guide confirmed: <strong>{booking.guideName}</strong>
-          {booking.guideFee ? <> · guide fee {formatCurrency(booking.guideFee)}</> : null}
-        </div>
+        <>
+          <div className="trav-guide-note is-ok">
+            ✅ Guide confirmed: <strong>{booking.guideName}</strong>
+            {booking.guideFee ? <> · guide fee {formatCurrency(booking.guideFee)}</> : null}
+          </div>
+          <GuideContactLine guide={booking.guide} />
+        </>
       ) : null}
       {noGuide && status !== 'declined' ? (
         <div className="trav-guide-note is-neutral">
@@ -110,3 +116,16 @@ export default function ExperienceGuidePanel({ booking: initial, askFirst = fals
 }
 
 const apiCancel = (id) => cancelExperienceGuide(id);
+
+// Only rendered once the booking has a confirmed guide — the traveller earned this contact info
+// by picking an NTA-approved guide, so the server already attaches it to the booking response.
+function GuideContactLine({ guide }) {
+  if (!guide) return null;
+  return (
+    <div className="trav-guide-note is-neutral">
+      {guide.phone ? <>📞 {guide.phone}</> : null}
+      {guide.phone && guide.email ? ' · ' : null}
+      {guide.email ? <>✉️ <a href={`mailto:${guide.email}`}>{guide.email}</a></> : null}
+    </div>
+  );
+}

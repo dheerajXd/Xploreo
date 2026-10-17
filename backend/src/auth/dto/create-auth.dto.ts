@@ -1,13 +1,13 @@
 import {
+  IsIn,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '../entities/auth.entity';
+import { OPERATIONAL_ROLES, Role } from '../entities/auth.entity';
 
 import { IsPhone } from '../../common/validators/is-phone';
 
@@ -37,8 +37,10 @@ export class RegisterDto {
   @IsPhone()
   phone!: string;
 
-  @ApiProperty({ enum: Role, example: Role.TRAVELLER })
-  @IsEnum(Role)
+  // Self-signup is only ever one of the operational roles — see OPERATIONAL_ROLES. An admin
+  // account (regional/tech/super admin) can only be created by a Super Admin, via POST /auth/staff.
+  @ApiProperty({ enum: OPERATIONAL_ROLES, example: Role.TRAVELLER })
+  @IsIn(OPERATIONAL_ROLES)
   role!: Role;
 
   @ApiPropertyOptional({ example: 'Mumbai' })
