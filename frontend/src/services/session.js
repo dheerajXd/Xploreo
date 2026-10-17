@@ -27,6 +27,7 @@ export function clearUser() {
   try {
     localStorage.removeItem(KEY);
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('xploreoToken');
   } catch {
     /* storage unavailable */
   }

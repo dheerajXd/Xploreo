@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAuth } from '@/foundation';
 import { SABadge } from '../../components/superadmin';
 import { getGuideApplications, updateGuideApplicationStatus } from '../../services/nta.api.js';
 import { getPlans } from '../../services/plans.api.js';
@@ -32,14 +33,15 @@ export default function GuidesPage({
   onNavigateDashboard = null,
   onNavigatePlans = null,
 }) {
+  const { user: authUser } = useAuth();
   const session = useMemo(() => {
-    return currentUser || user || {
+    return currentUser || user || (authUser && authUser.role !== 'default' ? authUser : {
       userid: 'NTA-JAI-001',
       userId: 'NTA-JAI-001',
       role: 'nontechadmin',
       region: 'Jaipur',
-    };
-  }, [user, currentUser]);
+    });
+  }, [user, currentUser, authUser]);
 
   const assignedRegion = session.region || '';
 

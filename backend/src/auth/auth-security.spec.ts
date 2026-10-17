@@ -232,5 +232,72 @@ describe('Phase 4B Security Fixes Specification', () => {
       const allPlans = plansService.findAll({}, saActor);
       expect(allPlans.data.length).toBeGreaterThan(1);
     });
+
+    describe('Five Regional NTA Accounts & Isolation Validation', () => {
+      const regionalNTAs = [
+        { userId: 'NTA001', role: 'nontechadmin', region: 'Jaipur' },
+        { userId: 'NTA002', role: 'nontechadmin', region: 'Goa' },
+        { userId: 'NTA003', role: 'nontechadmin', region: 'Delhi' },
+        { userId: 'NTA004', role: 'nontechadmin', region: 'Mumbai' },
+        { userId: 'NTA005', role: 'nontechadmin', region: 'Kerala' },
+      ];
+
+      it.each(regionalNTAs)('should enforce strict regional isolation for %s ($userId)', (nta) => {
+        const plans = plansService.findAll({}, nta);
+        expect(plans.data.every((p) => p.destination.toLowerCase() === nta.region.toLowerCase())).toBe(true);
+      });
+
+      it('should prevent NTA001 (Jaipur) from accessing or mutating restricted Goa records', () => {
+        const ntaJaipur = { userId: 'NTA001', role: 'nontechadmin', region: 'Jaipur' };
+        expect(() =>
+          plansService.create(
+            {
+              title: 'Goa Unsanctioned Plan',
+              description: 'Attempted cross-region create',
+              destination: 'Goa',
+              originCity: 'Mumbai',
+              durationNights: 3,
+              pricePerPerson: 20000,
+            } as any,
+            ntaJaipur,
+          ),
+        ).toThrow(ForbiddenException);
+      });
+
+      it('should prevent NTA002 (Goa) from accessing or mutating restricted Jaipur records', () => {
+        const ntaGoa = { userId: 'NTA002', role: 'nontechadmin', region: 'Goa' };
+        expect(() =>
+          plansService.create(
+            {
+              title: 'Jaipur Unsanctioned Plan',
+              description: 'Attempted cross-region create',
+              destination: 'Jaipur',
+              originCity: 'Delhi',
+              durationNights: 3,
+              pricePerPerson: 20000,
+            } as any,
+            ntaGoa,
+          ),
+        ).toThrow(ForbiddenException);
+      });
+
+      it('should prevent NTA003 (Delhi), NTA004 (Mumbai), NTA005 (Kerala) from mutating foreign regions', () => {
+        const ntaDelhi = { userId: 'NTA003', role: 'nontechadmin', region: 'Delhi' };
+        const ntaMumbai = { userId: 'NTA004', role: 'nontechadmin', region: 'Mumbai' };
+        const ntaKerala = { userId: 'NTA005', role: 'nontechadmin', region: 'Kerala' };
+
+        expect(() =>
+          plansService.create({ destination: 'Mumbai', title: 'T' } as any, ntaDelhi),
+        ).toThrow(ForbiddenException);
+
+        expect(() =>
+          plansService.create({ destination: 'Kerala', title: 'T' } as any, ntaMumbai),
+        ).toThrow(ForbiddenException);
+
+        expect(() =>
+          plansService.create({ destination: 'Delhi', title: 'T' } as any, ntaKerala),
+        ).toThrow(ForbiddenException);
+      });
+    });
   });
 });

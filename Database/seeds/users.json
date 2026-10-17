@@ -51,7 +51,55 @@
     "phone": "9000000003",
     "status": "active",
     "region": "Jaipur",
+    "location": "Jaipur"
+  },
+  {
+    "userId": "NTA002",
+    "username": "NTA002",
+    "password": "NTA@123",
+    "role": "nontechadmin",
+    "name": "Rohan D Souza",
+    "email": "nta.goa@xploreo.com",
+    "phone": "9000000004",
+    "status": "active",
+    "region": "Goa",
+    "location": "Goa"
+  },
+  {
+    "userId": "NTA003",
+    "username": "NTA003",
+    "password": "NTA@123",
+    "role": "nontechadmin",
+    "name": "Sunita Verma",
+    "email": "nta.delhi@xploreo.com",
+    "phone": "9000000005",
+    "status": "active",
+    "region": "Delhi",
+    "location": "Delhi"
+  },
+  {
+    "userId": "NTA004",
+    "username": "NTA004",
+    "password": "NTA@123",
+    "role": "nontechadmin",
+    "name": "Aakash Kulkarni",
+    "email": "nta.mumbai@xploreo.com",
+    "phone": "9000000006",
+    "status": "active",
+    "region": "Mumbai",
     "location": "Mumbai"
+  },
+  {
+    "userId": "NTA005",
+    "username": "NTA005",
+    "password": "NTA@123",
+    "role": "nontechadmin",
+    "name": "Ananya Nair",
+    "email": "nta.kerala@xploreo.com",
+    "phone": "9000000007",
+    "status": "active",
+    "region": "Kerala",
+    "location": "Kerala"
   },
   {
     "userId": "HP001",

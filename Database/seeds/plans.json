@@ -9,7 +9,7 @@
     "durationNights": 5,
     "pricePerPerson": 22000,
     "hotelStars": 4,
-    "includesFlight": true,
+    "includesFlight": false,
     "image": "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80",
     "tags": ["Backwaters", "Houseboat", "Tea Gardens", "South India"],
     "itinerary": {
@@ -45,6 +45,50 @@
               "location": "Alleppey",
               "startsAt": "2026-07-02T06:00:00.000Z",
               "endsAt": "2026-07-02T09:00:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-kerala-backwaters-03",
+    "title": "Kerala Backwaters & Houseboat Retreat",
+    "description": "Experience serene luxury on the Vembanad lake with private houseboat cruises, Ayurvedic wellness therapies, and local cuisine.",
+    "originCity": "Kochi",
+    "destination": "Kerala",
+    "status": "available",
+    "durationNights": 4,
+    "pricePerPerson": 32000,
+    "hotelStars": 5,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Backwaters", "Wellness", "Ayurveda", "Luxury"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-ker-01",
+          "hotelId": "HP-KER-001",
+          "name": "Kumarakom Backwater Palace Resort",
+          "checkInDate": "2026-11-01",
+          "checkOutDate": "2026-11-05",
+          "roomType": "Lagoon Heritage Villa",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-ker-01",
+              "experienceId": "EXP-KER-501",
+              "title": "Alleppey Sunrise Kayaking & Canal Walk",
+              "location": "Alleppey, Kerala",
+              "startsAt": "2026-11-02T06:00:00.000Z",
+              "endsAt": "2026-11-02T09:00:00.000Z",
               "status": "planned"
             }
           ]
@@ -123,8 +167,8 @@
         "flight": null,
         "hotel": {
           "id": "hotel-jaipur-palace-01",
-          "hotelId": "hotel-hp001-1",
-          "name": "Xploreo Heritage Inn",
+          "hotelId": "HP-JAI-001",
+          "name": "The Heritage Haveli & Spa, Jaipur",
           "checkInDate": "2026-11-01",
           "checkOutDate": "2026-11-05",
           "roomType": "Heritage Deluxe Room",
@@ -137,11 +181,231 @@
           "experiences": [
             {
               "id": "exp-jai-amer-01",
-              "experienceId": "exp-3",
-              "title": "Amer Fort Twilight Heritage Walk & Bazaar Food Trail",
+              "experienceId": "EXP-JAI-101",
+              "title": "Amer Fort Sunrise Guided Walk",
               "location": "Amer, Jaipur",
-              "startsAt": "2026-11-02T16:30:00.000Z",
-              "endsAt": "2026-11-02T20:30:00.000Z",
+              "startsAt": "2026-11-02T07:00:00.000Z",
+              "endsAt": "2026-11-02T10:30:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-jaipur-crafts-06",
+    "title": "Jaipur Block Printing & Fort Trails (Draft)",
+    "description": "Hands-on artisan textile printing workshops in Sanganer coupled with Nahargarh rampart sunset excursions.",
+    "originCity": "Jaipur",
+    "destination": "Jaipur",
+    "status": "unavailable",
+    "durationNights": 3,
+    "pricePerPerson": 14000,
+    "hotelStars": 3,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Crafts", "Textiles", "Workshops", "Artisans"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-jai-03",
+          "hotelId": "HP-JAI-003",
+          "name": "Jaipur Central Comfort Inn",
+          "checkInDate": "2026-11-10",
+          "checkOutDate": "2026-11-13",
+          "roomType": "Superior Room",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-jai-03",
+              "experienceId": "EXP-JAI-103",
+              "title": "Blue Pottery Artisan Workshop",
+              "location": "Sanganer, Jaipur",
+              "startsAt": "2026-11-11T15:00:00.000Z",
+              "endsAt": "2026-11-11T17:00:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-goa-coastal-02",
+    "title": "Goa Coastal Serenity & Spice Trails",
+    "description": "Discover Portuguese colonial heritage in Fontainhas, organic spice plantation tours, and tranquil South Goa sands.",
+    "originCity": "Mumbai",
+    "destination": "Goa",
+    "status": "available",
+    "durationNights": 4,
+    "pricePerPerson": 28000,
+    "hotelStars": 4,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Coastal", "Heritage", "Latin Quarter", "Spice Trail"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-goa-02",
+          "hotelId": "HP-GOA-002",
+          "name": "Fontainhas Heritage Boutique Manor",
+          "checkInDate": "2026-11-01",
+          "checkOutDate": "2026-11-05",
+          "roomType": "Portuguese Balcony Suite",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-goa-01",
+              "experienceId": "EXP-GOA-201",
+              "title": "Fontainhas Latin Quarter Heritage Walk",
+              "location": "Panaji, Goa",
+              "startsAt": "2026-11-02T09:00:00.000Z",
+              "endsAt": "2026-11-02T11:30:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-goa-beach-07",
+    "title": "South Goa Luxury Beach & Plantation Escape",
+    "description": "Indulge in 5-star beachfront villas, guided botanical walks through Ponda spice gardens, and sunset beach relaxation.",
+    "originCity": "Goa",
+    "destination": "Goa",
+    "status": "available",
+    "durationNights": 5,
+    "pricePerPerson": 34000,
+    "hotelStars": 5,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Beach", "Luxury", "Nature", "Relaxation"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-goa-01",
+          "hotelId": "HP-GOA-001",
+          "name": "Coconut Grove Luxury Beach Resort",
+          "checkInDate": "2026-11-15",
+          "checkOutDate": "2026-11-20",
+          "roomType": "Ocean Breeze Villa",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-goa-02",
+              "experienceId": "EXP-GOA-202",
+              "title": "Organic Spice Plantation & Goan Feast",
+              "location": "Ponda, Goa",
+              "startsAt": "2026-11-16T10:00:00.000Z",
+              "endsAt": "2026-11-16T14:00:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-delhi-monuments-04",
+    "title": "Historic Delhi: Mughal Glory to Modern City",
+    "description": "Step through centuries of Delhi history with insider culinary safaris in Old Delhi, monuments, and imperial avenues.",
+    "originCity": "Delhi",
+    "destination": "Delhi",
+    "status": "available",
+    "durationNights": 3,
+    "pricePerPerson": 18500,
+    "hotelStars": 5,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Monuments", "Culinary", "Mughal", "History"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-del-01",
+          "hotelId": "HP-DEL-001",
+          "name": "The Imperial Heritage Hotel, New Delhi",
+          "checkInDate": "2026-11-05",
+          "checkOutDate": "2026-11-08",
+          "roomType": "Heritage Colonial Suite",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-del-01",
+              "experienceId": "EXP-DEL-301",
+              "title": "Old Delhi Culinary & Street Food Safari",
+              "location": "Chandni Chowk, Delhi",
+              "startsAt": "2026-11-06T17:00:00.000Z",
+              "endsAt": "2026-11-06T20:00:00.000Z",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-mumbai-harbour-05",
+    "title": "Mumbai Coastal Lights & Art Deco Legacy",
+    "description": "Experience the vibrant energy of Mumbai with waterfront heritage promenades, Art Deco architectural trails, and luxury harbour stays.",
+    "originCity": "Mumbai",
+    "destination": "Mumbai",
+    "status": "available",
+    "durationNights": 3,
+    "pricePerPerson": 26000,
+    "hotelStars": 5,
+    "includesFlight": false,
+    "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+    "tags": ["Architecture", "Art Deco", "Harbour", "Coastal"],
+    "itinerary": {
+      "day1": {
+        "flight": null,
+        "hotel": {
+          "id": "hotel-bom-01",
+          "hotelId": "HP-BOM-001",
+          "name": "The Gateway Palace & Marina, Mumbai",
+          "checkInDate": "2026-11-01",
+          "checkOutDate": "2026-11-04",
+          "roomType": "Harbour View Luxury Room",
+          "status": "planned"
+        }
+      },
+      "days": [
+        {
+          "dayNumber": 2,
+          "experiences": [
+            {
+              "id": "exp-bom-01",
+              "experienceId": "EXP-BOM-401",
+              "title": "South Mumbai Art Deco & Heritage Promenade",
+              "location": "Oval Maidan, Mumbai",
+              "startsAt": "2026-11-02T08:30:00.000Z",
+              "endsAt": "2026-11-02T11:00:00.000Z",
               "status": "planned"
             }
           ]

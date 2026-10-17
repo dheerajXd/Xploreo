@@ -23,7 +23,18 @@ function decodeTokenPayload(token) {
 function normalize(account) {
   if (!account || account.role === 'default') return account ?? GUEST;
   const tokenClaims = decodeTokenPayload(account.token);
-  const region = account.region || account.location || account.destination || tokenClaims?.region || (account.userId === 'XP001' || account.username === 'XP001' || account.role === 'experience' ? 'Kerala' : undefined);
+  const defaultNtaRegion = (
+    account.userId === 'NTA001' || account.username === 'NTA001' ? 'Jaipur' :
+    account.userId === 'NTA002' || account.username === 'NTA002' ? 'Goa' :
+    account.userId === 'NTA003' || account.username === 'NTA003' ? 'Delhi' :
+    account.userId === 'NTA004' || account.username === 'NTA004' ? 'Mumbai' :
+    account.userId === 'NTA005' || account.username === 'NTA005' ? 'Kerala' : undefined
+  );
+  const region = account.region || account.location || account.destination || tokenClaims?.region || (
+    account.userId === 'XP001' || account.username === 'XP001' || account.role === 'experience'
+      ? 'Kerala'
+      : defaultNtaRegion
+  );
   return {
     ...account,
     id: account.id ?? account.userId ?? account.username,

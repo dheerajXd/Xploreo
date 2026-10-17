@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAuth } from '@/foundation';
 import {
   SAMetricCard,
   SAChart,
@@ -26,14 +27,15 @@ import '../../components/nta/nta.css';
  * @param {() => void} [props.onNavigatePlans] - Optional callback to navigate to Plans page
  */
 export default function NtaDashboardPage({ user = null, onNavigatePlans = null }) {
+  const { user: authUser } = useAuth();
   const session = useMemo(() => {
-    return user || {
+    return user || (authUser && authUser.role !== 'default' ? authUser : {
       userid: 'NTA-JAI-001',
       userId: 'NTA-JAI-001',
       role: 'nontechadmin',
       region: 'Jaipur',
-    };
-  }, [user]);
+    });
+  }, [user, authUser]);
 
   // Telemetry & Data States
   const [metrics, setMetrics] = useState(null);

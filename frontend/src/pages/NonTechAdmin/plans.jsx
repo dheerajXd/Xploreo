@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/foundation';
 import { PlanList, PlanForm } from '../../components/nta';
 import '../../components/nta/nta.css';
 
@@ -13,13 +14,14 @@ import '../../components/nta/nta.css';
  * @param {Object} [props.currentUser] - Alternative user prop naming
  */
 export default function PlansPage({ user = null, currentUser = null, onNavigateDashboard = null }) {
-  // Session resolution adhering to established pattern
-  const activeUser = currentUser || user || {
+  const { user: authUser } = useAuth();
+  // Session resolution: props -> auth context -> default fallback
+  const activeUser = currentUser || user || (authUser && authUser.role !== 'default' ? authUser : {
     userid: 'NTA-JAI-001',
     userId: 'NTA-JAI-001',
     role: 'nontechadmin',
     region: 'Jaipur',
-  };
+  });
 
   // View state: 'list' | 'create' | 'edit'
   const [currentView, setCurrentView] = useState('list');
